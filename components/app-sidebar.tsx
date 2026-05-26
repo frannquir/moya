@@ -160,13 +160,13 @@ export function AppSidebar({ userEmail }: { userEmail: string }) {
                 <DropdownMenuItem asChild>
                   <Link href="/settings/profile">
                     <User className="mr-2 h-4 w-4" />
-                    Profile
+                    Perfil
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/settings/estudio">
                     <Settings className="mr-2 h-4 w-4" />
-                    Estudio settings
+                    Estudio
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
