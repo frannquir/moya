@@ -45,12 +45,22 @@ export async function addHonorarioPago(honorarioId: string, formData: FormData) 
     .single();
   if (!hon) throw new Error("honorario not found");
 
+  const { data: jusRow } = await supabase
+    .from("system_config")
+    .select("value")
+    .eq("key", "jus_config")
+    .single();
+  const jusValue = (jusRow?.value as { value: number })?.value ?? 0;
+
+  const monto_jus = Number(formData.get("monto_jus") ?? 0);
+  const monto_ars = Math.round(monto_jus * jusValue);
+
   const { error } = await supabase.from("honorarios_pagos").insert({
     honorario_id: honorarioId,
     estudio_id: hon.estudio_id,
     created_by_user_id: user.id,
-    monto_jus: Number(formData.get("monto_jus") ?? 0),
-    monto_ars: Number(formData.get("monto_ars") ?? 0),
+    monto_jus,
+    monto_ars,
     fecha: String(formData.get("fecha") ?? new Date().toISOString().slice(0, 10)),
     nota: String(formData.get("nota") ?? ""),
   });

@@ -10,12 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { formatJus, formatArs, jusToArs } from "@/lib/domain/honorarios";
 import {
   upsertHonorario,
-  addHonorarioPago,
   archiveHonorarioPago,
 } from "./honorarios-actions";
+import { HonorariosAddPagoForm } from "./honorarios-add-pago-form";
 
 export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
   const supabase = await createClient();
@@ -45,14 +46,29 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
     : { data: [] };
 
   const upsert = upsertHonorario.bind(null, ejecutadoId);
+  const isPaid =
+    !!honorario &&
+    (honorario.monto_total_jus ?? 0) > 0 &&
+    (honorario.pendiente_jus ?? 0) <= 0;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Honorarios</CardTitle>
-        <CardDescription>
-          Honorario pactado y pagos recibidos. Valor JUS actual: {formatArs(jusValue)}
-        </CardDescription>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              Honorarios
+              {isPaid && (
+                <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                  Pagado
+                </Badge>
+              )}
+            </CardTitle>
+            <CardDescription>
+              Honorario pactado y pagos recibidos. Valor JUS actual: {formatArs(jusValue)}
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <form action={upsert} className="space-y-3">
@@ -105,58 +121,22 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
               label="Pendiente"
               valueJus={honorario.pendiente_jus ?? 0}
               jusValue={jusValue}
-              highlight={(honorario.pendiente_jus ?? 0) > 0}
+              tone={
+                (honorario.pendiente_jus ?? 0) > 0
+                  ? "warn"
+                  : (honorario.monto_total_jus ?? 0) > 0
+                    ? "ok"
+                    : undefined
+              }
             />
           </div>
         )}
 
-        {honorario && (
-          <form
-            action={addHonorarioPago.bind(null, honorario.id!)}
-            className="space-y-3 rounded-md border p-4"
-          >
-            <h3 className="text-sm font-medium">Registrar pago</h3>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="monto_jus">JUS</Label>
-                <Input
-                  id="monto_jus"
-                  name="monto_jus"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="monto_ars">ARS</Label>
-                <Input
-                  id="monto_ars"
-                  name="monto_ars"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="fecha">Fecha</Label>
-                <Input
-                  id="fecha"
-                  name="fecha"
-                  type="date"
-                  defaultValue={new Date().toISOString().slice(0, 10)}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="nota">Nota</Label>
-              <Input id="nota" name="nota" placeholder="Opcional" />
-            </div>
-            <Button type="submit" size="sm">
-              Agregar pago
-            </Button>
-          </form>
+        {honorario && !isPaid && (
+          <HonorariosAddPagoForm
+            honorarioId={honorario.id!}
+            jusValue={jusValue}
+          />
         )}
 
         {pagos && pagos.length > 0 && (
@@ -196,15 +176,17 @@ function Summary({
   label,
   valueJus,
   jusValue,
-  highlight,
+  tone,
 }: {
   label: string;
   valueJus: number;
   jusValue: number;
-  highlight?: boolean;
+  tone?: "warn" | "ok";
 }) {
+  const toneClass =
+    tone === "warn" ? "text-orange-600" : tone === "ok" ? "text-emerald-600" : "";
   return (
-    <div className={highlight ? "text-orange-600" : ""}>
+    <div className={toneClass}>
       <div className="text-xs uppercase text-muted-foreground">{label}</div>
       <div className="font-semibold tabular-nums">{formatJus(valueJus)}</div>
       <div className="text-xs text-muted-foreground tabular-nums">

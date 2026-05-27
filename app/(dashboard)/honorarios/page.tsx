@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { formatJus, formatArs, jusToArs } from "@/lib/domain/honorarios";
 
 export default async function HonorariosPage() {
@@ -17,6 +18,7 @@ export default async function HonorariosPage() {
     supabase
       .from("honorarios_with_balance")
       .select("*, ejecutado:ejecutados(id, nombre)")
+      .order("pendiente_jus", { ascending: false })
       .order("created_at", { ascending: false }),
     supabase
       .from("system_config")
@@ -26,13 +28,15 @@ export default async function HonorariosPage() {
   ]);
 
   const jusValue = (jusRow?.value as { value: number })?.value ?? 0;
+  const pendingCount =
+    rows?.filter((h) => (h.pendiente_jus ?? 0) > 0).length ?? 0;
 
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-semibold">Honorarios</h1>
         <p className="text-sm text-muted-foreground">
-          {rows?.length ?? 0} honorarios · Valor JUS: {formatArs(jusValue)}
+          {rows?.length ?? 0} honorarios · {pendingCount} pendientes · Valor JUS: {formatArs(jusValue)}
         </p>
       </div>
 
@@ -41,6 +45,7 @@ export default async function HonorariosPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Ejecutado</TableHead>
+              <TableHead>Estado</TableHead>
               <TableHead className="text-right">Pactado</TableHead>
               <TableHead className="text-right">Pagado</TableHead>
               <TableHead className="text-right">Pendiente</TableHead>
@@ -48,37 +53,50 @@ export default async function HonorariosPage() {
           </TableHeader>
           <TableBody>
             {rows && rows.length > 0 ? (
-              rows.map((h) => (
-                <TableRow key={h.id}>
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/ejecutados/${h.ejecutado_id}`}
-                      className="hover:underline"
+              rows.map((h) => {
+                const isPaid =
+                  (h.monto_total_jus ?? 0) > 0 && (h.pendiente_jus ?? 0) <= 0;
+                return (
+                  <TableRow key={h.id} className={isPaid ? "opacity-60" : ""}>
+                    <TableCell className="font-medium">
+                      <Link
+                        href={`/ejecutados/${h.ejecutado_id}`}
+                        className="hover:underline"
+                      >
+                        {h.ejecutado?.nombre ?? "—"}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      {isPaid ? (
+                        <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                          Pagado
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">Pendiente</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatJus(h.monto_total_jus ?? 0)}
+                      <div className="text-xs text-muted-foreground">
+                        {formatArs(jusToArs(h.monto_total_jus ?? 0, jusValue))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatJus(h.pagado_jus ?? 0)}
+                    </TableCell>
+                    <TableCell
+                      className={`text-right tabular-nums ${
+                        (h.pendiente_jus ?? 0) > 0 ? "text-orange-600 font-medium" : ""
+                      }`}
                     >
-                      {h.ejecutado?.nombre ?? "—"}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {formatJus(h.monto_total_jus ?? 0)}
-                    <div className="text-xs text-muted-foreground">
-                      {formatArs(jusToArs(h.monto_total_jus ?? 0, jusValue))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {formatJus(h.pagado_jus ?? 0)}
-                  </TableCell>
-                  <TableCell
-                    className={`text-right tabular-nums ${
-                      (h.pendiente_jus ?? 0) > 0 ? "text-orange-600 font-medium" : ""
-                    }`}
-                  >
-                    {formatJus(h.pendiente_jus ?? 0)}
-                  </TableCell>
-                </TableRow>
-              ))
+                      {formatJus(h.pendiente_jus ?? 0)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                   Aún no hay honorarios. Creá el primero desde un ejecutado.
                 </TableCell>
               </TableRow>
@@ -88,4 +106,4 @@ export default async function HonorariosPage() {
       </div>
     </div>
   );
-}
+} 
