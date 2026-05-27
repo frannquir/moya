@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { MOVIMIENTO_OPTIONS } from "@/lib/domain/ejecutado";
 import { updateEjecutado, archiveEjecutado } from "./actions";
+import { CobrosCard } from "./cobros-card";
 import { HonorariosCard } from "./honorarios-card";
 
 export default async function EjecutadoDetailPage({
@@ -125,6 +126,7 @@ export default async function EjecutadoDetailPage({
       </Card>
 
       <HonorariosCard ejecutadoId={id} />
+      <CobrosCard ejecutadoId={id} />
     </div>
   );
 }
