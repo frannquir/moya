@@ -221,7 +221,6 @@ export function calcularLiquidacion(
   return { rows, capital, totalIntereses, iva, gastos, total };
 }
 
-// Format currency with 2 decimals (es-UY: 1.234,56).
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat("es-UY", {
     minimumFractionDigits: 2,
@@ -229,7 +228,6 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
-// Format a period as "mes-yy" in Spanish (e.g. "enero-26"). Matches the PDF.
 export function formatPeriodo(date: Date): string {
   const monthNames = [
     "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -240,7 +238,6 @@ export function formatPeriodo(date: Date): string {
   return `${month}-${year}`;
 }
 
-// Parse a pasted monthly-rate line (kept for a future tasas editor).
 export function parsePastedTasaLine(
   line: string,
 ): { mes: string; anio: number; tna: number } | null {
