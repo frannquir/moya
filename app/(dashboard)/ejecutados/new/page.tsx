@@ -85,11 +85,18 @@ export default function NewEjecutadoPage() {
             </div>
           </CardContent>
 
-          <CardFooter className="flex justify-between">
+            <CardFooter className="flex justify-between">
             <Button variant="outline" asChild type="button">
               <Link href="/ejecutados">Cancelar</Link>
             </Button>
-            <Button type="submit">Crear</Button>
+            <div className="flex gap-2">
+              <Button type="submit" name="intent" value="borrador" variant="secondary">
+                Guardar como borrador
+              </Button>
+              <Button type="submit" name="intent" value="activo">
+                Crear
+              </Button>
+            </div>
           </CardFooter>
         </form>
       </Card>
