@@ -18,9 +18,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MOVIMIENTO_OPTIONS } from "@/lib/domain/ejecutado";
+import { createClient } from "@/lib/supabase/server";
+import {
+  getConfiguredDepartamentos,
+  type EstudioEscritosConfig,
+} from "@/lib/domain/escritos-config";
 import { createEjecutado } from "./actions";
 
-export default function NewEjecutadoPage() {
+export default async function NewEjecutadoPage() {
+  const supabase = await createClient();
+  const { data: estudioRow } = await supabase
+    .from("estudios")
+    .select("escritos_config")
+    .maybeSingle();
+  const config = (estudioRow?.escritos_config ?? {}) as EstudioEscritosConfig;
+  const departamentos = getConfiguredDepartamentos(config);
+
   return (
     <div className="max-w-2xl">
       <Card>
@@ -59,7 +72,16 @@ export default function NewEjecutadoPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="departamento">Departamento</Label>
-                <Input id="departamento" name="departamento" />
+                <Select name="departamento">
+                  <SelectTrigger id="departamento">
+                    <SelectValue placeholder="Sin departamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departamentos.map((dep) => (
+                      <SelectItem key={dep} value={dep}>{dep}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

@@ -21,10 +21,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MOVIMIENTO_OPTIONS } from "@/lib/domain/ejecutado";
+import {
+  getConfiguredDepartamentos,
+  getConfiguredEmpresas,
+  type EstudioEscritosConfig,
+} from "@/lib/domain/escritos-config";
 import { updateEjecutado, archiveEjecutado } from "./actions";
 import { CobrosCard } from "./cobros-card";
 import { HonorariosCard } from "./honorarios-card";
 import { LiquidacionesSection } from "./liquidaciones-section";
+import { EscritosSection } from "./escritos-section";
 import { Badge } from "@/components/ui/badge";
 import { activarBorrador, moverABorrador } from "../../borradores/actions";
 
@@ -44,6 +50,24 @@ export default async function EjecutadoDetailPage({
     .maybeSingle();
 
   if (!ejecutado) notFound();
+
+  const { data: estudioRow } = await supabase
+    .from("estudios")
+    .select("escritos_config")
+    .eq("id", ejecutado.estudio_id)
+    .maybeSingle();
+  const escritosConfig = (estudioRow?.escritos_config ?? {}) as EstudioEscritosConfig;
+  const departamentos = getConfiguredDepartamentos(escritosConfig);
+  const depOptions =
+    ejecutado.departamento && !departamentos.includes(ejecutado.departamento)
+      ? [...departamentos, ejecutado.departamento]
+      : departamentos;
+
+  const empresas = getConfiguredEmpresas(escritosConfig);
+  const empresaOptions =
+    ejecutado.empresa && !empresas.includes(ejecutado.empresa)
+      ? [...empresas, ejecutado.empresa]
+      : empresas;
 
   const updateAction = updateEjecutado.bind(null, id);
   const archiveAction = archiveEjecutado.bind(null, id);
@@ -83,7 +107,7 @@ export default async function EjecutadoDetailPage({
         <CardHeader>
           <CardTitle>Datos</CardTitle>
           <CardDescription>
-            Editá los datos del ejecutado. Los cambios se guardan al hacer clic en "Guardar".
+            Editá los datos del ejecutado. Los cambios se guardan al hacer clic en «Guardar».
           </CardDescription>
         </CardHeader>
         <form action={updateAction}>
@@ -140,7 +164,17 @@ export default async function EjecutadoDetailPage({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="departamento">Departamento</Label>
-                <Input id="departamento" name="departamento" defaultValue={ejecutado.departamento} />
+                <Select name="departamento" defaultValue={ejecutado.departamento || "__none__"}>
+                  <SelectTrigger id="departamento">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sin departamento</SelectItem>
+                    {depOptions.map((dep) => (
+                      <SelectItem key={dep} value={dep}>{dep}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -159,6 +193,58 @@ export default async function EjecutadoDetailPage({
               </Select>
             </div>
 
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="medida_cautelar">Medida cautelar</Label>
+                <Select name="medida_cautelar" defaultValue={ejecutado.medida_cautelar ?? "__none__"}>
+                  <SelectTrigger id="medida_cautelar">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sin definir</SelectItem>
+                    <SelectItem value="embargo">Embargo</SelectItem>
+                    <SelectItem value="igb">IGB</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="diligenciada">Diligenciada</Label>
+                <Select
+                  name="diligenciada"
+                  defaultValue={
+                    ejecutado.diligenciada === true
+                      ? "si"
+                      : ejecutado.diligenciada === false
+                        ? "no"
+                        : "__unknown__"
+                  }
+                >
+                  <SelectTrigger id="diligenciada">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__unknown__">Sin definir</SelectItem>
+                    <SelectItem value="si">Sí</SelectItem>
+                    <SelectItem value="no">No</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="empresa">Empresa</Label>
+                <Select name="empresa" defaultValue={ejecutado.empresa || "__none__"}>
+                  <SelectTrigger id="empresa">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sin definir</SelectItem>
+                    {empresaOptions.map((emp) => (
+                      <SelectItem key={emp} value={emp}>{emp}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="observaciones">Observaciones</Label>
               <Textarea id="observaciones" name="observaciones" rows={4} defaultValue={ejecutado.observaciones} />
@@ -172,6 +258,7 @@ export default async function EjecutadoDetailPage({
       </Card>
 
       <LiquidacionesSection ejecutadoId={id} />
+      <EscritosSection ejecutadoId={id} />
       <HonorariosCard ejecutadoId={id} />
       <CobrosCard ejecutadoId={id} />
     </div>

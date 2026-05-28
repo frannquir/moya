@@ -25,18 +25,34 @@ export async function updateEjecutado(id: string, formData: FormData) {
   const fechaDesdeRaw = String(formData.get("fecha_desde") ?? "").trim();
   const fechaHastaRaw = String(formData.get("fecha_hasta") ?? "").trim();
 
+  const medidaRaw = String(formData.get("medida_cautelar") ?? "");
+  const medida_cautelar =
+    medidaRaw === "embargo" || medidaRaw === "igb" ? medidaRaw : null;
+
+  const diligRaw = String(formData.get("diligenciada") ?? "");
+  const diligenciada = diligRaw === "si" ? true : diligRaw === "no" ? false : null;
+
+  const empresaRaw = String(formData.get("empresa") ?? "").trim();
+  const empresa = empresaRaw && empresaRaw !== "__none__" ? empresaRaw : null;
+
+  const deptoRaw = String(formData.get("departamento") ?? "").trim();
+  const departamento = deptoRaw === "__none__" ? "" : deptoRaw;
+
   const { error } = await supabase
     .from("ejecutados")
     .update({
       nombre: String(formData.get("nombre") ?? "").trim(),
       juzgado: String(formData.get("juzgado") ?? ""),
-      departamento: String(formData.get("departamento") ?? ""),
+      departamento,
       numero_expediente: String(formData.get("numero_expediente") ?? ""),
       deuda_inicial: Number(formData.get("deuda_inicial") ?? 0) || 0,
       fecha_desde: fechaDesdeRaw || null,
       fecha_hasta: fechaHastaRaw || null,
       gastos: Number(formData.get("gastos") ?? 0) || 0,
       movimiento,
+      medida_cautelar,
+      diligenciada,
+      empresa,
       observaciones: String(formData.get("observaciones") ?? ""),
     })
     .eq("id", id);
