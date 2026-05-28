@@ -27,6 +27,7 @@ export async function createEjecutado(formData: FormData) {
       : null;
 
   const deuda_inicial = Number(formData.get("deuda_inicial") ?? 0) || 0;
+  const isDraft = String(formData.get("intent") ?? "activo") === "borrador";
 
   const { data: created, error } = await supabase
     .from("ejecutados")
@@ -40,6 +41,7 @@ export async function createEjecutado(formData: FormData) {
       deuda_inicial,
       movimiento,
       observaciones: String(formData.get("observaciones") ?? ""),
+      is_draft: isDraft,
     })
     .select("id")
     .single();
@@ -47,5 +49,6 @@ export async function createEjecutado(formData: FormData) {
   if (error) throw error;
 
   revalidatePath("/ejecutados");
+  revalidatePath("/borradores");
   redirect(`/ejecutados/${created.id}`);
 }

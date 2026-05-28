@@ -25,6 +25,8 @@ import { updateEjecutado, archiveEjecutado } from "./actions";
 import { CobrosCard } from "./cobros-card";
 import { HonorariosCard } from "./honorarios-card";
 import { LiquidacionesSection } from "./liquidaciones-section";
+import { Badge } from "@/components/ui/badge";
+import { activarBorrador, moverABorrador } from "../../borradores/actions";
 
 export default async function EjecutadoDetailPage({
   params,
@@ -56,11 +58,25 @@ export default async function EjecutadoDetailPage({
           >
             ← Ejecutados
           </Link>
-          <h1 className="text-2xl font-semibold mt-1">{ejecutado.nombre}</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <h1 className="text-2xl font-semibold">{ejecutado.nombre}</h1>
+            {ejecutado.is_draft && <Badge variant="secondary">Borrador</Badge>}
+          </div>
         </div>
-        <form action={archiveAction}>
-          <Button type="submit" variant="outline">Archivar</Button>
-        </form>
+        <div className="flex items-center gap-2">
+          {ejecutado.is_draft ? (
+            <form action={activarBorrador.bind(null, id)}>
+              <Button type="submit">Activar</Button>
+            </form>
+          ) : (
+            <form action={moverABorrador.bind(null, id)}>
+              <Button type="submit" variant="outline">Mover a borrador</Button>
+            </form>
+          )}
+          <form action={archiveAction}>
+            <Button type="submit" variant="outline">Archivar</Button>
+          </form>
+        </div>
       </div>
 
       <Card>

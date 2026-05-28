@@ -30,12 +30,14 @@ export default async function EjecutadosPage({
     .from("ejecutados")
     .select("*", { count: "exact" })
     .is("archived_at", null)
+    .eq("is_draft", false)
     .order("created_at", { ascending: false })
     .range(from, to);
 
   if (q && q.trim()) {
     query = query.ilike("nombre", `%${q.trim()}%`);
   }
+  
 
   const { data: ejecutados, count, error } = await query;
   if (error) throw error;

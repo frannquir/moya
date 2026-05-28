@@ -139,6 +139,7 @@ export type Database = {
           fecha_hasta: string | null
           gastos: number
           id: string
+          is_draft: boolean
           juzgado: string
           liquidacion: number | null
           movimiento: string | null
@@ -158,6 +159,7 @@ export type Database = {
           fecha_hasta?: string | null
           gastos?: number
           id?: string
+          is_draft?: boolean
           juzgado?: string
           liquidacion?: number | null
           movimiento?: string | null
@@ -177,6 +179,7 @@ export type Database = {
           fecha_hasta?: string | null
           gastos?: number
           id?: string
+          is_draft?: boolean
           juzgado?: string
           liquidacion?: number | null
           movimiento?: string | null
