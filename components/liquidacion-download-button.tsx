@@ -17,9 +17,13 @@ type Input = {
 export function LiquidacionDownloadButton({
   input,
   tasas,
+  label = "Descargar PDF",
+  variant = "default",
 }: {
   input: Input;
   tasas: TasaRow[];
+  label?: string;
+  variant?: "default" | "outline" | "ghost";
 }) {
   const handleDownload = () => {
     try {
@@ -49,8 +53,8 @@ export function LiquidacionDownloadButton({
   };
 
   return (
-    <Button size="sm" onClick={handleDownload}>
-      Descargar PDF
+    <Button size="sm" variant={variant} onClick={handleDownload}>
+      {label}
     </Button>
   );
 }
