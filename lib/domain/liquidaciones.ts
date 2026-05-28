@@ -243,11 +243,10 @@ export function parsePastedTasaLine(
 ): { mes: string; anio: number; tna: number } | null {
   if (!line || !line.trim()) return null;
 
-  const parts = line
+    const parts = line
     .trim()
-    .split(/[\t,]+|\s{2,}/)
+    .split(/[\s,]+/)
     .filter((p) => p.trim());
-  if (parts.length < 3) return null;
 
   let mes: string | null = null;
   let anio: number | null = null;
@@ -281,4 +280,19 @@ export function parsePastedTasaLine(
 
   if (mes && anio && tna !== null) return { mes, anio, tna };
   return null;
+}
+
+export function getUltimaTasa(tasas: TasaRow[]): TasaRow | null {
+  if (tasas.length === 0) return null;
+  const sorted = sortTasasChronological(tasas);
+  return sorted[sorted.length - 1];
+}
+
+export function isClampedEnd(fechaHasta: Date, tasas: TasaRow[]): boolean {
+  const ultima = getUltimaTasa(tasas);
+  if (!ultima) return false;
+  const lastMonthIdx = MONTHS_ES.indexOf(normalizeMonthName(ultima.mes));
+  const lastStart = new Date(ultima.anio, lastMonthIdx, 1);
+  const fhStart = new Date(fechaHasta.getFullYear(), fechaHasta.getMonth(), 1);
+  return fhStart > lastStart;
 }

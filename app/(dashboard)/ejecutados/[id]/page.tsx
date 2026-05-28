@@ -24,6 +24,7 @@ import { MOVIMIENTO_OPTIONS } from "@/lib/domain/ejecutado";
 import { updateEjecutado, archiveEjecutado } from "./actions";
 import { CobrosCard } from "./cobros-card";
 import { HonorariosCard } from "./honorarios-card";
+import { LiquidacionesSection } from "./liquidaciones-section";
 
 export default async function EjecutadoDetailPage({
   params,
@@ -75,7 +76,6 @@ export default async function EjecutadoDetailPage({
               <Label htmlFor="nombre">Nombre *</Label>
               <Input id="nombre" name="nombre" defaultValue={ejecutado.nombre} required />
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="numero_expediente">N° de expediente</Label>
@@ -85,8 +85,38 @@ export default async function EjecutadoDetailPage({
                 <Label htmlFor="deuda_inicial">Deuda inicial (ARS)</Label>
                 <Input id="deuda_inicial" name="deuda_inicial" type="number" step="0.01" min="0" defaultValue={ejecutado.deuda_inicial} />
               </div>
+                          <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="fecha_desde">Fecha desde (vto.)</Label>
+                <Input
+                  id="fecha_desde"
+                  name="fecha_desde"
+                  type="date"
+                  defaultValue={ejecutado.fecha_desde ?? ""}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="fecha_hasta">Fecha hasta</Label>
+                <Input
+                  id="fecha_hasta"
+                  name="fecha_hasta"
+                  type="date"
+                  defaultValue={ejecutado.fecha_hasta ?? ""}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gastos">Gastos (ARS)</Label>
+                <Input
+                  id="gastos"
+                  name="gastos"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  defaultValue={ejecutado.gastos ?? 0}
+                />
+              </div>
             </div>
-
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="juzgado">Juzgado</Label>
@@ -125,6 +155,7 @@ export default async function EjecutadoDetailPage({
         </form>
       </Card>
 
+      <LiquidacionesSection ejecutadoId={id} />
       <HonorariosCard ejecutadoId={id} />
       <CobrosCard ejecutadoId={id} />
     </div>
