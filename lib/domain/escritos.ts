@@ -1,15 +1,10 @@
-// Escritos — shared vocabulary for the signal vector and templates.
-// Escritos read the signal vector, never mails/movimientos directly.
+
 
 import { type Movimiento } from "./ejecutado";
 
 export const MEDIDA_CAUTELAR_OPTIONS = ["embargo", "igb"] as const;
 export type MedidaCautelar = (typeof MEDIDA_CAUTELAR_OPTIONS)[number];
 
-// Default seed of empresa claves for a fresh estudio. The live list is
-// estudio-defined (the keys of escritos_config.empresas); empresa is a free
-// string constrained by that configured set, not a DB enum.
-export const DEFAULT_EMPRESAS = ["Tartan", "Contar", "Promaq"] as const;
 export type Empresa = string;
 
 export const EVENTO_OPTIONS = [

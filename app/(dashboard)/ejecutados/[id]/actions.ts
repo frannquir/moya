@@ -130,11 +130,6 @@ async function recalcLiquidacion(ejecutadoId: string) {
 export async function archiveEjecutado(id: string) {
   const supabase = await createClient();
 
-  await supabase
-    .from("liquidaciones")
-    .update({ archived_at: new Date().toISOString() })
-    .eq("ejecutado_id", id);
-
   const { error } = await supabase
     .from("ejecutados")
     .update({ archived_at: new Date().toISOString() })
@@ -143,5 +138,32 @@ export async function archiveEjecutado(id: string) {
   if (error) throw error;
 
   revalidatePath("/ejecutados");
-  redirect("/ejecutados");
+  revalidatePath("/ejecutados/archivados");
+  revalidatePath("/cobros");
+  revalidatePath("/liquidaciones");
+  revalidatePath("/escritos");
+  redirect("/ejecutados/archivados");
+}
+
+export async function unarchiveEjecutado(id: string) {
+  const supabase = await createClient();
+
+  await supabase
+    .from("liquidaciones")
+    .update({ archived_at: null })
+    .eq("ejecutado_id", id);
+
+  const { error } = await supabase
+    .from("ejecutados")
+    .update({ archived_at: null })
+    .eq("id", id);
+
+  if (error) throw error;
+
+  revalidatePath("/ejecutados");
+  revalidatePath("/ejecutados/archivados");
+  revalidatePath("/cobros");
+  revalidatePath("/liquidaciones");
+  revalidatePath("/escritos");
+  revalidatePath(`/ejecutados/${id}`);
 }

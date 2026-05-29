@@ -36,35 +36,6 @@ export type EmpresaConfig = {
   cuit: string;
 };
 
-export const EMPRESAS: Record<string, EmpresaConfig> = {
-  Tartan: {
-    razonSocial: "EMPRESA TARTAN S.A.",
-    domicilioLegal: "Domicilio legal de la empresa",
-    cuit: "00-00000000-0",
-  },
-  Contar: {
-    razonSocial: "EMPRESA CONTAR S.A.",
-    domicilioLegal: "Domicilio legal de la empresa",
-    cuit: "00-00000000-0",
-  },
-  Promaq: {
-    razonSocial: "EMPRESA PROMAQ S.A.",
-    domicilioLegal: "Domicilio legal de la empresa",
-    cuit: "00-00000000-0",
-  },
-};
-
-export const DOMICILIOS_PROCESALES: Record<string, string> = {
-  "Mar del Plata": "calle __________ Nº ____",
-  Necochea: "calle __________ Nº ____",
-  Dolores: "calle __________ Nº ____",
-  Azul: "calle __________ Nº ____",
-  Tandil: "calle __________ Nº ____",
-  Olavarría: "calle __________ Nº ____",
-};
-
-export const DEFAULT_DEPARTAMENTOS = Object.keys(DOMICILIOS_PROCESALES);
-
 export function getConfiguredDepartamentos(
   config: EstudioEscritosConfig | null | undefined,
 ): string[] {
@@ -95,6 +66,14 @@ function nonEmpty(value: string | null | undefined): boolean {
   return !!value && String(value).trim() !== "";
 }
 
+function normalizeKey(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .trim()
+    .toLowerCase();
+}
+
 export function resolveCuentaHonorarios(
   config: EstudioEscritosConfig | null | undefined,
 ): string {
@@ -102,23 +81,17 @@ export function resolveCuentaHonorarios(
   return nonEmpty(v) ? (v as string) : CUENTA_HONORARIOS;
 }
 
-// Resolve an empresa clave: estudio override first, then the seed default, then
-// empty (so the encabezado shows [EMPRESA] for an unconfigured clave).
 export function resolveEmpresa(
   config: EstudioEscritosConfig | null | undefined,
   key: Empresa | null,
 ): EmpresaConfig | null {
   if (!key) return null;
-  const base = EMPRESAS[key] as EmpresaConfig | undefined;
-  const override = config?.empresas?.[key] as Partial<EmpresaConfig> | undefined;
+  const override = config?.empresas?.[key];
+  if (!override) return null;
   return {
-    razonSocial: nonEmpty(override?.razonSocial)
-      ? override!.razonSocial!
-      : (base?.razonSocial ?? ""),
-    domicilioLegal: nonEmpty(override?.domicilioLegal)
-      ? override!.domicilioLegal!
-      : (base?.domicilioLegal ?? ""),
-    cuit: nonEmpty(override?.cuit) ? override!.cuit! : (base?.cuit ?? ""),
+    razonSocial: override.razonSocial ?? "",
+    domicilioLegal: override.domicilioLegal ?? "",
+    cuit: override.cuit ?? "",
   };
 }
 
@@ -126,11 +99,16 @@ export function resolveDomicilioProcesal(
   config: EstudioEscritosConfig | null | undefined,
   departamento: string | null | undefined,
 ): string {
-  if (!departamento) return "";
-  const key = departamento.trim();
-  const override = config?.domicilios_procesales?.[key];
-  if (nonEmpty(override)) return override as string;
-  return DOMICILIOS_PROCESALES[key] ?? "";
+  const map = config?.domicilios_procesales;
+  if (!departamento || !map) return "";
+  const target = normalizeKey(departamento);
+  if (!target) return "";
+  const direct = map[departamento.trim()];
+  if (nonEmpty(direct)) return direct as string;
+  for (const [key, value] of Object.entries(map)) {
+    if (normalizeKey(key) === target && nonEmpty(value)) return value;
+  }
+  return "";
 }
 
 export function resolveAbogado(

@@ -14,10 +14,10 @@ import { formatJus, formatArs, jusToArs } from "@/lib/domain/honorarios";
 export default async function HonorariosPage() {
   const supabase = await createClient();
 
-  const [{ data: rows }, { data: jusRow }] = await Promise.all([
+  const [{ data: honorarios }, { data: jusRow }] = await Promise.all([
     supabase
       .from("honorarios_with_balance")
-      .select("*, ejecutado:ejecutados(id, nombre)")
+      .select("*, ejecutado:ejecutados(id, nombre, archived_at)")
       .order("pendiente_jus", { ascending: false })
       .order("created_at", { ascending: false }),
     supabase
@@ -26,6 +26,9 @@ export default async function HonorariosPage() {
       .eq("key", "jus_config")
       .single(),
   ]);
+
+  // Hide honorarios whose ejecutado is archived.
+  const rows = (honorarios ?? []).filter((h) => !h.ejecutado?.archived_at);
 
   const jusValue = (jusRow?.value as { value: number })?.value ?? 0;
   const pendingCount =

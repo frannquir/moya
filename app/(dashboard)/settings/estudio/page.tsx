@@ -13,8 +13,6 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { updateEstudio, updateEstudioEscritosConfig } from "./actions";
 import {
-  DEFAULT_DEPARTAMENTOS,
-  EMPRESAS,
   CUENTA_HONORARIOS,
   type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
@@ -39,28 +37,21 @@ export default async function EstudioSettingsPage() {
     : membership?.estudio;
   const config = (estudio?.escritos_config ?? {}) as EstudioEscritosConfig;
 
-  const domicilioEntries = Object.entries(config.domicilios_procesales ?? {});
-  const initialDomicilios = domicilioEntries.length
-    ? domicilioEntries.map(([departamento, domicilio]) => ({
-        departamento,
-        domicilio: String(domicilio ?? ""),
-      }))
-    : DEFAULT_DEPARTAMENTOS.map((departamento) => ({ departamento, domicilio: "" }));
+  const initialDomicilios = Object.entries(config.domicilios_procesales ?? {}).map(
+    ([departamento, domicilio]) => ({
+      departamento,
+      domicilio: String(domicilio ?? ""),
+    }),
+  );
 
-  const empresaEntries = Object.entries(config.empresas ?? {});
-  const initialEmpresas = empresaEntries.length
-    ? empresaEntries.map(([clave, emp]) => ({
-        clave,
-        razonSocial: emp?.razonSocial ?? "",
-        domicilioLegal: emp?.domicilioLegal ?? "",
-        cuit: emp?.cuit ?? "",
-      }))
-    : Object.keys(EMPRESAS).map((clave) => ({
-        clave,
-        razonSocial: "",
-        domicilioLegal: "",
-        cuit: "",
-      }));
+  const initialEmpresas = Object.entries(config.empresas ?? {}).map(
+    ([clave, emp]) => ({
+      clave,
+      razonSocial: emp?.razonSocial ?? "",
+      domicilioLegal: emp?.domicilioLegal ?? "",
+      cuit: emp?.cuit ?? "",
+    }),
+  );
 
   return (
     <div className="max-w-2xl space-y-4">

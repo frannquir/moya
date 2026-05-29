@@ -61,14 +61,16 @@ export async function EscritosSection({ ejecutadoId }: { ejecutadoId: string }) 
   const ranked = rankEscritos(templates ?? [], state);
   const generate = generarEscrito.bind(null, ejecutadoId);
 
+  const recomendados = ranked.filter((t) => t.recomendado);
+  const resto = ranked.filter((t) => !t.recomendado);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Escritos</CardTitle>
         <CardDescription>
-          Ordenados por relevancia para el estado actual del ejecutado. Los{" "}
-          <strong>Recomendados</strong> coinciden con la etapa y las señales; el
-          resto queda disponible más abajo.
+          Los <strong>Recomendados</strong> coinciden con la etapa y las señales del
+          ejecutado. El resto queda disponible en «Ver todos».
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -95,48 +97,74 @@ export async function EscritosSection({ ejecutadoId }: { ejecutadoId: string }) 
           <SignalChip label="Último evento" value={state.ultimo_evento ?? "—"} />
         </div>
 
-        <ul className="space-y-2">
-          {ranked.map((t, i) => {
-            const isTop = i < 3 && t.recomendado;
-            return (
-              <li
-                key={t.id}
-                className={`flex items-start justify-between gap-3 rounded-md border p-3 ${
-                  t.recomendado ? "border-primary/40 bg-primary/5" : ""
-                }`}
-              >
-                <div className="min-w-0 space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium">{t.titulo}</span>
-                    {t.recomendado && (
-                      <Badge variant={isTop ? "default" : "secondary"}>
-                        Recomendado
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="text-xs text-muted-foreground">{t.categoria}</div>
-                  {t.reasons.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-0.5">
-                      {t.reasons.map((r) => (
-                        <Badge key={r} variant="outline">
-                          {REASON_LABELS[r] ?? r}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <form action={generate}>
-                  <input type="hidden" name="template_id" value={t.id} />
-                  <Button type="submit" size="sm" variant="outline">
-                    Generar
-                  </Button>
-                </form>
-              </li>
-            );
-          })}
-        </ul>
+        {recomendados.length > 0 ? (
+          <ul className="space-y-2">
+            {recomendados.map((t) => (
+              <EscritoItem key={t.id} t={t} generate={generate} recomendado />
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Ningún escrito coincide con el estado actual; elegí uno de la lista
+            completa.
+          </p>
+        )}
+
+        {resto.length > 0 && (
+          <details className="group rounded-md border">
+            <summary className="cursor-pointer list-none px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+              Ver todos los escritos ({resto.length})
+            </summary>
+            <ul className="space-y-2 p-3 pt-0">
+              {resto.map((t) => (
+                <EscritoItem key={t.id} t={t} generate={generate} />
+              ))}
+            </ul>
+          </details>
+        )}
       </CardContent>
     </Card>
+  );
+}
+
+function EscritoItem({
+  t,
+  generate,
+  recomendado = false,
+}: {
+  t: { id: string; titulo: string; categoria: string; reasons: string[] };
+  generate: (formData: FormData) => void;
+  recomendado?: boolean;
+}) {
+  return (
+    <li
+      className={`flex items-start justify-between gap-3 rounded-md border p-3 ${
+        recomendado ? "border-primary/40 bg-primary/5" : ""
+      }`}
+    >
+      <div className="min-w-0 space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-medium">{t.titulo}</span>
+          {recomendado && <Badge>Recomendado</Badge>}
+        </div>
+        <div className="text-xs text-muted-foreground">{t.categoria}</div>
+        {t.reasons.length > 0 && (
+          <div className="flex flex-wrap gap-1 pt-0.5">
+            {t.reasons.map((r) => (
+              <Badge key={r} variant="outline">
+                {REASON_LABELS[r] ?? r}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+      <form action={generate}>
+        <input type="hidden" name="template_id" value={t.id} />
+        <Button type="submit" size="sm" variant="outline">
+          Generar
+        </Button>
+      </form>
+    </li>
   );
 }
 

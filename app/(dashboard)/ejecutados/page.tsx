@@ -53,9 +53,14 @@ export default async function EjecutadosPage({
             {count ?? 0} ejecutados activos
           </p>
         </div>
-        <Button asChild>
-          <Link href="/ejecutados/new">Nuevo ejecutado</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/ejecutados/archivados">Archivados</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/ejecutados/new">Nuevo ejecutado</Link>
+          </Button>
+        </div>
       </div>
 
       <EjecutadosSearch defaultValue={q ?? ""} />
