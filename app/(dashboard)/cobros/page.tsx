@@ -14,10 +14,10 @@ import { formatArs } from "@/lib/domain/cobros";
 export default async function CobrosPage() {
   const supabase = await createClient();
 
-  const [{ data: rows }, { data: totals }] = await Promise.all([
+  const [{ data: cobros }, { data: totals }] = await Promise.all([
     supabase
       .from("cobros_pagos")
-      .select("*, ejecutado:ejecutados(id, nombre)")
+      .select("*, ejecutado:ejecutados(id, nombre, archived_at)")
       .is("archived_at", null)
       .order("fecha", { ascending: false })
       .order("created_at", { ascending: false }),
@@ -25,6 +25,9 @@ export default async function CobrosPage() {
       .from("cobros_totals")
       .select("total_solicitado, total_proveido, pagos_count"),
   ]);
+
+  // Hide pagos whose ejecutado is archived (the totals view already excludes them).
+  const rows = (cobros ?? []).filter((c) => !c.ejecutado?.archived_at);
 
   const totalSolicitado = (totals ?? []).reduce(
     (acc, t) => acc + Number(t.total_solicitado ?? 0),

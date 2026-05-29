@@ -127,6 +127,64 @@ export type Database = {
           },
         ]
       }
+      ejecutado_eventos: {
+        Row: {
+          aplicado: boolean
+          confidence: number
+          created_at: string
+          ejecutado_id: string
+          estudio_id: string
+          id: string
+          mail_id: string | null
+          source: string
+          tipo_evento: string
+        }
+        Insert: {
+          aplicado?: boolean
+          confidence?: number
+          created_at?: string
+          ejecutado_id: string
+          estudio_id: string
+          id?: string
+          mail_id?: string | null
+          source?: string
+          tipo_evento: string
+        }
+        Update: {
+          aplicado?: boolean
+          confidence?: number
+          created_at?: string
+          ejecutado_id?: string
+          estudio_id?: string
+          id?: string
+          mail_id?: string | null
+          source?: string
+          tipo_evento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ejecutado_eventos_ejecutado_id_fkey"
+            columns: ["ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "cobros_totals"
+            referencedColumns: ["ejecutado_id"]
+          },
+          {
+            foreignKeyName: "ejecutado_eventos_ejecutado_id_fkey"
+            columns: ["ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "ejecutados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ejecutado_eventos_estudio_id_fkey"
+            columns: ["estudio_id"]
+            isOneToOne: false
+            referencedRelation: "estudios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ejecutados: {
         Row: {
           archived_at: string | null
@@ -134,6 +192,8 @@ export type Database = {
           created_by_user_id: string | null
           departamento: string
           deuda_inicial: number
+          diligenciada: boolean | null
+          empresa: string | null
           estudio_id: string
           fecha_desde: string | null
           fecha_hasta: string | null
@@ -142,6 +202,7 @@ export type Database = {
           is_draft: boolean
           juzgado: string
           liquidacion: number | null
+          medida_cautelar: string | null
           movimiento: string | null
           nombre: string
           numero_expediente: string
@@ -154,6 +215,8 @@ export type Database = {
           created_by_user_id?: string | null
           departamento?: string
           deuda_inicial?: number
+          diligenciada?: boolean | null
+          empresa?: string | null
           estudio_id: string
           fecha_desde?: string | null
           fecha_hasta?: string | null
@@ -162,6 +225,7 @@ export type Database = {
           is_draft?: boolean
           juzgado?: string
           liquidacion?: number | null
+          medida_cautelar?: string | null
           movimiento?: string | null
           nombre: string
           numero_expediente?: string
@@ -174,6 +238,8 @@ export type Database = {
           created_by_user_id?: string | null
           departamento?: string
           deuda_inicial?: number
+          diligenciada?: boolean | null
+          empresa?: string | null
           estudio_id?: string
           fecha_desde?: string | null
           fecha_hasta?: string | null
@@ -182,6 +248,7 @@ export type Database = {
           is_draft?: boolean
           juzgado?: string
           liquidacion?: number | null
+          medida_cautelar?: string | null
           movimiento?: string | null
           nombre?: string
           numero_expediente?: string
@@ -197,6 +264,119 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      escritos: {
+        Row: {
+          archived_at: string | null
+          contenido: string
+          created_at: string
+          created_by_user_id: string | null
+          ejecutado_id: string
+          estudio_id: string
+          id: string
+          template_id: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          contenido?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          ejecutado_id: string
+          estudio_id: string
+          id?: string
+          template_id?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          contenido?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          ejecutado_id?: string
+          estudio_id?: string
+          id?: string
+          template_id?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "escritos_ejecutado_id_fkey"
+            columns: ["ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "cobros_totals"
+            referencedColumns: ["ejecutado_id"]
+          },
+          {
+            foreignKeyName: "escritos_ejecutado_id_fkey"
+            columns: ["ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "ejecutados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escritos_estudio_id_fkey"
+            columns: ["estudio_id"]
+            isOneToOne: false
+            referencedRelation: "estudios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "escritos_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "escritos_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      escritos_templates: {
+        Row: {
+          archived_at: string | null
+          categoria: string
+          contenido: string
+          created_at: string
+          id: string
+          orden: number
+          sugerido_diligenciada: boolean | null
+          sugerido_evento: string[]
+          sugerido_medida_cautelar: string[]
+          sugerido_movimiento: string[]
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          categoria?: string
+          contenido?: string
+          created_at?: string
+          id?: string
+          orden?: number
+          sugerido_diligenciada?: boolean | null
+          sugerido_evento?: string[]
+          sugerido_medida_cautelar?: string[]
+          sugerido_movimiento?: string[]
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          categoria?: string
+          contenido?: string
+          created_at?: string
+          id?: string
+          orden?: number
+          sugerido_diligenciada?: boolean | null
+          sugerido_evento?: string[]
+          sugerido_medida_cautelar?: string[]
+          sugerido_movimiento?: string[]
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       estudio_members: {
         Row: {
@@ -233,6 +413,7 @@ export type Database = {
       estudios: {
         Row: {
           created_at: string
+          escritos_config: Json
           id: string
           nombre: string
           owner_user_id: string
@@ -240,6 +421,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          escritos_config?: Json
           id?: string
           nombre: string
           owner_user_id: string
@@ -247,6 +429,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          escritos_config?: Json
           id?: string
           nombre?: string
           owner_user_id?: string

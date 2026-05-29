@@ -20,17 +20,17 @@ import { LiquidacionDownloadButton } from "@/components/liquidacion-download-but
 export default async function LiquidacionesPage() {
   const supabase = await createClient();
 
-  const [{ data: rows }, { data: tasaRows }] = await Promise.all([
+  const [{ data: liquidaciones }, { data: tasaRows }] = await Promise.all([
     supabase
       .from("liquidaciones")
-      .select("*, ejecutado:ejecutados(id, nombre)")
-      .is("archived_at", null)
+      .select("*, ejecutado:ejecutados(id, nombre, archived_at)")
       .order("monto_adeudado", { ascending: false }),
     supabase.from("bcra_tasas").select("mes, anio, tna"),
   ]);
 
   const tasas = sortTasasChronological((tasaRows ?? []) as TasaRow[]);
-  const items = rows ?? [];
+  // Hide liquidaciones whose ejecutado is archived.
+  const items = (liquidaciones ?? []).filter((l) => !l.ejecutado?.archived_at);
 
   return (
     <div className="space-y-6">
