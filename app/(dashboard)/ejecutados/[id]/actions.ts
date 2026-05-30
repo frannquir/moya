@@ -22,8 +22,8 @@ export async function updateEjecutado(id: string, formData: FormData) {
         ? (movRaw as Movimiento)
         : null;
 
-  const fechaDesdeRaw = String(formData.get("fecha_desde") ?? "").trim();
-  const fechaHastaRaw = String(formData.get("fecha_hasta") ?? "").trim();
+  const fechaMoraRaw = String(formData.get("fecha_mora") ?? "").trim();
+  const fechaDeudaRaw = String(formData.get("fecha_deuda") ?? "").trim();
 
   const medidaRaw = String(formData.get("medida_cautelar") ?? "");
   const medida_cautelar =
@@ -46,8 +46,8 @@ export async function updateEjecutado(id: string, formData: FormData) {
       departamento,
       numero_expediente: String(formData.get("numero_expediente") ?? ""),
       deuda_inicial: Number(formData.get("deuda_inicial") ?? 0) || 0,
-      fecha_desde: fechaDesdeRaw || null,
-      fecha_hasta: fechaHastaRaw || null,
+      fecha_mora: fechaMoraRaw || null,
+      fecha_deuda: fechaDeudaRaw || null,
       gastos: Number(formData.get("gastos") ?? 0) || 0,
       movimiento,
       medida_cautelar,
@@ -76,13 +76,13 @@ async function recalcLiquidacion(ejecutadoId: string) {
   const { data: ej } = await supabase
     .from("ejecutados")
     .select(
-      "estudio_id, nombre, numero_expediente, deuda_inicial, fecha_desde, fecha_hasta, gastos",
+      "estudio_id, nombre, numero_expediente, deuda_inicial, fecha_mora, fecha_deuda, gastos",
     )
     .eq("id", ejecutadoId)
     .single();
   if (!ej) return;
 
-  if (!ej.fecha_desde || !(Number(ej.deuda_inicial) > 0)) return;
+  if (!ej.fecha_mora || !(Number(ej.deuda_inicial) > 0)) return;
 
   const { data: tasaRows } = await supabase
     .from("bcra_tasas")
@@ -90,8 +90,8 @@ async function recalcLiquidacion(ejecutadoId: string) {
   const tasas = sortTasasChronological((tasaRows ?? []) as TasaRow[]);
   if (tasas.length === 0) return;
 
-  const fechaDesde = parseLocalDate(ej.fecha_desde);
-  const fechaHasta = ej.fecha_hasta ? parseLocalDate(ej.fecha_hasta) : new Date();
+  const fechaDesde = parseLocalDate(ej.fecha_mora);
+  const fechaHasta = ej.fecha_deuda ? parseLocalDate(ej.fecha_deuda) : new Date();
 
   try {
     const result = calcularLiquidacion(
@@ -113,7 +113,7 @@ async function recalcLiquidacion(ejecutadoId: string) {
         created_by_user_id: user.id,
         cuenta: ej.numero_expediente ?? "",
         apellido_nombre: ej.nombre ?? "",
-        fecha_desde: ej.fecha_desde,
+        fecha_desde: ej.fecha_mora,
         fecha_hasta: formatLocalDate(fechaHasta),
         capital: result.capital,
         total_intereses: result.totalIntereses,

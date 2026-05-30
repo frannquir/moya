@@ -127,21 +127,21 @@ export default async function EjecutadoDetailPage({
               </div>
                           <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="fecha_desde">Fecha desde (vto.)</Label>
+                <Label htmlFor="fecha_mora">Fecha de mora (desde)</Label>
                 <Input
-                  id="fecha_desde"
-                  name="fecha_desde"
+                  id="fecha_mora"
+                  name="fecha_mora"
                   type="date"
-                  defaultValue={ejecutado.fecha_desde ?? ""}
+                  defaultValue={ejecutado.fecha_mora ?? ""}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="fecha_hasta">Fecha hasta</Label>
+                <Label htmlFor="fecha_deuda">Fecha de deuda (hasta)</Label>
                 <Input
-                  id="fecha_hasta"
-                  name="fecha_hasta"
+                  id="fecha_deuda"
+                  name="fecha_deuda"
                   type="date"
-                  defaultValue={ejecutado.fecha_hasta ?? ""}
+                  defaultValue={ejecutado.fecha_deuda ?? ""}
                 />
               </div>
               <div className="space-y-2">
