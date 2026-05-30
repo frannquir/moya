@@ -26,7 +26,7 @@ export default async function EscritosPage() {
 
   const { data: ejecutados, error } = await supabase
     .from("ejecutados")
-    .select("id, nombre, numero_expediente, movimiento, medida_cautelar, diligenciada")
+    .select("id, nombre, numero_expediente, movimiento, medida_cautelar, movimiento_diligenciada")
     .is("archived_at", null)
     .eq("is_draft", false)
     .order("updated_at", { ascending: false })
@@ -84,7 +84,7 @@ export default async function EscritosPage() {
             const state: EscritoSignalState = {
               movimiento: (ej.movimiento ?? null) as Movimiento | null,
               medida_cautelar: (ej.medida_cautelar ?? null) as MedidaCautelar | null,
-              diligenciada: ej.diligenciada ?? null,
+              diligenciada: ej.movimiento_diligenciada ?? null,
               ultimo_evento: ultimoEvento.get(ej.id) ?? null,
               tiene_liquidacion: conLiquidacion.has(ej.id),
             };

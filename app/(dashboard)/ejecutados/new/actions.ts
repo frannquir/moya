@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { MOVIMIENTO_OPTIONS, type Movimiento } from "@/lib/domain/ejecutado";
+import { parseEjecutadoFormData } from "@/lib/domain/ejecutado";
 
 export async function createEjecutado(formData: FormData) {
   const supabase = await createClient();
@@ -17,16 +17,9 @@ export async function createEjecutado(formData: FormData) {
     .single();
   if (!estudio) throw new Error("No estudio for user");
 
-  const nombre = String(formData.get("nombre") ?? "").trim();
-  if (!nombre) throw new Error("Nombre is required");
+  const fields = parseEjecutadoFormData(formData);
+  if (!fields.nombre) throw new Error("Nombre is required");
 
-  const movRaw = String(formData.get("movimiento") ?? "");
-  const movimiento =
-    (MOVIMIENTO_OPTIONS as readonly string[]).includes(movRaw)
-      ? (movRaw as Movimiento)
-      : null;
-
-  const deuda_inicial = Number(formData.get("deuda_inicial") ?? 0) || 0;
   const isDraft = String(formData.get("intent") ?? "activo") === "borrador";
 
   const { data: created, error } = await supabase
@@ -34,14 +27,8 @@ export async function createEjecutado(formData: FormData) {
     .insert({
       estudio_id: estudio.estudio_id,
       created_by_user_id: user.id,
-      nombre,
-      juzgado: String(formData.get("juzgado") ?? ""),
-      departamento: String(formData.get("departamento") ?? ""),
-      numero_expediente: String(formData.get("numero_expediente") ?? ""),
-      deuda_inicial,
-      movimiento,
-      observaciones: String(formData.get("observaciones") ?? ""),
       is_draft: isDraft,
+      ...fields,
     })
     .select("id")
     .single();
