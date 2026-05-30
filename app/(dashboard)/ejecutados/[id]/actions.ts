@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { MOVIMIENTO_OPTIONS, type Movimiento } from "@/lib/domain/ejecutado";
+import { parseEjecutadoFormData } from "@/lib/domain/ejecutado";
 import {
   calcularLiquidacion,
   sortTasasChronological,
@@ -14,47 +14,12 @@ import { parseLocalDate, formatLocalDate } from "@/lib/domain/dates";
 export async function updateEjecutado(id: string, formData: FormData) {
   const supabase = await createClient();
 
-  const movRaw = String(formData.get("movimiento") ?? "");
-  const movimiento =
-    movRaw === "" || movRaw === "__none__"
-      ? null
-      : (MOVIMIENTO_OPTIONS as readonly string[]).includes(movRaw)
-        ? (movRaw as Movimiento)
-        : null;
-
-  const fechaDesdeRaw = String(formData.get("fecha_desde") ?? "").trim();
-  const fechaHastaRaw = String(formData.get("fecha_hasta") ?? "").trim();
-
-  const medidaRaw = String(formData.get("medida_cautelar") ?? "");
-  const medida_cautelar =
-    medidaRaw === "embargo" || medidaRaw === "igb" ? medidaRaw : null;
-
-  const diligRaw = String(formData.get("diligenciada") ?? "");
-  const diligenciada = diligRaw === "si" ? true : diligRaw === "no" ? false : null;
-
-  const empresaRaw = String(formData.get("empresa") ?? "").trim();
-  const empresa = empresaRaw && empresaRaw !== "__none__" ? empresaRaw : null;
-
-  const deptoRaw = String(formData.get("departamento") ?? "").trim();
-  const departamento = deptoRaw === "__none__" ? "" : deptoRaw;
+  const fields = parseEjecutadoFormData(formData);
+  if (!fields.nombre) throw new Error("Nombre is required");
 
   const { error } = await supabase
     .from("ejecutados")
-    .update({
-      nombre: String(formData.get("nombre") ?? "").trim(),
-      juzgado: String(formData.get("juzgado") ?? ""),
-      departamento,
-      numero_expediente: String(formData.get("numero_expediente") ?? ""),
-      deuda_inicial: Number(formData.get("deuda_inicial") ?? 0) || 0,
-      fecha_desde: fechaDesdeRaw || null,
-      fecha_hasta: fechaHastaRaw || null,
-      gastos: Number(formData.get("gastos") ?? 0) || 0,
-      movimiento,
-      medida_cautelar,
-      diligenciada,
-      empresa,
-      observaciones: String(formData.get("observaciones") ?? ""),
-    })
+    .update(fields)
     .eq("id", id);
 
   if (error) throw error;
@@ -76,13 +41,13 @@ async function recalcLiquidacion(ejecutadoId: string) {
   const { data: ej } = await supabase
     .from("ejecutados")
     .select(
-      "estudio_id, nombre, numero_expediente, deuda_inicial, fecha_desde, fecha_hasta, gastos",
+      "estudio_id, nombre, numero_expediente, deuda_inicial, fecha_mora, fecha_deuda, gastos",
     )
     .eq("id", ejecutadoId)
     .single();
   if (!ej) return;
 
-  if (!ej.fecha_desde || !(Number(ej.deuda_inicial) > 0)) return;
+  if (!ej.fecha_mora || !(Number(ej.deuda_inicial) > 0)) return;
 
   const { data: tasaRows } = await supabase
     .from("bcra_tasas")
@@ -90,8 +55,8 @@ async function recalcLiquidacion(ejecutadoId: string) {
   const tasas = sortTasasChronological((tasaRows ?? []) as TasaRow[]);
   if (tasas.length === 0) return;
 
-  const fechaDesde = parseLocalDate(ej.fecha_desde);
-  const fechaHasta = ej.fecha_hasta ? parseLocalDate(ej.fecha_hasta) : new Date();
+  const fechaDesde = parseLocalDate(ej.fecha_mora);
+  const fechaHasta = ej.fecha_deuda ? parseLocalDate(ej.fecha_deuda) : new Date();
 
   try {
     const result = calcularLiquidacion(
@@ -113,7 +78,7 @@ async function recalcLiquidacion(ejecutadoId: string) {
         created_by_user_id: user.id,
         cuenta: ej.numero_expediente ?? "",
         apellido_nombre: ej.nombre ?? "",
-        fecha_desde: ej.fecha_desde,
+        fecha_desde: ej.fecha_mora,
         fecha_hasta: formatLocalDate(fechaHasta),
         capital: result.capital,
         total_intereses: result.totalIntereses,
