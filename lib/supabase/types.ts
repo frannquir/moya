@@ -183,6 +183,13 @@ export type Database = {
             referencedRelation: "estudios"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ejecutado_eventos_mail_id_fkey"
+            columns: ["mail_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
         ]
       }
       ejecutados: {
@@ -261,6 +268,104 @@ export type Database = {
             columns: ["estudio_id"]
             isOneToOne: false
             referencedRelation: "estudios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emails: {
+        Row: {
+          archived_at: string | null
+          body_html: string
+          body_text: string
+          created_at: string
+          ejecutado_id: string | null
+          estudio_id: string
+          from_email: string
+          from_name: string
+          gmail_connection_id: string | null
+          gmail_labels: string[]
+          gmail_message_id: string
+          gmail_thread_id: string | null
+          id: string
+          is_delegated: boolean
+          match_confidence: number
+          match_manual: boolean
+          received_at: string | null
+          snippet: string
+          subject: string
+          to_emails: string[]
+        }
+        Insert: {
+          archived_at?: string | null
+          body_html?: string
+          body_text?: string
+          created_at?: string
+          ejecutado_id?: string | null
+          estudio_id: string
+          from_email?: string
+          from_name?: string
+          gmail_connection_id?: string | null
+          gmail_labels?: string[]
+          gmail_message_id: string
+          gmail_thread_id?: string | null
+          id?: string
+          is_delegated?: boolean
+          match_confidence?: number
+          match_manual?: boolean
+          received_at?: string | null
+          snippet?: string
+          subject?: string
+          to_emails?: string[]
+        }
+        Update: {
+          archived_at?: string | null
+          body_html?: string
+          body_text?: string
+          created_at?: string
+          ejecutado_id?: string | null
+          estudio_id?: string
+          from_email?: string
+          from_name?: string
+          gmail_connection_id?: string | null
+          gmail_labels?: string[]
+          gmail_message_id?: string
+          gmail_thread_id?: string | null
+          id?: string
+          is_delegated?: boolean
+          match_confidence?: number
+          match_manual?: boolean
+          received_at?: string | null
+          snippet?: string
+          subject?: string
+          to_emails?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_ejecutado_id_fkey"
+            columns: ["ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "cobros_totals"
+            referencedColumns: ["ejecutado_id"]
+          },
+          {
+            foreignKeyName: "emails_ejecutado_id_fkey"
+            columns: ["ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "ejecutados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emails_estudio_id_fkey"
+            columns: ["estudio_id"]
+            isOneToOne: false
+            referencedRelation: "estudios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emails_gmail_connection_id_fkey"
+            columns: ["gmail_connection_id"]
+            isOneToOne: false
+            referencedRelation: "gmail_connections"
             referencedColumns: ["id"]
           },
         ]
@@ -487,6 +592,97 @@ export type Database = {
             columns: ["pago_id"]
             isOneToOne: true
             referencedRelation: "cobros_pagos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gmail_connections: {
+        Row: {
+          access_token: string | null
+          archived_at: string | null
+          connected_by_user_id: string | null
+          created_at: string
+          estudio_id: string
+          google_email: string
+          id: string
+          last_sync_error: string | null
+          last_synced_at: string | null
+          refresh_token_encrypted: string
+          scope: string
+          token_expires_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          archived_at?: string | null
+          connected_by_user_id?: string | null
+          created_at?: string
+          estudio_id: string
+          google_email: string
+          id?: string
+          last_sync_error?: string | null
+          last_synced_at?: string | null
+          refresh_token_encrypted: string
+          scope?: string
+          token_expires_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          archived_at?: string | null
+          connected_by_user_id?: string | null
+          created_at?: string
+          estudio_id?: string
+          google_email?: string
+          id?: string
+          last_sync_error?: string | null
+          last_synced_at?: string | null
+          refresh_token_encrypted?: string
+          scope?: string
+          token_expires_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmail_connections_estudio_id_fkey"
+            columns: ["estudio_id"]
+            isOneToOne: true
+            referencedRelation: "estudios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gmail_oauth_states: {
+        Row: {
+          created_at: string
+          created_by_user_id: string
+          estudio_id: string
+          expires_at: string
+          redirect: string | null
+          state: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_user_id: string
+          estudio_id: string
+          expires_at: string
+          redirect?: string | null
+          state: string
+        }
+        Update: {
+          created_at?: string
+          created_by_user_id?: string
+          estudio_id?: string
+          expires_at?: string
+          redirect?: string | null
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gmail_oauth_states_estudio_id_fkey"
+            columns: ["estudio_id"]
+            isOneToOne: false
+            referencedRelation: "estudios"
             referencedColumns: ["id"]
           },
         ]
