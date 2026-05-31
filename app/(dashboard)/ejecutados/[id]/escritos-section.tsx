@@ -23,7 +23,7 @@ export async function EscritosSection({ ejecutadoId }: { ejecutadoId: string }) 
 
   const { data: ej } = await supabase
     .from("ejecutados")
-    .select("movimiento, medida_cautelar, diligenciada")
+    .select("movimiento, medida_cautelar, movimiento_diligenciada")
     .eq("id", ejecutadoId)
     .single();
 
@@ -53,7 +53,7 @@ export async function EscritosSection({ ejecutadoId }: { ejecutadoId: string }) 
   const state: EscritoSignalState = {
     movimiento: (ej?.movimiento ?? null) as Movimiento | null,
     medida_cautelar: (ej?.medida_cautelar ?? null) as MedidaCautelar | null,
-    diligenciada: ej?.diligenciada ?? null,
+    diligenciada: ej?.movimiento_diligenciada ?? null,
     ultimo_evento: ultEvento?.tipo_evento ?? null,
     tiene_liquidacion: !!liq,
   };

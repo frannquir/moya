@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ export default async function EjecutadosPage({
 }) {
   const { q, page } = await searchParams;
   const pageNum = Math.max(1, parseInt(page ?? "1", 10) || 1);
+  const term = (q ?? "").trim().slice(0, 100);
   const from = (pageNum - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
@@ -34,15 +36,28 @@ export default async function EjecutadosPage({
     .order("created_at", { ascending: false })
     .range(from, to);
 
-  if (q && q.trim()) {
-    query = query.ilike("nombre", `%${q.trim()}%`);
+  if (term) {
+    // Escape LIKE wildcards so a literal % or _ doesn't change the match.
+    query = query.ilike("nombre", `%${escapeLike(term)}%`);
   }
-  
 
   const { data: ejecutados, count, error } = await query;
   if (error) throw error;
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
+
+  // Past the last page (e.g. a stale ?page= after the set shrank): snap to the
+  // last real page instead of rendering an empty "no results" table.
+  if (pageNum > totalPages) {
+    const params = new URLSearchParams({
+      ...(term ? { q: term } : {}),
+      page: String(totalPages),
+    });
+    redirect(`?${params}`);
+  }
+
+  const hrefFor = (target: number) =>
+    `?${new URLSearchParams({ ...(term ? { q: term } : {}), page: String(target) })}`;
 
   return (
     <div className="space-y-4">
@@ -105,7 +120,7 @@ export default async function EjecutadosPage({
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                  {q ? "No se encontraron ejecutados." : "Aún no hay ejecutados. Creá el primero."}
+                  {term ? "No se encontraron ejecutados." : "Aún no hay ejecutados. Creá el primero."}
                 </TableCell>
               </TableRow>
             )}
@@ -119,29 +134,31 @@ export default async function EjecutadosPage({
             Página {pageNum} de {totalPages}
           </span>
           <div className="space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              disabled={pageNum <= 1}
-            >
-              <Link href={`?${new URLSearchParams({ ...(q ? { q } : {}), page: String(pageNum - 1) })}`}>
+            {pageNum <= 1 ? (
+              <Button variant="outline" size="sm" disabled>
                 Anterior
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              disabled={pageNum >= totalPages}
-            >
-              <Link href={`?${new URLSearchParams({ ...(q ? { q } : {}), page: String(pageNum + 1) })}`}>
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={hrefFor(pageNum - 1)}>Anterior</Link>
+              </Button>
+            )}
+            {pageNum >= totalPages ? (
+              <Button variant="outline" size="sm" disabled>
                 Siguiente
-              </Link>
-            </Button>
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={hrefFor(pageNum + 1)}>Siguiente</Link>
+              </Button>
+            )}
           </div>
         </div>
       )}
     </div>
   );
+}
+
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (c) => `\\${c}`);
 }

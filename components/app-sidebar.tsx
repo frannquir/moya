@@ -164,7 +164,7 @@ export function AppSidebar({ userEmail }: { userEmail: string }) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/settings/estudio">
+                  <Link href="/estudio">
                     <Settings className="mr-2 h-4 w-4" />
                     Estudio
                   </Link>

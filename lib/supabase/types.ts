@@ -195,71 +195,92 @@ export type Database = {
       ejecutados: {
         Row: {
           archived_at: string | null
+          codemandados: string[]
           created_at: string
           created_by_user_id: string | null
           departamento: string
           deuda_inicial: number
-          diligenciada: boolean | null
+          dinero_en_cuenta: number | null
+          documento: string
+          domicilio: string
           empresa: string | null
           estudio_id: string
-          fecha_desde: string | null
-          fecha_hasta: string | null
+          fecha_deuda: string | null
+          fecha_mora: string | null
           gastos: number
           id: string
           is_draft: boolean
           juzgado: string
-          liquidacion: number | null
           medida_cautelar: string | null
+          medida_cautelar_diligenciada: boolean
+          medida_cautelar_estado: string | null
+          medida_cautelar_nota: string
           movimiento: string | null
+          movimiento_diligenciada: boolean | null
           nombre: string
           numero_expediente: string
           observaciones: string
+          practica_liquidacion: string | null
           updated_at: string
         }
         Insert: {
           archived_at?: string | null
+          codemandados?: string[]
           created_at?: string
           created_by_user_id?: string | null
           departamento?: string
           deuda_inicial?: number
-          diligenciada?: boolean | null
+          dinero_en_cuenta?: number | null
+          documento?: string
+          domicilio?: string
           empresa?: string | null
           estudio_id: string
-          fecha_desde?: string | null
-          fecha_hasta?: string | null
+          fecha_deuda?: string | null
+          fecha_mora?: string | null
           gastos?: number
           id?: string
           is_draft?: boolean
           juzgado?: string
-          liquidacion?: number | null
           medida_cautelar?: string | null
+          medida_cautelar_diligenciada?: boolean
+          medida_cautelar_estado?: string | null
+          medida_cautelar_nota?: string
           movimiento?: string | null
+          movimiento_diligenciada?: boolean | null
           nombre: string
           numero_expediente?: string
           observaciones?: string
+          practica_liquidacion?: string | null
           updated_at?: string
         }
         Update: {
           archived_at?: string | null
+          codemandados?: string[]
           created_at?: string
           created_by_user_id?: string | null
           departamento?: string
           deuda_inicial?: number
-          diligenciada?: boolean | null
+          dinero_en_cuenta?: number | null
+          documento?: string
+          domicilio?: string
           empresa?: string | null
           estudio_id?: string
-          fecha_desde?: string | null
-          fecha_hasta?: string | null
+          fecha_deuda?: string | null
+          fecha_mora?: string | null
           gastos?: number
           id?: string
           is_draft?: boolean
           juzgado?: string
-          liquidacion?: number | null
           medida_cautelar?: string | null
+          medida_cautelar_diligenciada?: boolean
+          medida_cautelar_estado?: string | null
+          medida_cautelar_nota?: string
           movimiento?: string | null
+          movimiento_diligenciada?: boolean | null
           nombre?: string
           numero_expediente?: string
           observaciones?: string
+          practica_liquidacion?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1032,6 +1053,23 @@ export type Database = {
     }
     Functions: {
       current_estudio_id: { Args: never; Returns: string }
+      get_estudio_members: {
+        Args: never
+        Returns: {
+          email: string
+          joined_at: string
+          nombre: string
+          role: string
+          user_id: string
+        }[]
+      }
+      get_user_by_email: {
+        Args: { p_email: string }
+        Returns: {
+          email: string
+          id: string
+        }[]
+      }
       is_current_user_head: { Args: never; Returns: boolean }
     }
     Enums: {
