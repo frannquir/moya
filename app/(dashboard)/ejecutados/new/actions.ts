@@ -37,5 +37,5 @@ export async function createEjecutado(formData: FormData) {
 
   revalidatePath("/ejecutados");
   revalidatePath("/borradores");
-  redirect(`/ejecutados/${created.id}`);
+  redirect(`/ejecutados/${created.id}?toast=ejecutado_creado`);
 }

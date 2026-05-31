@@ -15,11 +15,10 @@ import {
   MEDIDA_ESTADO_OPTIONS,
   formatCodemandados,
 } from "@/lib/domain/ejecutado";
+import { formatArgDate } from "@/lib/domain/dates";
 import { type Tables } from "@/lib/supabase/db-helpers";
 
-// Shared field set for the create (new/) and edit ([id]/) ejecutado forms.
-// Render this inside a <form> + <CardContent>; the surrounding header/footer
-// (buttons differ between create and edit) stay in the caller.
+
 export function EjecutadoFormFields({
   ejecutado,
   departamentos,
@@ -29,8 +28,6 @@ export function EjecutadoFormFields({
   departamentos: string[];
   empresas: string[];
 }) {
-  // Keep a current value in the option list even if it's no longer configured,
-  // so editing an ejecutado never silently drops its departamento/empresa.
   const depOptions =
     ejecutado?.departamento && !departamentos.includes(ejecutado.departamento)
       ? [...departamentos, ejecutado.departamento]
@@ -217,7 +214,7 @@ export function EjecutadoFormFields({
       {ejecutado?.practica_liquidacion && (
         <div className="space-y-1">
           <Label className="text-muted-foreground">Práctica de liquidación</Label>
-          <p className="text-sm">{ejecutado.practica_liquidacion}</p>
+          <p className="text-sm">{formatArgDate(ejecutado.practica_liquidacion)}</p>
         </div>
       )}
 

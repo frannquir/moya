@@ -29,6 +29,7 @@ export async function updateEjecutado(id: string, formData: FormData) {
   revalidatePath("/ejecutados");
   revalidatePath(`/ejecutados/${id}`);
   revalidatePath("/liquidaciones");
+  redirect(`/ejecutados/${id}?toast=ejecutado_guardado`);
 }
 
 async function recalcLiquidacion(ejecutadoId: string) {
