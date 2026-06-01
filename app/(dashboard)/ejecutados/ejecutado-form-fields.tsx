@@ -15,7 +15,7 @@ import {
   MEDIDA_ESTADO_OPTIONS,
   formatCodemandados,
 } from "@/lib/domain/ejecutado";
-import { formatArgDate } from "@/lib/domain/dates";
+import { formatArDate } from "@/lib/domain/dates";
 import { type Tables } from "@/lib/supabase/db-helpers";
 
 
@@ -57,6 +57,9 @@ export function EjecutadoFormFields({
           placeholder="Separados por coma"
           defaultValue={formatCodemandados(ejecutado?.codemandados)}
         />
+        {ejecutado && (ejecutado.codemandados?.length ?? 0) === 0 && (
+          <p className="text-xs text-muted-foreground">Sin codemandados.</p>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -214,7 +217,7 @@ export function EjecutadoFormFields({
       {ejecutado?.practica_liquidacion && (
         <div className="space-y-1">
           <Label className="text-muted-foreground">Práctica de liquidación</Label>
-          <p className="text-sm">{formatArgDate(ejecutado.practica_liquidacion)}</p>
+          <p className="text-sm">{formatArDate(ejecutado.practica_liquidacion)}</p>
         </div>
       )}
 
@@ -276,6 +279,9 @@ export function EjecutadoFormFields({
           rows={2}
           defaultValue={ejecutado?.medida_cautelar_nota ?? ""}
         />
+        {ejecutado && !ejecutado.medida_cautelar_nota?.trim() && (
+          <p className="text-xs text-muted-foreground">Sin notas.</p>
+        )}
       </div>
 
       {/* Notas */}

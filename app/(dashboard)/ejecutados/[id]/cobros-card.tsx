@@ -11,24 +11,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { formatArs } from "@/lib/domain/cobros";
+import { formatArDate } from "@/lib/domain/dates";
+import { listCobros, getCobrosTotals } from "@/lib/data/cobros";
 import { addCobro, confirmCobro, archiveCobro } from "./cobros-actions";
 
 export async function CobrosCard({ ejecutadoId }: { ejecutadoId: string }) {
   const supabase = await createClient();
 
-  const [{ data: cobros }, { data: totalsRow }] = await Promise.all([
-    supabase
-      .from("cobros_pagos")
-      .select("*")
-      .eq("ejecutado_id", ejecutadoId)
-      .is("archived_at", null)
-      .order("fecha", { ascending: false })
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("cobros_totals")
-      .select("total_solicitado, total_proveido, pagos_count")
-      .eq("ejecutado_id", ejecutadoId)
-      .maybeSingle(),
+  const [cobros, totalsRow] = await Promise.all([
+    listCobros(supabase, ejecutadoId),
+    getCobrosTotals(supabase, ejecutadoId),
   ]);
 
   const totalSolicitado = Number(totalsRow?.total_solicitado ?? 0);
@@ -106,7 +98,7 @@ export async function CobrosCard({ ejecutadoId }: { ejecutadoId: string }) {
                       )}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {new Date(c.fecha).toLocaleDateString("es-AR")}
+                      {formatArDate(c.fecha)}
                       {c.nota && ` · ${c.nota}`}
                     </div>
                   </div>

@@ -9,6 +9,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { formatArDate } from "@/lib/domain/dates";
 import { inviteMember, removeMember } from "./actions";
 
 export type EstudioMember = {
@@ -78,7 +79,7 @@ export function MiembrosTab({
                     </Badge>
                   </div>
                   <div className="truncate text-sm text-muted-foreground">
-                    {m.email} · se unió {formatDate(m.joined_at)}
+                    {m.email} · se unió {formatArDate(new Date(m.joined_at))}
                   </div>
                 </div>
                 {removable && (
@@ -97,10 +98,3 @@ export function MiembrosTab({
   );
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}

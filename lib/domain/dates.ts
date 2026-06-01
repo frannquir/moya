@@ -11,10 +11,28 @@ export function formatLocalDate(date: Date): string {
 }
 
 
-export function formatArgDate(value: string | null | undefined): string {
-  if (!value) return "";
-  const [datePart] = value.split("T");
-  const [year, month, day] = datePart.split("-");
-  if (!year || !month || !day) return value;
-  return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+// Argentine dd/MM/yyyy. Date-only values are parsed as local dates (no TZ shift);
+// null/undefined render as an em dash.
+export function formatArDate(value: string | Date | null | undefined): string {
+  if (!value) return "—";
+  const d = typeof value === "string" ? parseLocalDate(value) : value;
+  return d.toLocaleDateString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+// Argentine dd/MM/yyyy HH:mm. String input is treated as a full timestamp
+// (new Date), so timezone is respected; null/undefined render as an em dash.
+export function formatArDateTime(value: string | Date | null | undefined): string {
+  if (!value) return "—";
+  const d = typeof value === "string" ? new Date(value) : value;
+  return d.toLocaleDateString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }

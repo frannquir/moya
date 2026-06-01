@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { EjecutadosSearch } from "./search";
+import { listActive } from "@/lib/data/ejecutados";
 
 const PAGE_SIZE = 25;
 
@@ -23,28 +24,16 @@ export default async function EjecutadosPage({
   const { q, page } = await searchParams;
   const pageNum = Math.max(1, parseInt(page ?? "1", 10) || 1);
   const term = (q ?? "").trim().slice(0, 100);
-  const from = (pageNum - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
 
   const supabase = await createClient();
 
-  let query = supabase
-    .from("ejecutados")
-    .select("*", { count: "exact" })
-    .is("archived_at", null)
-    .eq("is_draft", false)
-    .order("created_at", { ascending: false })
-    .range(from, to);
+  const { items: ejecutados, totalCount: count } = await listActive(supabase, {
+    q: term,
+    page: pageNum,
+    pageSize: PAGE_SIZE,
+  });
 
-  if (term) {
-    // Escape LIKE wildcards so a literal % or _ doesn't change the match.
-    query = query.ilike("nombre", `%${escapeLike(term)}%`);
-  }
-
-  const { data: ejecutados, count, error } = await query;
-  if (error) throw error;
-
-  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(count / PAGE_SIZE));
 
   // Past the last page (e.g. a stale ?page= after the set shrank): snap to the
   // last real page instead of rendering an empty "no results" table.
@@ -157,8 +146,4 @@ export default async function EjecutadosPage({
       )}
     </div>
   );
-}
-
-function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, (c) => `\\${c}`);
 }

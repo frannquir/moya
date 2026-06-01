@@ -13,7 +13,7 @@ import {
   sortTasasChronological,
   type TasaRow,
 } from "@/lib/domain/liquidaciones";
-import { parseLocalDate } from "@/lib/domain/dates";
+import { parseLocalDate, formatArDate } from "@/lib/domain/dates";
 import { LiquidacionDownloadButton } from "../../../../components/liquidacion-download-button";
 
 export async function LiquidacionesSection({
@@ -62,7 +62,7 @@ export async function LiquidacionesSection({
             </div>
 
             <div className="text-xs text-muted-foreground">
-              Período: {fmtDate(liq.fecha_desde)} → {fmtDate(liq.fecha_hasta)}
+              Período: {formatArDate(liq.fecha_desde)} → {formatArDate(liq.fecha_hasta)}
             </div>
 
             {clamped && ultima && (
@@ -108,8 +108,4 @@ function Money({
       </div>
     </div>
   );
-}
-
-function fmtDate(dateStr: string): string {
-  return parseLocalDate(dateStr).toLocaleDateString("es-AR");
 }

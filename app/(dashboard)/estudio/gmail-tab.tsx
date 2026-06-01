@@ -6,6 +6,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { formatArDateTime } from "@/lib/domain/dates";
 import { disconnectGmail } from "./actions";
 import { type EstudioMember } from "./miembros-tab";
 
@@ -60,7 +61,7 @@ export function GmailTab({
       </CardHeader>
       <CardContent className="space-y-3">
         <dl className="space-y-1 text-sm">
-          <Row label="Última sincronización" value={formatDateTime(connection.last_synced_at)} />
+          <Row label="Última sincronización" value={formatArDateTime(connection.last_synced_at)} />
           <Row
             label="Conectada por"
             value={connectedBy ? connectedBy.nombre || connectedBy.email : "—"}
@@ -99,13 +100,3 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function formatDateTime(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}

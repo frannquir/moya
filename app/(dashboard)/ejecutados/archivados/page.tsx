@@ -10,17 +10,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { unarchiveEjecutado } from "../[id]/actions";
+import { listArchived } from "@/lib/data/ejecutados";
+import { formatArDate } from "@/lib/domain/dates";
 
 export default async function ArchivadosPage() {
   const supabase = await createClient();
 
-  const { data: ejecutados, error } = await supabase
-    .from("ejecutados")
-    .select("id, nombre, numero_expediente, juzgado, archived_at")
-    .not("archived_at", "is", null)
-    .order("archived_at", { ascending: false });
-
-  if (error) throw error;
+  const ejecutados = await listArchived(supabase);
 
   return (
     <div className="space-y-4">
@@ -59,9 +55,7 @@ export default async function ArchivadosPage() {
                   <TableCell>{e.numero_expediente || "—"}</TableCell>
                   <TableCell>{e.juzgado || "—"}</TableCell>
                   <TableCell className="text-muted-foreground">
-                    {e.archived_at
-                      ? new Date(e.archived_at).toLocaleDateString("es-AR")
-                      : "—"}
+                    {e.archived_at ? formatArDate(new Date(e.archived_at)) : "—"}
                   </TableCell>
                   <TableCell className="text-right">
                     <form action={unarchiveEjecutado.bind(null, e.id)}>
