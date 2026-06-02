@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { calcFactura, formatArs, generateMensaje } from "@/lib/domain/facturas";
+import { formatArDate } from "@/lib/domain/dates";
 import { saveFactura, setFacturaConfirmada } from "./actions";
 
 type Props = {
@@ -96,8 +97,7 @@ export function FacturaDialog({
             )}
           </DialogTitle>
           <DialogDescription>
-            Pago de {formatArs(monto)} ·{" "}
-            {new Date(fecha).toLocaleDateString("es-AR")}
+            Pago de {formatArs(monto)} · {formatArDate(fecha)}
           </DialogDescription>
         </DialogHeader>
 

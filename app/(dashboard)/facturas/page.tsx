@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { calcFactura, formatArs } from "@/lib/domain/facturas";
+import { formatArDate } from "@/lib/domain/dates";
 import { FacturaDialog } from "./factura-dialog";
 
 export default async function FacturasPage() {
@@ -83,7 +84,7 @@ export default async function FacturasPage() {
                       {formatArs(total)}
                     </TableCell>
                     <TableCell>
-                      {new Date(it.fecha).toLocaleDateString("es-AR")}
+                      {formatArDate(it.fecha)}
                     </TableCell>
                     <TableCell>
                       {status.variant === "ok" ? (

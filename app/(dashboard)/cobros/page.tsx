@@ -10,30 +10,28 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatArs } from "@/lib/domain/cobros";
+import { formatArDate } from "@/lib/domain/dates";
+import {
+  listAllCobrosWithEjecutado,
+  listAllCobrosTotals,
+} from "@/lib/data/cobros";
 
 export default async function CobrosPage() {
   const supabase = await createClient();
 
-  const [{ data: cobros }, { data: totals }] = await Promise.all([
-    supabase
-      .from("cobros_pagos")
-      .select("*, ejecutado:ejecutados(id, nombre, archived_at)")
-      .is("archived_at", null)
-      .order("fecha", { ascending: false })
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("cobros_totals")
-      .select("total_solicitado, total_proveido, pagos_count"),
+  const [cobros, totals] = await Promise.all([
+    listAllCobrosWithEjecutado(supabase),
+    listAllCobrosTotals(supabase),
   ]);
 
   // Hide pagos whose ejecutado is archived (the totals view already excludes them).
-  const rows = (cobros ?? []).filter((c) => !c.ejecutado?.archived_at);
+  const rows = cobros.filter((c) => !c.ejecutado?.archived_at);
 
-  const totalSolicitado = (totals ?? []).reduce(
+  const totalSolicitado = totals.reduce(
     (acc, t) => acc + Number(t.total_solicitado ?? 0),
     0,
   );
-  const totalProveido = (totals ?? []).reduce(
+  const totalProveido = totals.reduce(
     (acc, t) => acc + Number(t.total_proveido ?? 0),
     0,
   );
@@ -98,7 +96,7 @@ export default async function CobrosPage() {
                     {formatArs(Number(c.monto))}
                   </TableCell>
                   <TableCell>
-                    {new Date(c.fecha).toLocaleDateString("es-AR")}
+                    {formatArDate(c.fecha)}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {c.nota || "—"}

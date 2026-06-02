@@ -2,6 +2,8 @@ import Link from "next/link";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
+import { formatArDate, formatArDateTime } from "@/lib/domain/dates";
+import { listEmailsInWindow, getGmailConnection } from "@/lib/data/mail";
 
 // Wrapping Date.now() with cache() makes it pure for a given request — the
 // React purity rule otherwise flags impure calls during render.
@@ -51,23 +53,13 @@ export default async function Page({
 
   const supabase = await createClient();
 
-  const { data: connection } = await supabase
-    .from("gmail_connections")
-    .select("google_email, last_synced_at, last_sync_error, archived_at")
-    .maybeSingle();
+  const [connection, emails] = await Promise.all([
+    getGmailConnection(supabase),
+    listEmailsInWindow(supabase, { start, end }),
+  ]);
   const connected = connection && !connection.archived_at;
 
-  const { data: emails } = await supabase
-    .from("emails")
-    .select(
-      "id, subject, from_email, from_name, snippet, received_at, is_delegated, ejecutado_id, ejecutados(id, nombre, numero_expediente)",
-    )
-    .is("archived_at", null)
-    .gte("received_at", start.toISOString())
-    .lt("received_at", end.toISOString())
-    .order("received_at", { ascending: false });
-
-  const groups = groupEmails((emails ?? []) as EmailRow[]);
+  const groups = groupEmails(emails as EmailRow[]);
 
   return (
     <div className="space-y-4">
@@ -78,7 +70,7 @@ export default async function Page({
             <p className="text-sm text-muted-foreground">
               {connection.google_email}
               {connection.last_synced_at &&
-                ` · sincronizado ${formatDate(connection.last_synced_at)}`}
+                ` · sincronizado ${formatArDateTime(connection.last_synced_at)}`}
             </p>
           )}
         </div>
@@ -108,8 +100,7 @@ export default async function Page({
 
       {connected && (
         <p className="text-sm text-muted-foreground">
-          Mostrando del {formatDateOnly(start.toISOString())} al{" "}
-          {formatDateOnly(end.toISOString())}
+          Mostrando del {formatArDate(start)} al {formatArDate(end)}
         </p>
       )}
 
@@ -167,7 +158,7 @@ export default async function Page({
                           {email.subject || "(sin asunto)"}
                         </span>
                         <span className="shrink-0 text-xs text-muted-foreground">
-                          {formatDate(email.received_at)}
+                          {formatArDateTime(email.received_at)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -265,21 +256,3 @@ function normalizeEjecutado(
   return Array.isArray(value) ? (value[0] ?? null) : value;
 }
 
-function formatDate(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function formatDateOnly(iso: string): string {
-  return new Date(iso).toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-}

@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { sanitizeBodyHtml } from "@/lib/gmail/sanitize";
+import { formatArDateTime } from "@/lib/domain/dates";
+import { getEmailById } from "@/lib/data/mail";
 import { confirmEvent } from "./actions";
 
 interface Ejecutado {
@@ -41,13 +43,7 @@ export default async function Page({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: email } = await supabase
-    .from("emails")
-    .select(
-      "id, subject, from_email, from_name, to_emails, body_html, body_text, received_at, is_delegated, ejecutados(id, nombre, numero_expediente)",
-    )
-    .eq("id", id)
-    .maybeSingle<EmailRow>();
+  const email = await getEmailById<EmailRow>(supabase, id);
 
   // RLS hides emails the user shouldn't see; same path for a real 404.
   if (!email) notFound();
@@ -79,7 +75,7 @@ export default async function Page({
         </h1>
         <p className="text-sm text-muted-foreground">
           De: {email.from_name ? `${email.from_name} <${email.from_email}>` : email.from_email}
-          {email.received_at && ` · ${formatDate(email.received_at)}`}
+          {email.received_at && ` · ${formatArDateTime(email.received_at)}`}
           {email.is_delegated && (
             <Badge variant="outline" className="ml-2">MEV</Badge>
           )}
@@ -165,12 +161,3 @@ function normalizeEjecutado(
   return Array.isArray(value) ? (value[0] ?? null) : value;
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}

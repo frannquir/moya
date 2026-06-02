@@ -10,8 +10,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { type EstudioEscritosConfig } from "@/lib/domain/escritos-config";
+import { requireUser } from "@/lib/data/auth";
+import { getMembership, listMembers } from "@/lib/data/estudio";
+import { getGmailConnection } from "@/lib/data/mail";
 import { MiembrosTab, type EstudioMember } from "./miembros-tab";
-import { GmailTab, type GmailConnection } from "./gmail-tab";
+import { GmailTab } from "./gmail-tab";
 import { ConfiguracionTab } from "./configuracion-tab";
 import { leaveEstudio } from "./actions";
 
@@ -34,15 +37,9 @@ export default async function EstudioPage({
   const feedback = msg ? MESSAGES[msg] : null;
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await requireUser(supabase);
 
-  const { data: membership } = await supabase
-    .from("estudio_members")
-    .select("role, estudio:estudios(id, nombre, escritos_config)")
-    .eq("user_id", user!.id)
-    .maybeSingle();
+  const membership = await getMembership(supabase, user.id);
 
   const isHead = membership?.role === "head";
   const estudio = Array.isArray(membership?.estudio)
@@ -50,15 +47,9 @@ export default async function EstudioPage({
     : membership?.estudio;
   const config = (estudio?.escritos_config ?? {}) as EstudioEscritosConfig;
 
-  const { data: membersData } = await supabase.rpc("get_estudio_members");
-  const members = (membersData ?? []) as EstudioMember[];
+  const members = (await listMembers(supabase)) as EstudioMember[];
 
-  const { data: connection } = await supabase
-    .from("gmail_connections")
-    .select(
-      "google_email, last_synced_at, last_sync_error, connected_by_user_id, archived_at",
-    )
-    .maybeSingle();
+  const connection = await getGmailConnection(supabase);
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -110,11 +101,7 @@ export default async function EstudioPage({
         </TabsContent>
 
         <TabsContent value="gmail">
-          <GmailTab
-            connection={(connection as GmailConnection | null) ?? null}
-            isHead={isHead}
-            members={members}
-          />
+          <GmailTab connection={connection} isHead={isHead} members={members} />
         </TabsContent>
 
         <TabsContent value="configuracion">

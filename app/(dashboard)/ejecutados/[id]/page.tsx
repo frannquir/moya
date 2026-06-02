@@ -13,9 +13,10 @@ import {
 import {
   getConfiguredDepartamentos,
   getConfiguredEmpresas,
-  type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
 import { EjecutadoFormFields } from "../ejecutado-form-fields";
+import { getById } from "@/lib/data/ejecutados";
+import { getEscritosConfig } from "@/lib/data/estudio";
 import { updateEjecutado, archiveEjecutado } from "./actions";
 import { CobrosCard } from "./cobros-card";
 import { HonorariosCard } from "./honorarios-card";
@@ -32,21 +33,11 @@ export default async function EjecutadoDetailPage({
   const { id } = await params;
 
   const supabase = await createClient();
-  const { data: ejecutado } = await supabase
-    .from("ejecutados")
-    .select("*")
-    .eq("id", id)
-    .is("archived_at", null)
-    .maybeSingle();
+  const ejecutado = await getById(supabase, id);
 
   if (!ejecutado) notFound();
 
-  const { data: estudioRow } = await supabase
-    .from("estudios")
-    .select("escritos_config")
-    .eq("id", ejecutado.estudio_id)
-    .maybeSingle();
-  const escritosConfig = (estudioRow?.escritos_config ?? {}) as EstudioEscritosConfig;
+  const escritosConfig = await getEscritosConfig(supabase, ejecutado.estudio_id);
   const departamentos = getConfiguredDepartamentos(escritosConfig);
   const empresas = getConfiguredEmpresas(escritosConfig);
 

@@ -10,6 +10,13 @@ import {
   type TasaRow,
 } from "@/lib/domain/liquidaciones";
 import { parseLocalDate, formatLocalDate } from "@/lib/domain/dates";
+import {
+  getById,
+  update,
+  archive,
+  unarchive,
+} from "@/lib/data/ejecutados";
+import { getCurrentUser } from "@/lib/data/auth";
 
 export async function updateEjecutado(id: string, formData: FormData) {
   const supabase = await createClient();
@@ -17,12 +24,7 @@ export async function updateEjecutado(id: string, formData: FormData) {
   const fields = parseEjecutadoFormData(formData);
   if (!fields.nombre) throw new Error("Nombre is required");
 
-  const { error } = await supabase
-    .from("ejecutados")
-    .update(fields)
-    .eq("id", id);
-
-  if (error) throw error;
+  await update(supabase, id, fields);
 
   await recalcLiquidacion(id);
 
@@ -34,18 +36,10 @@ export async function updateEjecutado(id: string, formData: FormData) {
 
 async function recalcLiquidacion(ejecutadoId: string) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser(supabase);
   if (!user) return;
 
-  const { data: ej } = await supabase
-    .from("ejecutados")
-    .select(
-      "estudio_id, nombre, numero_expediente, deuda_inicial, fecha_mora, fecha_deuda, gastos",
-    )
-    .eq("id", ejecutadoId)
-    .single();
+  const ej = await getById(supabase, ejecutadoId);
   if (!ej) return;
 
   if (!ej.fecha_mora || !(Number(ej.deuda_inicial) > 0)) return;
@@ -96,12 +90,7 @@ async function recalcLiquidacion(ejecutadoId: string) {
 export async function archiveEjecutado(id: string) {
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("ejecutados")
-    .update({ archived_at: new Date().toISOString() })
-    .eq("id", id);
-
-  if (error) throw error;
+  await archive(supabase, id);
 
   revalidatePath("/ejecutados");
   revalidatePath("/ejecutados/archivados");
@@ -114,17 +103,14 @@ export async function archiveEjecutado(id: string) {
 export async function unarchiveEjecutado(id: string) {
   const supabase = await createClient();
 
+  // Liquidaciones is a separate (not-yet-extracted) domain; restore its rows
+  // inline here, and route the ejecutado row through the data module.
   await supabase
     .from("liquidaciones")
     .update({ archived_at: null })
     .eq("ejecutado_id", id);
 
-  const { error } = await supabase
-    .from("ejecutados")
-    .update({ archived_at: null })
-    .eq("id", id);
-
-  if (error) throw error;
+  await unarchive(supabase, id);
 
   revalidatePath("/ejecutados");
   revalidatePath("/ejecutados/archivados");

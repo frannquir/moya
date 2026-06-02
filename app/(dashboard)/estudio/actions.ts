@@ -3,7 +3,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { type Json } from "@/lib/supabase/types";
+import { requireUser } from "@/lib/data/auth";
+import { archiveGmailConnection } from "@/lib/data/mail";
+import { updateEscritosConfig } from "@/lib/data/estudio";
+import { type EstudioEscritosConfig } from "@/lib/domain/escritos-config";
 
 export async function inviteMember(formData: FormData) {
   const supabase = await createClient();
@@ -11,10 +14,7 @@ export async function inviteMember(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   if (!email) redirect("/estudio?msg=invite_empty");
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("unauthenticated");
+  const user = await requireUser(supabase);
 
   const { data: found } = await supabase.rpc("get_user_by_email", {
     p_email: email,
@@ -65,10 +65,7 @@ export async function removeMember(userId: string) {
 export async function leaveEstudio() {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("unauthenticated");
+  const user = await requireUser(supabase);
 
   const { data: membership } = await supabase
     .from("estudio_members")
@@ -89,11 +86,7 @@ export async function leaveEstudio() {
 export async function disconnectGmail() {
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("gmail_connections")
-    .update({ archived_at: new Date().toISOString() })
-    .is("archived_at", null);
-  if (error) throw error;
+  await archiveGmailConnection(supabase);
 
   revalidatePath("/estudio");
   revalidatePath("/mail");
@@ -103,10 +96,7 @@ export async function disconnectGmail() {
 export async function updateEstudio(formData: FormData) {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("unauthenticated");
+  const user = await requireUser(supabase);
 
   const { data: estudio } = await supabase
     .from("estudios")
@@ -130,10 +120,7 @@ export async function updateEstudio(formData: FormData) {
 export async function updateEstudioEscritosConfig(formData: FormData) {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("unauthenticated");
+  const user = await requireUser(supabase);
 
   const { data: estudio } = await supabase
     .from("estudios")
@@ -172,17 +159,13 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
   } catch {
   }
 
-  const config = {
+  const config: EstudioEscritosConfig = {
     cuenta_honorarios: String(formData.get("cuenta_honorarios") ?? "").trim(),
     domicilios_procesales,
     empresas,
   };
 
-  const { error } = await supabase
-    .from("estudios")
-    .update({ escritos_config: config as unknown as Json })
-    .eq("id", estudio.id);
-  if (error) throw error;
+  await updateEscritosConfig(supabase, estudio.id, config);
 
   revalidatePath("/estudio");
 }

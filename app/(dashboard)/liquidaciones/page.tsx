@@ -13,7 +13,7 @@ import {
   sortTasasChronological,
   type TasaRow,
 } from "@/lib/domain/liquidaciones";
-import { parseLocalDate } from "@/lib/domain/dates";
+import { formatArDate } from "@/lib/domain/dates";
 import { LiquidacionCalculator } from "./calculator";
 import { LiquidacionDownloadButton } from "@/components/liquidacion-download-button";
 
@@ -71,7 +71,7 @@ export default async function LiquidacionesPage() {
                       </Link>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {fmtDate(l.fecha_desde)} → {fmtDate(l.fecha_hasta)}
+                      {formatArDate(l.fecha_desde)} → {formatArDate(l.fecha_hasta)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       ${formatCurrency(Number(l.capital))}
@@ -109,8 +109,4 @@ export default async function LiquidacionesPage() {
       </div>
     </div>
   );
-}
-
-function fmtDate(dateStr: string): string {
-  return parseLocalDate(dateStr).toLocaleDateString("es-AR");
 }

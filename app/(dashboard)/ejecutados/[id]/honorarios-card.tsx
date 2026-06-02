@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { formatJus, formatArs, jusToArs } from "@/lib/domain/honorarios";
+import { formatArDate } from "@/lib/domain/dates";
 import {
   upsertHonorario,
   archiveHonorarioPago,
@@ -153,7 +154,7 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
                       {formatJus(p.monto_jus)} · {formatArs(p.monto_ars)}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {new Date(p.fecha).toLocaleDateString("es-AR")}
+                      {formatArDate(p.fecha)}
                       {p.nota && ` · ${p.nota}`}
                     </div>
                   </div>
