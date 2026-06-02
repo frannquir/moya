@@ -1,40 +1,14 @@
-import Link from "next/link";
 import { cache } from "react";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/server";
-import { Badge } from "@/components/ui/badge";
-import { formatArDate, formatArDateTime } from "@/lib/domain/dates";
 import { listEmailsInWindow, getGmailConnection } from "@/lib/data/mail";
+import { requireUser } from "@/lib/data/auth";
+import { getMembership } from "@/lib/data/estudio";
+import { MailBoard } from "./mail-board";
 
 // Wrapping Date.now() with cache() makes it pure for a given request — the
 // React purity rule otherwise flags impure calls during render.
 const getRequestNow = cache(() => Date.now());
-
-interface Ejecutado {
-  id: string;
-  nombre: string;
-  numero_expediente: string;
-}
-
-interface EmailRow {
-  id: string;
-  subject: string;
-  from_email: string;
-  from_name: string;
-  snippet: string;
-  received_at: string | null;
-  is_delegated: boolean;
-  ejecutado_id: string | null;
-  ejecutados: Ejecutado | Ejecutado[] | null;
-}
-
-type GroupKind = "ejecutado" | "sin_asignar" | "otros";
-
-interface Group {
-  kind: GroupKind;
-  ejecutado: Ejecutado | null;
-  emails: EmailRow[];
-  latest: number;
-}
 
 const WINDOW_DAYS = 30;
 
@@ -53,206 +27,34 @@ export default async function Page({
 
   const supabase = await createClient();
 
-  const [connection, emails] = await Promise.all([
-    getGmailConnection(supabase),
-    listEmailsInWindow(supabase, { start, end }),
-  ]);
-  const connected = connection && !connection.archived_at;
+  // Resolve head status the same way /estudio does — gates the "Sincronizar
+  // ahora" button (members don't see it).
+  const user = await requireUser(supabase);
+  const membership = await getMembership(supabase, user.id);
+  const isHead = membership?.role === "head";
 
-  const groups = groupEmails(emails as EmailRow[]);
+  const qc = new QueryClient();
+  await Promise.all([
+    qc.prefetchQuery({
+      queryKey: ["emails", "window", offset],
+      queryFn: () => listEmailsInWindow(supabase, { start, end }),
+    }),
+    qc.prefetchQuery({
+      queryKey: ["gmail-connection"],
+      queryFn: () => getGmailConnection(supabase),
+    }),
+  ]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Mail</h1>
-          {connected && (
-            <p className="text-sm text-muted-foreground">
-              {connection.google_email}
-              {connection.last_synced_at &&
-                ` · sincronizado ${formatArDateTime(connection.last_synced_at)}`}
-            </p>
-          )}
-        </div>
-        {connected && (
-          <a
-            href="/api/gmail/connect"
-            className="text-sm text-muted-foreground hover:underline"
-          >
-            Reconectar
-          </a>
-        )}
-      </div>
-
-      {gmail === "connected" && (
-        <p className="text-sm text-green-600">Casilla conectada.</p>
-      )}
-      {gmail === "error" && (
-        <p className="text-sm text-red-600">
-          No se pudo conectar{reason ? ` (${reason})` : ""}.
-        </p>
-      )}
-      {connected && connection.last_sync_error && (
-        <p className="text-sm text-red-600">
-          Error de sincronización: {connection.last_sync_error}
-        </p>
-      )}
-
-      {connected && (
-        <p className="text-sm text-muted-foreground">
-          Mostrando del {formatArDate(start)} al {formatArDate(end)}
-        </p>
-      )}
-
-      {!connected ? (
-        <a
-          href="/api/gmail/connect"
-          className="inline-flex rounded-md bg-black px-4 py-2 text-sm font-medium text-white"
-        >
-          Conectar Gmail
-        </a>
-      ) : groups.length === 0 ? (
-        <div className="rounded-md border px-4 py-8 text-center text-sm text-muted-foreground">
-          {offset === 0
-            ? "No hay correos sincronizados todavía."
-            : "No hay correos en esta ventana."}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {groups.map((group) => (
-            <section
-              key={group.ejecutado?.id ?? group.kind}
-              className="rounded-md border"
-            >
-              <div className="flex items-center justify-between gap-2 border-b px-4 py-3">
-                <div className="flex min-w-0 items-baseline gap-2">
-                  {group.ejecutado ? (
-                    <>
-                      <Link
-                        href={`/ejecutados/${group.ejecutado.id}`}
-                        className="truncate font-medium hover:underline"
-                      >
-                        {group.ejecutado.nombre}
-                      </Link>
-                      <span className="shrink-0 text-sm text-muted-foreground">
-                        {group.ejecutado.numero_expediente || "—"}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="font-medium text-muted-foreground">
-                      {group.kind === "sin_asignar" ? "Sin asignar" : "Otros"}
-                    </span>
-                  )}
-                </div>
-                <Badge variant="secondary">{group.emails.length}</Badge>
-              </div>
-              <ul className="divide-y">
-                {group.emails.map((email) => (
-                  <li key={email.id}>
-                    <Link
-                      href={`/mail/${email.id}`}
-                      className="block px-4 py-3 hover:bg-accent"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="truncate font-medium">
-                          {email.subject || "(sin asunto)"}
-                        </span>
-                        <span className="shrink-0 text-xs text-muted-foreground">
-                          {formatArDateTime(email.received_at)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span className="truncate">
-                          {email.from_name || email.from_email}
-                        </span>
-                        {email.is_delegated && (
-                          <Badge variant="outline" className="shrink-0">
-                            MEV
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="truncate text-sm text-muted-foreground">
-                        {email.snippet}
-                      </p>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
-      )}
-
-      {connected && (
-        <div className="flex items-center justify-between pt-2">
-          {offset > 0 ? (
-            <Link
-              href={`?window=${offset - 1}`}
-              className="text-sm text-muted-foreground hover:underline"
-            >
-              ← Más recientes
-            </Link>
-          ) : (
-            <span />
-          )}
-          <Link
-            href={`?window=${offset + 1}`}
-            className="text-sm text-muted-foreground hover:underline"
-          >
-            Más antiguos →
-          </Link>
-        </div>
-      )}
-    </div>
+    <HydrationBoundary state={dehydrate(qc)}>
+      <MailBoard
+        offset={offset}
+        start={start.toISOString()}
+        end={end.toISOString()}
+        gmail={gmail}
+        reason={reason}
+        isHead={isHead}
+      />
+    </HydrationBoundary>
   );
 }
-
-function groupEmails(emails: EmailRow[]): Group[] {
-  const map = new Map<string, Group>();
-
-  for (const email of emails) {
-    const ejecutado = normalizeEjecutado(email.ejecutados);
-    let key: string;
-    let kind: GroupKind;
-    if (ejecutado) {
-      key = ejecutado.id;
-      kind = "ejecutado";
-    } else if (email.is_delegated) {
-      // Unmatched MEV mail is relevant — surface it for manual assignment.
-      key = "__sin_asignar__";
-      kind = "sin_asignar";
-    } else {
-      // Everything else unmatched (non-MEV) lands in "Otros".
-      key = "__otros__";
-      kind = "otros";
-    }
-    const received = email.received_at ? new Date(email.received_at).getTime() : 0;
-
-    const existing = map.get(key);
-    if (existing) {
-      existing.emails.push(email);
-      existing.latest = Math.max(existing.latest, received);
-    } else {
-      map.set(key, { kind, ejecutado, emails: [email], latest: received });
-    }
-  }
-
-  // Ejecutado groups first (most recently active), then Sin asignar, then Otros.
-  const order: Record<GroupKind, number> = {
-    ejecutado: 0,
-    sin_asignar: 1,
-    otros: 2,
-  };
-  return [...map.values()].sort((a, b) => {
-    if (order[a.kind] !== order[b.kind]) return order[a.kind] - order[b.kind];
-    return b.latest - a.latest;
-  });
-}
-
-function normalizeEjecutado(
-  value: Ejecutado | Ejecutado[] | null,
-): Ejecutado | null {
-  if (!value) return null;
-  return Array.isArray(value) ? (value[0] ?? null) : value;
-}
-

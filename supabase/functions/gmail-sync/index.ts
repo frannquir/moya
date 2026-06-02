@@ -1,9 +1,6 @@
 // Daily Gmail sync. For each estudio's connection: refresh the access token,
 // pull recent messages, parse them, match to an ejecutado by expediente number,
 // and upsert into `emails` (idempotent on estudio_id + gmail_message_id).
-//
-// Runs on the service-role key, so it bypasses RLS. Invoked by pg_cron; also
-// callable manually for testing (see the function README / deploy notes).
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { classifyMailEvents } from "../_shared/classify.ts";
@@ -17,33 +14,47 @@ import {
   refreshAccessToken,
 } from "../_shared/gmail.ts";
 
-// Every run pulls the last 3 days of inbox mail. With the daily 7am cron, the
-// overlapping window means a missed run self-heals and the upsert dedupes the
-// overlap. The cap is just a safety bound — a 3-day window is small in practice.
+
 const SYNC_QUERY = "in:inbox newer_than:3d";
 const MAX_MESSAGES_PER_CONNECTION = 300;
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     { auth: { persistSession: false } },
   );
 
-  const { data: connections, error: connErr } = await supabase
+  let estudioId: string | null = null;
+  if (req.method === "POST") {
+    try {
+      const body = await req.json();
+      if (typeof body?.estudio_id === "string") estudioId = body.estudio_id;
+    } catch {
+    }
+  }
+
+  let connQuery = supabase
     .from("gmail_connections")
     .select("id, estudio_id, refresh_token_encrypted, last_synced_at")
     .is("archived_at", null);
+  if (estudioId) connQuery = connQuery.eq("estudio_id", estudioId);
 
+  const { data: connections, error: connErr } = await connQuery;
   if (connErr) {
     return json({ error: `load connections: ${connErr.message}` }, 500);
   }
 
-  const results: Record<string, unknown>[] = [];
-  for (const conn of connections ?? []) {
-    results.push(await syncConnection(supabase, conn));
-  }
-  return json({ synced: results });
+
+  EdgeRuntime.waitUntil(
+    (async () => {
+      for (const conn of connections ?? []) {
+        await syncConnection(supabase, conn);
+      }
+    })(),
+  );
+
+  return json({ accepted: true, scope: estudioId ?? "all" }, 202);
 });
 
 interface Connection {
@@ -53,8 +64,7 @@ interface Connection {
   last_synced_at: string | null;
 }
 
-async function syncConnection(
-  // deno-lint-ignore no-explicit-any
+async function syncConnection( 
   supabase: any,
   conn: Connection,
 ): Promise<Record<string, unknown>> {
@@ -96,14 +106,12 @@ async function syncConnection(
       if (upsertErr) continue;
       inserted++;
 
-      // Mail → escrito loop: only MEV mail matched to an ejecutado feeds events.
       const ejecutadoId = match.ejecutado_id;
       if (!isDelegated || !ejecutadoId) continue;
 
       const proposals = classifyMailEvents(parsed);
       if (proposals.length === 0) continue;
 
-      // ignoreDuplicates means upsert doesn't return the id on conflict; look it up.
       const { data: emailRow } = await supabase
         .from("emails")
         .select("id")
