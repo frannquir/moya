@@ -730,7 +730,7 @@ export type Database = {
           ejecutado_id: string
           estudio_id: string
           id?: string
-          monto_total_jus?: number
+          monto_total_jus: number
           observaciones?: string
           updated_at?: string
         }

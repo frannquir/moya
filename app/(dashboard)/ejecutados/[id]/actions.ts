@@ -4,20 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseEjecutadoFormData } from "@/lib/domain/ejecutado";
-import {
-  calcularLiquidacion,
-  sortTasasChronological,
-  type TasaRow,
-} from "@/lib/domain/liquidaciones";
-import { parseLocalDate, formatLocalDate } from "@/lib/domain/dates";
-import {
-  getById,
-  update,
-  archive,
-  unarchive,
-  delegate,
-} from "@/lib/data/ejecutados";
-import { getCurrentUser, requireUser } from "@/lib/data/auth";
+import { generateLiquidacion } from "@/lib/data/liquidaciones";
+import { update, archive, unarchive, delegate } from "@/lib/data/ejecutados";
+import { requireUser } from "@/lib/data/auth";
 
 export async function updateEjecutado(id: string, formData: FormData) {
   const supabase = await createClient();
@@ -27,65 +16,12 @@ export async function updateEjecutado(id: string, formData: FormData) {
 
   await update(supabase, id, fields);
 
-  await recalcLiquidacion(id);
+  await generateLiquidacion(supabase, id);
 
   revalidatePath("/ejecutados");
   revalidatePath(`/ejecutados/${id}`);
   revalidatePath("/liquidaciones");
   redirect(`/ejecutados/${id}?toast=ejecutado_guardado`);
-}
-
-async function recalcLiquidacion(ejecutadoId: string) {
-  const supabase = await createClient();
-  const user = await getCurrentUser(supabase);
-  if (!user) return;
-
-  const ej = await getById(supabase, ejecutadoId);
-  if (!ej) return;
-
-  if (!ej.fecha_mora || !(Number(ej.deuda_inicial) > 0)) return;
-
-  const { data: tasaRows } = await supabase
-    .from("bcra_tasas")
-    .select("mes, anio, tna");
-  const tasas = sortTasasChronological((tasaRows ?? []) as TasaRow[]);
-  if (tasas.length === 0) return;
-
-  const fechaDesde = parseLocalDate(ej.fecha_mora);
-  const fechaHasta = ej.fecha_deuda ? parseLocalDate(ej.fecha_deuda) : new Date();
-
-  try {
-    const result = calcularLiquidacion(
-      {
-        cuenta: ej.numero_expediente ?? "",
-        apynom: ej.nombre ?? "",
-        ultVenc: fechaDesde,
-        fechaHasta,
-        capital: Number(ej.deuda_inicial),
-        gastos: Number(ej.gastos ?? 0),
-      },
-      tasas,
-    );
-
-    await supabase.from("liquidaciones").upsert(
-      {
-        ejecutado_id: ejecutadoId,
-        estudio_id: ej.estudio_id,
-        created_by_user_id: user.id,
-        cuenta: ej.numero_expediente ?? "",
-        apellido_nombre: ej.nombre ?? "",
-        fecha_desde: ej.fecha_mora,
-        fecha_hasta: formatLocalDate(fechaHasta),
-        capital: result.capital,
-        total_intereses: result.totalIntereses,
-        iva: result.iva,
-        gastos: result.gastos,
-        monto_adeudado: result.total,
-      },
-      { onConflict: "ejecutado_id" },
-    );
-  } catch {
-  }
 }
 
 export async function delegateEjecutado(id: string, formData: FormData) {

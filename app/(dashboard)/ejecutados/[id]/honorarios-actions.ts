@@ -2,11 +2,16 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { requireUser } from "@/lib/data/auth";
+import {
+  setHonorarioTipo,
+  addHonorarioPago,
+  archiveHonorarioPago,
+} from "@/lib/data/honorarios";
 
-export async function upsertHonorario(ejecutadoId: string, formData: FormData) {
+export async function setTipo(ejecutadoId: string, formData: FormData) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("unauthenticated");
+  const user = await requireUser(supabase);
 
   const { data: ej } = await supabase
     .from("ejecutados")
@@ -15,28 +20,20 @@ export async function upsertHonorario(ejecutadoId: string, formData: FormData) {
     .single();
   if (!ej) throw new Error("ejecutado not found");
 
-  const { error } = await supabase
-    .from("honorarios")
-    .upsert(
-      {
-        ejecutado_id: ejecutadoId,
-        estudio_id: ej.estudio_id,
-        created_by_user_id: user.id,
-        monto_total_jus: Number(formData.get("monto_total_jus") ?? 0),
-        observaciones: String(formData.get("observaciones") ?? ""),
-      },
-      { onConflict: "ejecutado_id" },
-    );
-  if (error) throw error;
+  await setHonorarioTipo(supabase, {
+    ejecutadoId,
+    userId: user.id,
+    estudioId: ej.estudio_id,
+    tipoJus: Number(formData.get("tipo_jus") ?? 0),
+  });
 
   revalidatePath(`/ejecutados/${ejecutadoId}`);
   revalidatePath("/honorarios");
 }
 
-export async function addHonorarioPago(honorarioId: string, formData: FormData) {
+export async function addPago(honorarioId: string, formData: FormData) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("unauthenticated");
+  const user = await requireUser(supabase);
 
   const { data: hon } = await supabase
     .from("honorarios")
@@ -45,38 +42,28 @@ export async function addHonorarioPago(honorarioId: string, formData: FormData) 
     .single();
   if (!hon) throw new Error("honorario not found");
 
-  const { data: jusRow } = await supabase
-    .from("system_config")
-    .select("value")
-    .eq("key", "jus_config")
-    .single();
-  const jusValue = (jusRow?.value as { value: number })?.value ?? 0;
+  const unidad = String(formData.get("unidad") ?? "jus");
+  const saldar = String(formData.get("intent") ?? "") === "saldar";
+  const monto = Number(formData.get("monto") ?? 0);
 
-  const monto_jus = Number(formData.get("monto_jus") ?? 0);
-  const monto_ars = Math.round(monto_jus * jusValue);
-
-  const { error } = await supabase.from("honorarios_pagos").insert({
-    honorario_id: honorarioId,
-    estudio_id: hon.estudio_id,
-    created_by_user_id: user.id,
-    monto_jus,
-    monto_ars,
-    fecha: String(formData.get("fecha") ?? new Date().toISOString().slice(0, 10)),
+  await addHonorarioPago(supabase, {
+    honorarioId,
+    userId: user.id,
+    estudioId: hon.estudio_id,
+    fecha: String(formData.get("fecha") || new Date().toISOString().slice(0, 10)),
     nota: String(formData.get("nota") ?? ""),
+    saldar,
+    montoJus: !saldar && unidad === "jus" ? monto : undefined,
+    montoArs: !saldar && unidad === "ars" ? monto : undefined,
   });
-  if (error) throw error;
 
   revalidatePath(`/ejecutados/${hon.ejecutado_id}`);
   revalidatePath("/honorarios");
 }
 
-export async function archiveHonorarioPago(pagoId: string, ejecutadoId: string) {
+export async function archivePago(pagoId: string, ejecutadoId: string) {
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("honorarios_pagos")
-    .update({ archived_at: new Date().toISOString() })
-    .eq("id", pagoId);
-  if (error) throw error;
+  await archiveHonorarioPago(supabase, pagoId);
 
   revalidatePath(`/ejecutados/${ejecutadoId}`);
   revalidatePath("/honorarios");

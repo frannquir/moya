@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { parseEjecutadoFormData } from "@/lib/domain/ejecutado";
 import { requireUser, getCurrentEstudioId } from "@/lib/data/auth";
 import { create } from "@/lib/data/ejecutados";
+import { generateLiquidacion } from "@/lib/data/liquidaciones";
 
 export async function createEjecutado(formData: FormData) {
   const supabase = await createClient();
@@ -27,7 +28,12 @@ export async function createEjecutado(formData: FormData) {
     fields,
   });
 
+  // Same generator the update action and the migration use: a brand-new case with
+  // fecha_mora + deuda_inicial gets its liquidación immediately, not only once edited.
+  await generateLiquidacion(supabase, created.id);
+
   revalidatePath("/ejecutados");
   revalidatePath("/borradores");
+  revalidatePath("/liquidaciones");
   redirect(`/ejecutados/${created.id}?toast=ejecutado_creado`);
 }
