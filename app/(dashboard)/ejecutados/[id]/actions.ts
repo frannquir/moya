@@ -15,8 +15,9 @@ import {
   update,
   archive,
   unarchive,
+  delegate,
 } from "@/lib/data/ejecutados";
-import { getCurrentUser } from "@/lib/data/auth";
+import { getCurrentUser, requireUser } from "@/lib/data/auth";
 
 export async function updateEjecutado(id: string, formData: FormData) {
   const supabase = await createClient();
@@ -85,6 +86,31 @@ async function recalcLiquidacion(ejecutadoId: string) {
     );
   } catch {
   }
+}
+
+export async function delegateEjecutado(id: string, formData: FormData) {
+  const supabase = await createClient();
+  const user = await requireUser(supabase);
+
+  // Head only — same gate as the other head-restricted flows. RLS is the real
+  // boundary; this gives a clean error instead of a silent no-op.
+  const { data: membership } = await supabase
+    .from("estudio_members")
+    .select("role")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!membership || membership.role !== "head") {
+    throw new Error("Only the head can delegate ejecutados");
+  }
+
+  // Empty value = "Sin delegar" (head-only).
+  const raw = String(formData.get("assigned_to") ?? "");
+  const assignedToUserId = raw === "" ? null : raw;
+
+  await delegate(supabase, id, assignedToUserId);
+
+  revalidatePath("/ejecutados");
+  revalidatePath(`/ejecutados/${id}`);
 }
 
 export async function archiveEjecutado(id: string) {

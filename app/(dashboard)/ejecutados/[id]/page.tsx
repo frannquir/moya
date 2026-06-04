@@ -16,8 +16,9 @@ import {
 } from "@/lib/domain/escritos-config";
 import { EjecutadoFormFields } from "../ejecutado-form-fields";
 import { getById } from "@/lib/data/ejecutados";
-import { getEscritosConfig } from "@/lib/data/estudio";
-import { updateEjecutado, archiveEjecutado } from "./actions";
+import { getEscritosConfig, getMembership, listMembers } from "@/lib/data/estudio";
+import { requireUser } from "@/lib/data/auth";
+import { updateEjecutado, archiveEjecutado, delegateEjecutado } from "./actions";
 import { CobrosCard } from "./cobros-card";
 import { HonorariosCard } from "./honorarios-card";
 import { LiquidacionesSection } from "./liquidaciones-section";
@@ -41,8 +42,16 @@ export default async function EjecutadoDetailPage({
   const departamentos = getConfiguredDepartamentos(escritosConfig);
   const empresas = getConfiguredEmpresas(escritosConfig);
 
+  // Delegation is head-only. Resolve head status + the estudio's members for the
+  // "Delegar a" select (members can only reach their own cases anyway).
+  const user = await requireUser(supabase);
+  const membership = await getMembership(supabase, user.id);
+  const isHead = membership?.role === "head";
+  const members = isHead ? await listMembers(supabase) : [];
+
   const updateAction = updateEjecutado.bind(null, id);
   const archiveAction = archiveEjecutado.bind(null, id);
+  const delegateAction = delegateEjecutado.bind(null, id);
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -96,6 +105,40 @@ export default async function EjecutadoDetailPage({
           </CardFooter>
         </form>
       </Card>
+
+      {isHead && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Delegar</CardTitle>
+            <CardDescription>
+              Asigná este ejecutado a un miembro del estudio. Solo el head y el miembro
+              asignado pueden verlo.
+            </CardDescription>
+          </CardHeader>
+          <form action={delegateAction}>
+            <CardContent>
+              <select
+                name="assigned_to"
+                defaultValue={ejecutado.assigned_to_user_id ?? ""}
+                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Sin delegar (solo head)</option>
+                {members.map((m) => (
+                  <option key={m.user_id} value={m.user_id}>
+                    {m.nombre?.trim() ? m.nombre : m.email}
+                    {m.role === "head" ? " (head)" : ""}
+                  </option>
+                ))}
+              </select>
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" variant="outline">
+                Guardar delegación
+              </Button>
+            </CardFooter>
+          </form>
+        </Card>
+      )}
 
       <LiquidacionesSection ejecutadoId={id} />
       <EscritosSection ejecutadoId={id} />

@@ -36,6 +36,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# migration data — real firm PII from the old-DB CSV export, NEVER commit
+/migration-data/
+scripts/**/*.csv
+*.csv
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+scripts/migrate-from-old.ts

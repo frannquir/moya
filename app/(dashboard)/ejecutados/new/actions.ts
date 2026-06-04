@@ -17,10 +17,13 @@ export async function createEjecutado(formData: FormData) {
 
   const isDraft = String(formData.get("intent") ?? "activo") === "borrador";
 
+  // New cases are delegated to their creator: a member's case is theirs (and
+  // satisfies the INSERT RLS check); a head's case is the head's (head sees all).
   const created = await create(supabase, {
     estudioId,
     userId: user.id,
     isDraft,
+    assignedToUserId: user.id,
     fields,
   });
 

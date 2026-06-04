@@ -195,6 +195,7 @@ export type Database = {
       ejecutados: {
         Row: {
           archived_at: string | null
+          assigned_to_user_id: string | null
           codemandados: string[]
           created_at: string
           created_by_user_id: string | null
@@ -225,6 +226,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          assigned_to_user_id?: string | null
           codemandados?: string[]
           created_at?: string
           created_by_user_id?: string | null
@@ -255,6 +257,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          assigned_to_user_id?: string | null
           codemandados?: string[]
           created_at?: string
           created_by_user_id?: string | null

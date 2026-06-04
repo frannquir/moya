@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient as createBrowserClient } from "@/lib/supabase/browser";
-import { listActive } from "@/lib/data/ejecutados";
+import { listActive, type Ejecutado } from "@/lib/data/ejecutados";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -18,14 +18,32 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+export type BoardMember = {
+  user_id: string;
+  nombre: string;
+  email: string;
+  role: string;
+};
+
+// Upper bound for the folder view's single-fetch grouping. The estudio is far
+// below this; if it ever grows past it, the folder view would need paging.
+const FOLDER_FETCH_SIZE = 1000;
+const NO_ASSIGNEE = "__none__";
+
 export function EjecutadosBoard({
   initialQ,
   initialPage,
   pageSize,
+  isHead,
+  currentUserId,
+  members,
 }: {
   initialQ: string;
   initialPage: number;
   pageSize: number;
+  isHead: boolean;
+  currentUserId: string;
+  members: BoardMember[];
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -34,6 +52,10 @@ export function EjecutadosBoard({
 
   const [q, setQ] = useState(initialQ);
   const deferredQ = useDeferredValue(q.trim());
+
+  // Per-member folder view is head-only.
+  const [byMember, setByMember] = useState(false);
+  const showFolders = isHead && byMember;
 
   // URL is the source of truth for the page. When the term changes, reset to
   // page 1 — otherwise a stale ?page= could land on an empty page after the set
@@ -48,6 +70,16 @@ export function EjecutadosBoard({
     queryFn: () =>
       listActive(supabase, { q: deferredQ, page: pageNum, pageSize }),
     placeholderData: (prev) => prev, // keep the old page visible while the next loads
+    enabled: !showFolders,
+  });
+
+  // Folder view fetches the full active set once and groups it client-side.
+  const { data: folderData } = useQuery({
+    queryKey: ["ejecutados", "folders", { q: deferredQ }],
+    queryFn: () =>
+      listActive(supabase, { q: deferredQ, page: 1, pageSize: FOLDER_FETCH_SIZE }),
+    placeholderData: (prev) => prev,
+    enabled: showFolders,
   });
 
   const ejecutados = data?.items ?? [];
@@ -67,7 +99,7 @@ export function EjecutadosBoard({
     return () => clearTimeout(t);
   }, [deferredQ, pageNum, router]);
 
-  // Realtime: any row change invalidates all ejecutados queries.
+  // Realtime: any row change invalidates all ejecutados queries (both views).
   useEffect(() => {
     const ch = supabase
       .channel("ejecutados-changes")
@@ -86,16 +118,26 @@ export function EjecutadosBoard({
   const hrefFor = (target: number) =>
     `?${new URLSearchParams({ ...(deferredQ ? { q: deferredQ } : {}), page: String(target) })}`;
 
+  // Group the folder-view rows by assignee, ordered: me first, then other
+  // members (head-first, as the directory is ordered), then unassigned last.
+  const folders = buildFolders(folderData?.items ?? [], currentUserId, members);
+  const headerCount = showFolders ? (folderData?.items.length ?? 0) : count;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Ejecutados</h1>
           <p className="text-sm text-muted-foreground">
-            {count} ejecutados activos
+            {headerCount} ejecutados activos
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {isHead && (
+            <Button variant="outline" onClick={() => setByMember((v) => !v)}>
+              {byMember ? "Ver lista" : "Ver por miembro"}
+            </Button>
+          )}
           <Button variant="outline" asChild>
             <Link href="/ejecutados/archivados">Archivados</Link>
           </Button>
@@ -113,81 +155,166 @@ export function EjecutadosBoard({
         />
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Expediente</TableHead>
-              <TableHead>Juzgado</TableHead>
-              <TableHead className="text-right">Deuda inicial</TableHead>
-              <TableHead>Movimiento</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {ejecutados.length > 0 ? (
-              ejecutados.map((e) => (
-                <TableRow key={e.id} className="cursor-pointer">
-                  <TableCell className="font-medium">
-                    <Link href={`/ejecutados/${e.id}`} className="hover:underline">
-                      {e.nombre}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{e.numero_expediente || "—"}</TableCell>
-                  <TableCell>{e.juzgado || "—"}</TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {e.deuda_inicial.toLocaleString("es-AR", {
-                      style: "currency",
-                      currency: "ARS",
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    {e.movimiento ? (
-                      <Badge variant="outline">{e.movimiento}</Badge>
-                    ) : (
-                      "—"
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                  {deferredQ ? "No se encontraron ejecutados." : "Aún no hay ejecutados. Creá el primero."}
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
-            Página {pageNum} de {totalPages}
-          </span>
-          <div className="space-x-2">
-            {pageNum <= 1 ? (
-              <Button variant="outline" size="sm" disabled>
-                Anterior
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" asChild>
-                <Link href={hrefFor(pageNum - 1)}>Anterior</Link>
-              </Button>
-            )}
-            {pageNum >= totalPages ? (
-              <Button variant="outline" size="sm" disabled>
-                Siguiente
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" asChild>
-                <Link href={hrefFor(pageNum + 1)}>Siguiente</Link>
-              </Button>
-            )}
+      {showFolders ? (
+        folders.length === 0 ? (
+          <div className="rounded-md border px-4 py-8 text-center text-sm text-muted-foreground">
+            {deferredQ ? "No se encontraron ejecutados." : "Aún no hay ejecutados."}
           </div>
-        </div>
+        ) : (
+          <div className="space-y-6">
+            {folders.map((folder) => (
+              <div key={folder.key} className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-medium">{folder.label}</h2>
+                  <Badge variant="secondary">{folder.items.length}</Badge>
+                </div>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nombre</TableHead>
+                        <TableHead>Expediente</TableHead>
+                        <TableHead>Juzgado</TableHead>
+                        <TableHead className="text-right">Deuda inicial</TableHead>
+                        <TableHead>Movimiento</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {folder.items.map((e) => (
+                        <EjecutadoRow key={e.id} e={e} />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      ) : (
+        <>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Expediente</TableHead>
+                  <TableHead>Juzgado</TableHead>
+                  <TableHead className="text-right">Deuda inicial</TableHead>
+                  <TableHead>Movimiento</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {ejecutados.length > 0 ? (
+                  ejecutados.map((e) => <EjecutadoRow key={e.id} e={e} />)
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      {deferredQ ? "No se encontraron ejecutados." : "Aún no hay ejecutados. Creá el primero."}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Página {pageNum} de {totalPages}
+              </span>
+              <div className="space-x-2">
+                {pageNum <= 1 ? (
+                  <Button variant="outline" size="sm" disabled>
+                    Anterior
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={hrefFor(pageNum - 1)}>Anterior</Link>
+                  </Button>
+                )}
+                {pageNum >= totalPages ? (
+                  <Button variant="outline" size="sm" disabled>
+                    Siguiente
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={hrefFor(pageNum + 1)}>Siguiente</Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
+}
+
+function EjecutadoRow({ e }: { e: Ejecutado }) {
+  return (
+    <TableRow className="cursor-pointer">
+      <TableCell className="font-medium">
+        <Link href={`/ejecutados/${e.id}`} className="hover:underline">
+          {e.nombre}
+        </Link>
+      </TableCell>
+      <TableCell>{e.numero_expediente || "—"}</TableCell>
+      <TableCell>{e.juzgado || "—"}</TableCell>
+      <TableCell className="text-right tabular-nums">
+        {e.deuda_inicial.toLocaleString("es-AR", {
+          style: "currency",
+          currency: "ARS",
+        })}
+      </TableCell>
+      <TableCell>
+        {e.movimiento ? <Badge variant="outline">{e.movimiento}</Badge> : "—"}
+      </TableCell>
+    </TableRow>
+  );
+}
+
+interface Folder {
+  key: string;
+  label: string;
+  items: Ejecutado[];
+}
+
+function buildFolders(
+  items: Ejecutado[],
+  currentUserId: string,
+  members: BoardMember[],
+): Folder[] {
+  const groups = new Map<string, Ejecutado[]>();
+  for (const e of items) {
+    const key = e.assigned_to_user_id ?? NO_ASSIGNEE;
+    const bucket = groups.get(key);
+    if (bucket) bucket.push(e);
+    else groups.set(key, [e]);
+  }
+
+  const labelFor = (uid: string) => {
+    if (uid === currentUserId) return "Mis ejecutados";
+    if (uid === NO_ASSIGNEE) return "Sin delegar";
+    const m = members.find((x) => x.user_id === uid);
+    if (m) return m.nombre?.trim() ? m.nombre : m.email;
+    return "Otro miembro";
+  };
+
+  // Ordering: me, then other members in directory order, then anything else,
+  // then unassigned last.
+  const orderedKeys: string[] = [];
+  if (groups.has(currentUserId)) orderedKeys.push(currentUserId);
+  for (const m of members) {
+    if (m.user_id !== currentUserId && groups.has(m.user_id)) orderedKeys.push(m.user_id);
+  }
+  for (const key of groups.keys()) {
+    if (key !== NO_ASSIGNEE && !orderedKeys.includes(key)) orderedKeys.push(key);
+  }
+  if (groups.has(NO_ASSIGNEE)) orderedKeys.push(NO_ASSIGNEE);
+
+  return orderedKeys.map((key) => ({
+    key,
+    label: labelFor(key),
+    items: groups.get(key)!,
+  }));
 }
