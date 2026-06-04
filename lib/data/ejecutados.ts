@@ -72,6 +72,7 @@ export async function create(
     estudioId: string;
     userId: string;
     isDraft: boolean;
+    assignedToUserId: string | null;
     fields: EjecutadoFormFields;
   },
 ): Promise<Ejecutado> {
@@ -80,6 +81,7 @@ export async function create(
     .insert({
       estudio_id: input.estudioId,
       created_by_user_id: input.userId,
+      assigned_to_user_id: input.assignedToUserId,
       is_draft: input.isDraft,
       ...input.fields,
     })
@@ -87,6 +89,20 @@ export async function create(
     .single();
   if (error) throw error;
   return data;
+}
+
+// Head-only delegation (RLS enforces this; the caller also gates on role for a
+// clean error). Pass null to make a case head-only ("Sin delegar").
+export async function delegate(
+  supabase: Client,
+  id: string,
+  assignedToUserId: string | null,
+): Promise<void> {
+  const { error } = await supabase
+    .from("ejecutados")
+    .update({ assigned_to_user_id: assignedToUserId })
+    .eq("id", id);
+  if (error) throw error;
 }
 
 export async function update(

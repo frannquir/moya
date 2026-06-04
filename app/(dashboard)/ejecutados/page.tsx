@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/server";
 import { listActive } from "@/lib/data/ejecutados";
-import { EjecutadosBoard } from "./ejecutados-board";
+import { requireUser } from "@/lib/data/auth";
+import { getMembership, listMembers } from "@/lib/data/estudio";
+import { EjecutadosBoard, type BoardMember } from "./ejecutados-board";
 
 const PAGE_SIZE = 25;
 
@@ -37,12 +39,32 @@ export default async function EjecutadosPage({
     redirect(`?${params}`);
   }
 
+  // Head-only per-member folder view needs head status + the member directory.
+  const user = await requireUser(supabase);
+  const membership = await getMembership(supabase, user.id);
+  const isHead = membership?.role === "head";
+  const members: BoardMember[] = isHead
+    ? (await listMembers(supabase)).map((m) => ({
+        user_id: m.user_id,
+        nombre: m.nombre,
+        email: m.email,
+        role: m.role,
+      }))
+    : [];
+
   const qc = new QueryClient();
   qc.setQueryData(["ejecutados", { q: term, page: pageNum }], result);
 
   return (
     <HydrationBoundary state={dehydrate(qc)}>
-      <EjecutadosBoard initialQ={term} initialPage={pageNum} pageSize={PAGE_SIZE} />
+      <EjecutadosBoard
+        initialQ={term}
+        initialPage={pageNum}
+        pageSize={PAGE_SIZE}
+        isHead={isHead}
+        currentUserId={user.id}
+        members={members}
+      />
     </HydrationBoundary>
   );
 }

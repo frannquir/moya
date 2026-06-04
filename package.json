@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:push": "supabase db push && supabase gen types typescript --linked > lib/supabase/types.ts"
+    "db:push": "supabase db push && supabase gen types typescript --linked > lib/supabase/types.ts",
+    "migrate": "tsx scripts/migrate-from-old.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
@@ -40,11 +41,15 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "csv-parse": "^6.2.1",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "supabase": "^2.101.0",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5",
+    "uuid": "^14.0.0",
     "vitest": "^4.1.7"
   }
 }
