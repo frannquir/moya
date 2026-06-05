@@ -15,6 +15,7 @@ import {
   type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
 import { type Empresa } from "@/lib/domain/escritos";
+import { getById as getJuzgadoById } from "@/lib/data/juzgados";
 
 function money(value: number | null | undefined): string {
   return `$${formatCurrency(Number(value ?? 0))}`;
@@ -48,7 +49,7 @@ export async function generarEscrito(ejecutadoId: string, formData: FormData) {
   if (!template) throw new Error("template not found");
   if (!ej) throw new Error("ejecutado not found");
 
-  const [{ data: liq }, { data: estudio }] = await Promise.all([
+  const [{ data: liq }, { data: estudio }, juzgado] = await Promise.all([
     supabase
       .from("liquidaciones")
       .select("*")
@@ -60,6 +61,7 @@ export async function generarEscrito(ejecutadoId: string, formData: FormData) {
       .select("escritos_config")
       .eq("id", ej.estudio_id)
       .maybeSingle(),
+    ej.juzgado_id ? getJuzgadoById(supabase, ej.juzgado_id) : Promise.resolve(null),
   ]);
 
   const config = (estudio?.escritos_config ?? {}) as EstudioEscritosConfig;
@@ -98,7 +100,18 @@ export async function generarEscrito(ejecutadoId: string, formData: FormData) {
     CUIT_EMPRESA: empresa?.cuit ?? "",
     DEMANDADO: ej.nombre ?? "",
     FECHA_HOY: new Date().toLocaleDateString("es-AR"),
+    DEPARTAMENTO: ej.departamento ?? "",
   };
+
+  // Court data (available to any template via {{JUZGADO_*}} / {{JUEZ}}).
+  if (juzgado) {
+    tokens.JUZGADO = juzgado.organismo ?? "";
+    tokens.JUZGADO_DOMICILIO = juzgado.direccion ?? "";
+    tokens.JUZGADO_LOCALIDAD = juzgado.localidad ?? "";
+    tokens.JUZGADO_TELEFONO = juzgado.telefono ?? "";
+    tokens.JUZGADO_EMAIL = juzgado.email ?? "";
+    tokens.JUEZ = juzgado.juez ?? "";
+  }
 
   if (liq) {
     tokens.CAPITAL = money(liq.capital);

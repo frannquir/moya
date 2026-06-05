@@ -212,6 +212,7 @@ export type Database = {
           id: string
           is_draft: boolean
           juzgado: string
+          juzgado_id: string | null
           medida_cautelar: string | null
           medida_cautelar_diligenciada: boolean
           medida_cautelar_estado: string | null
@@ -243,6 +244,7 @@ export type Database = {
           id?: string
           is_draft?: boolean
           juzgado?: string
+          juzgado_id?: string | null
           medida_cautelar?: string | null
           medida_cautelar_diligenciada?: boolean
           medida_cautelar_estado?: string | null
@@ -274,6 +276,7 @@ export type Database = {
           id?: string
           is_draft?: boolean
           juzgado?: string
+          juzgado_id?: string | null
           medida_cautelar?: string | null
           medida_cautelar_diligenciada?: boolean
           medida_cautelar_estado?: string | null
@@ -292,6 +295,13 @@ export type Database = {
             columns: ["estudio_id"]
             isOneToOne: false
             referencedRelation: "estudios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ejecutados_juzgado_id_fkey"
+            columns: ["juzgado_id"]
+            isOneToOne: false
+            referencedRelation: "juzgados"
             referencedColumns: ["id"]
           },
         ]
@@ -829,6 +839,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      juzgados: {
+        Row: {
+          departamento_judicial: string
+          direccion: string
+          email: string
+          fuente: string
+          fuero: string
+          id: string
+          internos: string[]
+          juez: string
+          localidad: string
+          numero: number | null
+          organismo: string
+          telefono: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          departamento_judicial: string
+          direccion?: string
+          email?: string
+          fuente: string
+          fuero?: string
+          id?: string
+          internos?: string[]
+          juez?: string
+          localidad?: string
+          numero?: number | null
+          organismo: string
+          telefono?: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          departamento_judicial?: string
+          direccion?: string
+          email?: string
+          fuente?: string
+          fuero?: string
+          id?: string
+          internos?: string[]
+          juez?: string
+          localidad?: string
+          numero?: number | null
+          organismo?: string
+          telefono?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       lawyer_profiles: {
         Row: {

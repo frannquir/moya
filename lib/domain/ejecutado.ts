@@ -39,6 +39,7 @@ export function formatCodemandados(values: string[] | null | undefined): string 
 export type EjecutadoFormFields = {
   nombre: string;
   juzgado: string;
+  juzgado_id: string | null;
   departamento: string;
   numero_expediente: string;
   documento: string;
@@ -102,6 +103,7 @@ export function parseEjecutadoFormData(fd: FormData): EjecutadoFormFields {
   return {
     nombre: str(fd, "nombre"),
     juzgado: str(fd, "juzgado"),
+    juzgado_id: selectNullable(str(fd, "juzgado_id")),
     departamento: selectNullable(str(fd, "departamento")) ?? "",
     numero_expediente: str(fd, "numero_expediente"),
     documento: str(fd, "documento"),

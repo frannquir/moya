@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/card";
 import { EscritoEditor } from "./escrito-editor";
 import { updateEscrito, archiveEscrito } from "./actions";
+import { getById as getJuzgadoById } from "@/lib/data/juzgados";
+import { JuzgadoInfoCard } from "@/app/(dashboard)/ejecutados/juzgado-info-card";
 
 export default async function EscritoDetailPage({
   params,
@@ -22,7 +24,7 @@ export default async function EscritoDetailPage({
   const supabase = await createClient();
   const { data: escrito } = await supabase
     .from("escritos")
-    .select("*, ejecutado:ejecutados(id, nombre)")
+    .select("*, ejecutado:ejecutados(id, nombre, juzgado_id)")
     .eq("id", id)
     .is("archived_at", null)
     .maybeSingle();
@@ -32,6 +34,10 @@ export default async function EscritoDetailPage({
   const ejecutado = Array.isArray(escrito.ejecutado)
     ? escrito.ejecutado[0]
     : escrito.ejecutado;
+
+  const juzgado = ejecutado?.juzgado_id
+    ? await getJuzgadoById(supabase, ejecutado.juzgado_id)
+    : null;
 
   const saveAction = updateEscrito.bind(null, id);
   const archiveAction = archiveEscrito.bind(null, id);
@@ -82,6 +88,8 @@ export default async function EscritoDetailPage({
           />
         </CardContent>
       </Card>
+
+      <JuzgadoInfoCard juzgado={juzgado} />
     </div>
   );
 }
