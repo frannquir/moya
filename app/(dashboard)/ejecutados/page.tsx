@@ -11,38 +11,21 @@ const PAGE_SIZE = 25;
 export default async function EjecutadosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; vista?: string }>;
 }) {
-  const { q, page } = await searchParams;
+  const { q, page, vista } = await searchParams;
   const pageNum = Math.max(1, parseInt(page ?? "1", 10) || 1);
   const term = (q ?? "").trim().slice(0, 100);
 
   const supabase = await createClient();
-
-  // One fetch serves both the snap-to-last-page redirect (needs the count) and
-  // the TQ prefetch (seeded into the cache below — no second query on first load).
-  const result = await listActive(supabase, {
-    q: term,
-    page: pageNum,
-    pageSize: PAGE_SIZE,
-  });
-
-  const totalPages = Math.max(1, Math.ceil(result.totalCount / PAGE_SIZE));
-
-  // Past the last page (e.g. a stale ?page= after the set shrank): snap to the
-  // last real page instead of rendering an empty "no results" table.
-  if (pageNum > totalPages) {
-    const params = new URLSearchParams({
-      ...(term ? { q: term } : {}),
-      page: String(totalPages),
-    });
-    redirect(`?${params}`);
-  }
-
-  // Head-only per-member folder view needs head status + the member directory.
   const user = await requireUser(supabase);
   const membership = await getMembership(supabase, user.id);
   const isHead = membership?.role === "head";
+
+  // Default to the user's own cases; "Estudio" (firm-wide, grouped) is a head-only opt-in.
+  const view = isHead && vista === "estudio" ? "estudio" : "miembro";
+
+  // Head-only firm-wide folder view needs the member directory.
   const members: BoardMember[] = isHead
     ? (await listMembers(supabase)).map((m) => ({
         user_id: m.user_id,
@@ -53,7 +36,31 @@ export default async function EjecutadosPage({
     : [];
 
   const qc = new QueryClient();
-  qc.setQueryData(["ejecutados", { q: term, page: pageNum }], result);
+
+  // Only the paginated "Miembro" view is prefetched/snapped; "Estudio" fetches its
+  // full set client-side. assignedTo scopes the count + cache seed to the user's cases.
+  if (view === "miembro") {
+    const result = await listActive(supabase, {
+      q: term,
+      page: pageNum,
+      pageSize: PAGE_SIZE,
+      assignedTo: user.id,
+    });
+
+    const totalPages = Math.max(1, Math.ceil(result.totalCount / PAGE_SIZE));
+    if (pageNum > totalPages) {
+      const params = new URLSearchParams({
+        ...(term ? { q: term } : {}),
+        page: String(totalPages),
+      });
+      redirect(`?${params}`);
+    }
+
+    qc.setQueryData(
+      ["ejecutados", { q: term, page: pageNum, view: "miembro", assignedTo: user.id }],
+      result,
+    );
+  }
 
   return (
     <HydrationBoundary state={dehydrate(qc)}>

@@ -53,9 +53,11 @@ export function EjecutadosBoard({
   const [q, setQ] = useState(initialQ);
   const deferredQ = useDeferredValue(q.trim());
 
-  // Per-member folder view is head-only.
-  const [byMember, setByMember] = useState(false);
-  const showFolders = isHead && byMember;
+  // View is URL-driven (?vista=). Default "miembro" (own cases); "estudio" (firm-wide,
+  // grouped by assignee) is head-only — a member is always pinned to their own cases.
+  const urlVista = params.get("vista") === "estudio" ? "estudio" : "miembro";
+  const vista = isHead && urlVista === "estudio" ? "estudio" : "miembro";
+  const showFolders = vista === "estudio";
 
   // URL is the source of truth for the page. When the term changes, reset to
   // page 1 — otherwise a stale ?page= could land on an empty page after the set
@@ -66,9 +68,12 @@ export function EjecutadosBoard({
   const pageNum = termChanged ? 1 : urlPage;
 
   const { data } = useQuery({
-    queryKey: ["ejecutados", { q: deferredQ, page: pageNum }],
+    queryKey: [
+      "ejecutados",
+      { q: deferredQ, page: pageNum, view: "miembro", assignedTo: currentUserId },
+    ],
     queryFn: () =>
-      listActive(supabase, { q: deferredQ, page: pageNum, pageSize }),
+      listActive(supabase, { q: deferredQ, page: pageNum, pageSize, assignedTo: currentUserId }),
     placeholderData: (prev) => prev, // keep the old page visible while the next loads
     enabled: !showFolders,
   });
@@ -93,11 +98,12 @@ export function EjecutadosBoard({
       const next = new URLSearchParams();
       if (deferredQ) next.set("q", deferredQ);
       if (pageNum > 1) next.set("page", String(pageNum));
+      if (vista === "estudio") next.set("vista", "estudio");
       const qs = next.toString();
       router.replace(qs ? `?${qs}` : "?", { scroll: false });
     }, 300);
     return () => clearTimeout(t);
-  }, [deferredQ, pageNum, router]);
+  }, [deferredQ, pageNum, vista, router]);
 
   // Realtime: any row change invalidates all ejecutados queries (both views).
   useEffect(() => {
@@ -118,9 +124,19 @@ export function EjecutadosBoard({
   const hrefFor = (target: number) =>
     `?${new URLSearchParams({ ...(deferredQ ? { q: deferredQ } : {}), page: String(target) })}`;
 
-  // Group the folder-view rows by assignee, ordered: me first, then other
-  // members (head-first, as the directory is ordered), then unassigned last.
-  const folders = buildFolders(folderData?.items ?? [], currentUserId, members);
+  // Switching view drops ?page= so each view starts at page 1.
+  function setVista(next: "miembro" | "estudio") {
+    if (next === vista) return;
+    const p = new URLSearchParams();
+    if (deferredQ) p.set("q", deferredQ);
+    if (next === "estudio") p.set("vista", "estudio");
+    const qs = p.toString();
+    router.replace(qs ? `?${qs}` : "?", { scroll: false });
+  }
+
+  // Group the folder-view rows by assignee, in directory order (head-first),
+  // unassigned last.
+  const folders = buildFolders(folderData?.items ?? [], members);
   const headerCount = showFolders ? (folderData?.items.length ?? 0) : count;
 
   return (
@@ -130,13 +146,27 @@ export function EjecutadosBoard({
           <h1 className="text-2xl font-semibold">Ejecutados</h1>
           <p className="text-sm text-muted-foreground">
             {headerCount} ejecutados activos
+            {showFolders ? " en el estudio" : isHead ? " asignados a mí" : ""}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {isHead && (
-            <Button variant="outline" onClick={() => setByMember((v) => !v)}>
-              {byMember ? "Ver lista" : "Ver por miembro"}
-            </Button>
+            <div className="flex rounded-md border p-0.5">
+              <Button
+                variant={vista === "miembro" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setVista("miembro")}
+              >
+                Miembro
+              </Button>
+              <Button
+                variant={vista === "estudio" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setVista("estudio")}
+              >
+                Estudio
+              </Button>
+            </div>
           )}
           <Button variant="outline" asChild>
             <Link href="/ejecutados/archivados">Archivados</Link>
@@ -156,40 +186,32 @@ export function EjecutadosBoard({
       </div>
 
       {showFolders ? (
-        folders.length === 0 ? (
-          <div className="rounded-md border px-4 py-8 text-center text-sm text-muted-foreground">
-            {deferredQ ? "No se encontraron ejecutados." : "Aún no hay ejecutados."}
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {folders.map((folder) => (
-              <div key={folder.key} className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-medium">{folder.label}</h2>
-                  <Badge variant="secondary">{folder.items.length}</Badge>
-                </div>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nombre</TableHead>
-                        <TableHead>Expediente</TableHead>
-                        <TableHead>Juzgado</TableHead>
-                        <TableHead className="text-right">Deuda inicial</TableHead>
-                        <TableHead>Movimiento</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {folder.items.map((e) => (
-                        <EjecutadoRow key={e.id} e={e} />
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            ))}
-          </div>
-        )
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Expediente</TableHead>
+                <TableHead>Juzgado</TableHead>
+                <TableHead className="text-right">Deuda inicial</TableHead>
+                <TableHead>Movimiento</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {folders.length > 0 ? (
+                folders
+                  .flatMap((folder) => folder.items)
+                  .map((e) => <EjecutadoRow key={e.id} e={e} />)
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    {deferredQ ? "No se encontraron ejecutados." : "Aún no hay ejecutados."}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       ) : (
         <>
           <div className="rounded-md border">
@@ -209,7 +231,11 @@ export function EjecutadosBoard({
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                      {deferredQ ? "No se encontraron ejecutados." : "Aún no hay ejecutados. Creá el primero."}
+                      {deferredQ
+                        ? "No se encontraron ejecutados."
+                        : isHead
+                          ? "Aún no tenés ejecutados asignados a tu nombre. Pasá a Estudio para ver los del equipo."
+                          : "Aún no hay ejecutados. Creá el primero."}
                     </TableCell>
                   </TableRow>
                 )}
@@ -279,11 +305,7 @@ interface Folder {
   items: Ejecutado[];
 }
 
-function buildFolders(
-  items: Ejecutado[],
-  currentUserId: string,
-  members: BoardMember[],
-): Folder[] {
+function buildFolders(items: Ejecutado[], members: BoardMember[]): Folder[] {
   const groups = new Map<string, Ejecutado[]>();
   for (const e of items) {
     const key = e.assigned_to_user_id ?? NO_ASSIGNEE;
@@ -292,20 +314,20 @@ function buildFolders(
     else groups.set(key, [e]);
   }
 
+  // Every folder is labelled by its assignee (the head included, by name) so the
+  // header total is the only firm-wide count — no special "mine" folder.
   const labelFor = (uid: string) => {
-    if (uid === currentUserId) return "Mis ejecutados";
     if (uid === NO_ASSIGNEE) return "Sin delegar";
     const m = members.find((x) => x.user_id === uid);
     if (m) return m.nombre?.trim() ? m.nombre : m.email;
     return "Otro miembro";
   };
 
-  // Ordering: me, then other members in directory order, then anything else,
-  // then unassigned last.
+  // Directory order (head-first, as get_estudio_members returns it), then any
+  // leftover assignees, then unassigned last.
   const orderedKeys: string[] = [];
-  if (groups.has(currentUserId)) orderedKeys.push(currentUserId);
   for (const m of members) {
-    if (m.user_id !== currentUserId && groups.has(m.user_id)) orderedKeys.push(m.user_id);
+    if (groups.has(m.user_id)) orderedKeys.push(m.user_id);
   }
   for (const key of groups.keys()) {
     if (key !== NO_ASSIGNEE && !orderedKeys.includes(key)) orderedKeys.push(key);

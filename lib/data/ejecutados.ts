@@ -19,7 +19,8 @@ export async function listActive(
     q = "",
     page = 1,
     pageSize = PAGE_SIZE_DEFAULT,
-  }: { q?: string; page?: number; pageSize?: number } = {},
+    assignedTo,
+  }: { q?: string; page?: number; pageSize?: number; assignedTo?: string } = {},
 ): Promise<{ items: Ejecutado[]; totalCount: number }> {
   const term = q.trim().slice(0, 100);
   const from = (Math.max(1, page) - 1) * pageSize;
@@ -32,6 +33,11 @@ export async function listActive(
     .eq("is_draft", false)
     .order("created_at", { ascending: false })
     .range(from, to);
+
+  // UI scope (e.g. the head's "Miembro" view), not a security boundary — RLS still applies.
+  if (assignedTo) {
+    query = query.eq("assigned_to_user_id", assignedTo);
+  }
 
   if (term) {
     query = query.ilike("nombre", `%${escapeLike(term)}%`);
