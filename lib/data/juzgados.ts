@@ -15,12 +15,13 @@ export type PickerTipo = (typeof PICKER_TIPOS)[number];
 // One selectable court for the cross-filtered Departamento/Juzgado picker.
 export type CourtEntry = {
   juzgadoId: string;
+  // Seat city (localidad), e.g. "Tandil" — what the estudio calls "departamento".
   departamento: string;
   tipo: PickerTipo;
   numero: number | null;
-  // Identity shared across departamentos for cross-filtering: Civil courts are
-  // keyed by number (every depto's "N° 3" collapses to "civil:3"); Paz courts are
-  // unique to one depto so they key by id.
+  // Identity shared across cities for cross-filtering: Civil courts are keyed by
+  // number (every city's "N° 3" collapses to "civil:3"); Paz courts are unique to
+  // one city so they key by id.
   juzgadoKey: string;
   // Human label shown in the Juzgado dropdown.
   label: string;
@@ -48,12 +49,18 @@ function toEntry(row: {
   tipo: string;
   numero: number | null;
   organismo: string;
+  localidad: string;
 }): CourtEntry {
   const tipo = row.tipo as PickerTipo;
+  // The estudio thinks of "departamento" as the seat city (Tandil, Olavarría,
+  // Balcarce…), not the 20 judicial departments — and within a department the
+  // court number repeats per city, so the city is what disambiguates. Key the
+  // picker on localidad, falling back to the judicial department if missing.
+  const ciudad = row.localidad?.trim() || row.departamento_judicial;
   if (tipo === "Juzgado de Paz") {
     return {
       juzgadoId: row.id,
-      departamento: row.departamento_judicial,
+      departamento: ciudad,
       tipo,
       numero: null,
       juzgadoKey: `paz:${row.id}`,
@@ -62,7 +69,7 @@ function toEntry(row: {
   }
   return {
     juzgadoId: row.id,
-    departamento: row.departamento_judicial,
+    departamento: ciudad,
     tipo,
     numero: row.numero,
     juzgadoKey: `civil:${row.numero}`,
@@ -70,13 +77,14 @@ function toEntry(row: {
   };
 }
 
-// Compact index (~293 rows) of Civil y Comercial + Paz courts for the picker.
+// Compact index (~293 rows) of Civil y Comercial + Paz courts for the picker,
+// keyed by seat city (localidad).
 export async function getCourtIndex(supabase: Client): Promise<CourtEntry[]> {
   const { data, error } = await supabase
     .from("juzgados")
-    .select("id, departamento_judicial, tipo, numero, organismo")
+    .select("id, departamento_judicial, tipo, numero, organismo, localidad")
     .in("tipo", PICKER_TIPOS as unknown as string[])
-    .order("departamento_judicial")
+    .order("localidad")
     .order("tipo")
     .order("numero");
   if (error) throw error;
