@@ -17,21 +17,19 @@ import {
 } from "@/lib/domain/ejecutado";
 import { formatArDate } from "@/lib/domain/dates";
 import { type Tables } from "@/lib/supabase/db-helpers";
+import { type CourtEntry } from "@/lib/data/juzgados";
+import { JuzgadoPicker } from "./juzgado-picker";
 
 
 export function EjecutadoFormFields({
   ejecutado,
-  departamentos,
+  courtIndex,
   empresas,
 }: {
   ejecutado?: Tables<"ejecutados"> | null;
-  departamentos: string[];
+  courtIndex: CourtEntry[];
   empresas: string[];
 }) {
-  const depOptions =
-    ejecutado?.departamento && !departamentos.includes(ejecutado.departamento)
-      ? [...departamentos, ejecutado.departamento]
-      : departamentos;
   const empresaOptions =
     ejecutado?.empresa && !empresas.includes(ejecutado.empresa)
       ? [...empresas, ejecutado.empresa]
@@ -79,26 +77,12 @@ export function EjecutadoFormFields({
 
       {/* Expediente */}
       <SectionTitle>Expediente</SectionTitle>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="juzgado">Juzgado</Label>
-          <Input id="juzgado" name="juzgado" defaultValue={ejecutado?.juzgado ?? ""} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="departamento">Departamento</Label>
-          <Select name="departamento" defaultValue={ejecutado?.departamento || "__none__"}>
-            <SelectTrigger id="departamento">
-              <SelectValue placeholder="Sin departamento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">Sin departamento</SelectItem>
-              {depOptions.map((dep) => (
-                <SelectItem key={dep} value={dep}>{dep}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <JuzgadoPicker
+        index={courtIndex}
+        defaultDepartamento={ejecutado?.departamento}
+        defaultJuzgadoId={ejecutado?.juzgado_id}
+        defaultJuzgadoLabel={ejecutado?.juzgado}
+      />
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="numero_expediente">N° de expediente</Label>

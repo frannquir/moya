@@ -1,0 +1,4990 @@
+[
+  {
+    "departamento_judicial": "Avellaneda - Lanus",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Avellaneda - Lanús",
+    "direccion": "Av. Mitre 2609",
+    "localidad": "Avellaneda",
+    "telefono": "(011) 37544190",
+    "internos": [],
+    "email": "juzciv1-av@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Ernesto Bocaccia",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1166",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Avellaneda - Lanus",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Avellaneda - Lanús",
+    "direccion": "Av. Mitre 2609",
+    "localidad": "Avellaneda",
+    "telefono": "(011) 37544192",
+    "internos": [
+      "108",
+      "102",
+      "103"
+    ],
+    "email": "juzciv2-av@jusbuenosaires.gov.ar",
+    "juez": "Dra. Maria Elisa Reghenzani",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1168",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Avellaneda - Lanus",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - Avellaneda - Lanús",
+    "direccion": "Av. Mitre 2609",
+    "localidad": "Avellaneda",
+    "telefono": "(011) 37544191",
+    "internos": [
+      "11017",
+      "11064",
+      "11065"
+    ],
+    "email": "juzciv3-av@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Andrés Krawiec Krawczuk",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1426",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Avellaneda - Lanus",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - Avellaneda - Lanús",
+    "direccion": "29 de septiembre 1890",
+    "localidad": "Lanús",
+    "telefono": "(011) 37544130 / 31",
+    "internos": [],
+    "email": "juzciv4-la@jusbuenosaires.gov.ar",
+    "juez": "Dr. Guillermo Alejandro Oyhanart",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1209",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Avellaneda - Lanus",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 5 - Avellaneda - Lanús",
+    "direccion": "Carlos Tejedor 283",
+    "localidad": "Lanús",
+    "telefono": "(011) 37544135",
+    "internos": [
+      "10747"
+    ],
+    "email": "juzciv5-la@jusbuenosaires.gov.ar",
+    "juez": "Dra. Raquel Negri",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1210",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Avellaneda - Lanus",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 6 - Avellaneda - Lanús",
+    "direccion": "José Mármol 20",
+    "localidad": "Lanús",
+    "telefono": "(011) 3754-4145",
+    "internos": [],
+    "email": "juzciv6-la@jusbuenosaires.gov.ar",
+    "juez": "Dr. Félix Fabián Vega",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1427",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Avellaneda - Lanus",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 7 - Avellaneda - Lanús",
+    "direccion": "Av. Mitre 2609",
+    "localidad": "Avellaneda",
+    "telefono": "(011) 37544165",
+    "internos": [
+      "11233"
+    ],
+    "email": "juzciv7-av@jusbuenosaires.gov.ar",
+    "juez": "Dr. Martín Alfredo Botassi",
+    "fuero": "Civil y Comercial",
+    "numero": 7,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1539",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Avellaneda - Lanus",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 8 - Avellaneda - Lanus - AVELLANEDA",
+    "direccion": "Av. Mitre 2609",
+    "localidad": "Avellaneda",
+    "telefono": "(011) 3754-4193",
+    "internos": [
+      "11241"
+    ],
+    "email": "juzciv8-av@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Alberto Cascardo",
+    "fuero": "Civil y Comercial",
+    "numero": 8,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1563",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Avellaneda - Lanus",
+    "organismo": "Receptoria de Expedientes Descentralizada con sede en Avellaneda - Avellaneda - Lanús",
+    "direccion": "Avenida Mitre 2613",
+    "localidad": "Avellaneda",
+    "telefono": "(011) 3754-4177",
+    "internos": [
+      "11133",
+      "11149"
+    ],
+    "email": "receptoria-av@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1165",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Avellaneda - Lanus",
+    "organismo": "Receptoria de Expedientes Descentralizada con sede en Lanús - Avellaneda - Lanús",
+    "direccion": "29 de septiembre 1890 Piso 1",
+    "localidad": "Lanús",
+    "telefono": "(011) 3754-4132",
+    "internos": [],
+    "email": "receptoria-la@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1204",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado en lo Civil y Comercial N° 1 - Azul",
+    "direccion": "Rufino Fal 2943",
+    "localidad": "Olavarría",
+    "telefono": "(02284) 2284-424421",
+    "internos": [
+      "36511"
+    ],
+    "email": "juzciv1-ol@jusbuenosaires.gov.ar",
+    "juez": "Dra. Ana Mabel Eseverri",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=248",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado en lo Civil y Comercial N° 1 - Azul",
+    "direccion": "San Martín 596",
+    "localidad": "Tandil",
+    "telefono": "(0249) 4425788",
+    "internos": [
+      "38126"
+    ],
+    "email": "juzciv1-tn@jusbuenosaires.gov.ar",
+    "juez": "Dr. José Martín Zárate - licencia",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=237",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Azul",
+    "direccion": "Avenida Presidente Perón 525",
+    "localidad": "Azul",
+    "telefono": "(02281) 420066",
+    "internos": [
+      "74740"
+    ],
+    "email": "juzciv1-az@jusbuenosaires.gov.ar",
+    "juez": "Dr. José Federico Peña",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=205",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado en lo Civil y Comercial N° 2 - Azul",
+    "direccion": "Rufino Fal 2943",
+    "localidad": "Olavarría",
+    "telefono": "(02284) 423977",
+    "internos": [
+      "36502"
+    ],
+    "email": "juzciv2-ol@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Hilda Galdós",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=249",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado en lo Civil y Comercial N° 2 - Azul",
+    "direccion": "San Martín 596",
+    "localidad": "Tandil",
+    "telefono": "(0249) 4428012",
+    "internos": [
+      "38107"
+    ],
+    "email": "juzciv2-tn@jusbuenosaires.gov.ar",
+    "juez": "Dr. Francisco Augusto Blanc",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=238",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Azul",
+    "direccion": "Avenida Presidente Perón 525 Piso 1",
+    "localidad": "Azul",
+    "telefono": "(02281) 420068",
+    "internos": [
+      "74760"
+    ],
+    "email": "juzciv2-az@jusbuenosaires.gov.ar",
+    "juez": "Dr. Rodrigo Ezequiel Bionda",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=206",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - Azul",
+    "direccion": "Avenida Presidente Perón 525 Piso 2",
+    "localidad": "Azul",
+    "telefono": "(02281) 420070",
+    "internos": [
+      "74780"
+    ],
+    "email": "juzciv3-az@jusbuenosaires.gov.ar",
+    "juez": "Dra. Mariana Álvarez",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=207",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - Azul",
+    "direccion": "Avenida Colón 1076",
+    "localidad": "Tandil",
+    "telefono": "(0249) 4432879",
+    "internos": [],
+    "email": "juzciv3-tn@jusbuenosaires.gov.ar",
+    "juez": "Dr. Sebastián Manuel Sarde",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1188",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - Azul",
+    "direccion": "Avenida Presidente Perón 525",
+    "localidad": "Azul",
+    "telefono": "(02281) 74800",
+    "internos": [
+      "420072"
+    ],
+    "email": "juzciv4-az@jusbuenosaires.gov.ar",
+    "juez": "Dr. Juan Guillermo Lazarte",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=208",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado de Paz - BENITO JUÁREZ",
+    "direccion": "Urquiza 24",
+    "localidad": "Juárez",
+    "telefono": "(02292) 452280",
+    "internos": [],
+    "email": "jpbenitojuarez@jusbuenosaires.gov.ar",
+    "juez": "Dr. Walter Pacheco",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=145",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado de Paz - BOLÍVAR",
+    "direccion": "Balcarce 158",
+    "localidad": "Bolívar",
+    "telefono": "(02314) 428395",
+    "internos": [],
+    "email": "jpbolivar@jusbuenosaires.gov.ar",
+    "juez": "Dr. Atilio Fabián Franco",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=146",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado de Paz - GENERAL ALVEAR",
+    "direccion": "Sarmiento 839",
+    "localidad": "General Alvear",
+    "telefono": "(02344) 221-4104400",
+    "internos": [
+      "66402"
+    ],
+    "email": "jpalvear@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Virginia Paoltroni",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=147",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado de Paz - GENERAL LA MADRID",
+    "direccion": "Lavalle 532",
+    "localidad": "General la Madrid",
+    "telefono": "(02286) 420134",
+    "internos": [],
+    "email": "jplamadrid@jusbuenosaires.gov.ar",
+    "juez": "Dr. Orlando Oscar Simon",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=148",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado de Paz - LAPRIDA",
+    "direccion": "Independencia 1116",
+    "localidad": "Laprida",
+    "telefono": "(02285) 420160",
+    "internos": [],
+    "email": "jplaprida@jusbuenosaires.gov.ar",
+    "juez": "Dra. Marina Beatriz Saint Martín",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=149",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado de Paz - LAS FLORES",
+    "direccion": "Avenida San Martín 722/4",
+    "localidad": "Las Flores",
+    "telefono": "(02244) 452200",
+    "internos": [],
+    "email": "jplasflores@jusbuenosaires.gov.ar",
+    "juez": "Dr. Daniel Horacio Morbiducci - Cuerpo de Magistrados Suplentes",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1325",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado de Paz - RAUCH",
+    "direccion": "Bolívar 56",
+    "localidad": "Rauch",
+    "telefono": "(02297) 442745",
+    "internos": [],
+    "email": "jprauch@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=151",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Juzgado de Paz - TAPALQUÉ",
+    "direccion": "9 de Julio 349",
+    "localidad": "Tapalqué",
+    "telefono": "(02283) 420027",
+    "internos": [],
+    "email": "jptapalque@jusbuenosaires.gov.ar",
+    "juez": "Dr. Darío José Iglesias",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=152",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Receptoria de Expedientes Descentralizada con sede en Olavarria - Azul",
+    "direccion": "Coronel Suarez 2636",
+    "localidad": "Olavarría",
+    "telefono": "(02284) 427317",
+    "internos": [],
+    "email": "receptoria-ol@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1225",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Receptoria de Expedientes Descentralizada con sede en Tandil - Azul",
+    "direccion": "Belgrano 629",
+    "localidad": "Tandil",
+    "telefono": "(0249) 4427450",
+    "internos": [],
+    "email": "receptoria-tn@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1228",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Azul",
+    "organismo": "Receptoría General de Expedientes - Azul",
+    "direccion": "Avenida Presidente Perón 525",
+    "localidad": "Azul",
+    "telefono": "(02281) 435517/435518",
+    "internos": [
+      "37251"
+    ],
+    "email": "receptoria-az@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=228",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado en lo Civil y Comercial N° 1 - Bahía Blanca",
+    "direccion": "Estomba 34 Piso 1",
+    "localidad": "Bahía Blanca",
+    "telefono": "(0291) ",
+    "internos": [
+      "32102",
+      "32127"
+    ],
+    "email": "juzciv1-bb@jusbuenosaires.gov.ar",
+    "juez": "Dr. Juan Carlos Tufari",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=262",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado en lo Civil y Comercial N° 1 - Bahía Blanca",
+    "direccion": "Brandsen 354",
+    "localidad": "Tres Arroyos",
+    "telefono": "(02983) 426601",
+    "internos": [],
+    "email": "juzciv1-ty@jusbuenosaires.gov.ar",
+    "juez": "Dr. Fernando Marcelo Elizalde",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=298",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado en lo Civil y Comercial N° 2 - Bahía Blanca",
+    "direccion": "Estomba 34 Piso 2",
+    "localidad": "Bahía Blanca",
+    "telefono": "(0291) ",
+    "internos": [
+      "32201"
+    ],
+    "email": "juzciv2-bb@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Selva Fortunato",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=263",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado en lo Civil y Comercial N° 2 - Bahía Blanca",
+    "direccion": "Brandsen 562",
+    "localidad": "Tres Arroyos",
+    "telefono": "(02983) 423509",
+    "internos": [],
+    "email": "juzciv2-ty@jusbuenosaires.gov.ar",
+    "juez": "- vacante - Subroga Dr. Elizalde",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=299",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado en lo Civil y Comercial N° 3 - Bahía Blanca",
+    "direccion": "Estomba 34 Piso 1",
+    "localidad": "Bahía Blanca",
+    "telefono": "(0291) ",
+    "internos": [
+      "32107"
+    ],
+    "email": "juzciv3-bb@jusbuenosaires.gov.ar",
+    "juez": "Dr. Néstor Javier Carlos",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=264",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado en lo Civil y Comercial N° 4 - Bahía Blanca",
+    "direccion": "Estomba 34 Piso 4",
+    "localidad": "Bahía Blanca",
+    "telefono": "(0291) ",
+    "internos": [
+      "32401"
+    ],
+    "email": "juzciv4-bb@jusbuenosaires.gov.ar",
+    "juez": "Dr. Orlando Mattii - Cuerpo de Magistrados Suplentes",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=265",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado en lo Civil y Comercial N° 5 - Bahía Blanca",
+    "direccion": "Estomba 34 Piso 1",
+    "localidad": "Bahía Blanca",
+    "telefono": "(0291) ",
+    "internos": [
+      "32126"
+    ],
+    "email": "juzciv5-bb@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Federico Bostal",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=266",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado en lo Civil y Comercial N° 6 - Bahía Blanca",
+    "direccion": "Estomba 34 Piso 2",
+    "localidad": "Bahía Blanca",
+    "telefono": "(0291) ",
+    "internos": [
+      "32215"
+    ],
+    "email": "juzciv6-bb@jusbuenosaires.gov.ar",
+    "juez": "Dr. Cristian Antonio Marrón",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=267",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado en lo Civil y Comercial N° 7 - Bahía Blanca",
+    "direccion": "Estomba 34",
+    "localidad": "Bahía Blanca",
+    "telefono": "(0291) ",
+    "internos": [
+      "32117"
+    ],
+    "email": "juzciv7-bb@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Fernanda Arzuaga",
+    "fuero": "Civil y Comercial",
+    "numero": 7,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=268",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado en lo Civil y Comercial N° 8 - Bahía Blanca",
+    "direccion": "Estomba 34 Piso 4",
+    "localidad": "Bahía Blanca",
+    "telefono": "(0291) ",
+    "internos": [
+      "32408"
+    ],
+    "email": "juzciv8-bb@jusbuenosaires.gov.ar",
+    "juez": "Dr. Darío Jorge Graziabile",
+    "fuero": "Civil y Comercial",
+    "numero": 8,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=269",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado de Paz - CORONEL DORREGO",
+    "direccion": "Presidente Perón 920",
+    "localidad": "Coronel Dorrego",
+    "telefono": "(02921) 453566",
+    "internos": [],
+    "email": "jpdorrego@jusbuenosaires.gov.ar",
+    "juez": "Dra. Juliana Lucenti",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=135",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado de Paz - CORONEL PRINGLES",
+    "direccion": "Carlos Pellegrini 840",
+    "localidad": "Coronel Pringles",
+    "telefono": "(02922) 463288",
+    "internos": [],
+    "email": "jppringles@jusbuenosaires.gov.ar",
+    "juez": "Dr. Eric Otto Naumann",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=136",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado de Paz - CORONEL ROSALES",
+    "direccion": "Juan José Paso 633",
+    "localidad": "Punta Alta",
+    "telefono": "(02932) 439396",
+    "internos": [],
+    "email": "jprosales@jusbuenosaires.gov.ar",
+    "juez": "Dra. Laura Carina Maldonado",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=137",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado de Paz - CORONEL SUÁREZ",
+    "direccion": "Las Heras e/ Alem y San Martín",
+    "localidad": "Coronel Suárez",
+    "telefono": "(02926) 422511",
+    "internos": [],
+    "email": "jpsuarez@jusbuenosaires.gov.ar",
+    "juez": "Dr. Fernando Luis Goñi Pisano",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=138",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado de Paz - GONZALES CHAVES",
+    "direccion": "Lavalle 240",
+    "localidad": "Gonzales Chaves",
+    "telefono": "(02983) 481536",
+    "internos": [],
+    "email": "jpchaves@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Silvina Giancaterino",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=139",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado de Paz - MONTE HERMOSO",
+    "direccion": "Dr. Eduardo Viega 32",
+    "localidad": "Monte Hermoso",
+    "telefono": "(02921) 482715",
+    "internos": [],
+    "email": "jpmontehermoso@jusbuenosaires.gov.ar",
+    "juez": "Dr. Sergio Omar García",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=140",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado de Paz - PATAGONES",
+    "direccion": "Mitre 194",
+    "localidad": "Carmen de Patagones",
+    "telefono": "(02920) 461799",
+    "internos": [],
+    "email": "jppatagones@jusbuenosaires.gov.ar",
+    "juez": "Dra. Carla Veronica Ventuala",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=134",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado de Paz - PUAN",
+    "direccion": "Yrigoyen 357",
+    "localidad": "Puan",
+    "telefono": "(02923) 498295",
+    "internos": [],
+    "email": "jppuan@jusbuenosaires.gov.ar",
+    "juez": "Dra. Maria Julieta Martínez",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=141",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado de Paz - SAAVEDRA",
+    "direccion": "Alvear 123",
+    "localidad": "Pigué",
+    "telefono": "(02923) 473114",
+    "internos": [],
+    "email": "jppigue@jusbuenosaires.gov.ar",
+    "juez": "Dr. Guillermo Walter Fischer",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=142",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado de Paz - TORNQUIST",
+    "direccion": "Avenida Sarmiento 180",
+    "localidad": "Tornquist",
+    "telefono": "(0291) 4941107",
+    "internos": [],
+    "email": "jptornquist@jusbuenosaires.gov.ar",
+    "juez": "Dr. Francisco José Frizza",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=143",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Juzgado de Paz - VILLARINO",
+    "direccion": "Bartolomé Mitre 402",
+    "localidad": "Médanos",
+    "telefono": "(02927) 432212",
+    "internos": [],
+    "email": "jpvillarino@jusbuenosaires.gov.ar",
+    "juez": "Dra. Miriam Liliana Carpintino",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=144",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Receptoria de Expedientes Descentralizada con sede en Tres Arroyos - Bahía Blanca",
+    "direccion": "Betolaza 30",
+    "localidad": "Tres Arroyos",
+    "telefono": "(02983) 428776",
+    "internos": [],
+    "email": "receptoria-ty@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1229",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Bahia Blanca",
+    "organismo": "Receptoría General de Expedientes - Bahía Blanca",
+    "direccion": "Estomba 34 Piso 1",
+    "localidad": "Bahía Blanca",
+    "telefono": "(0291) 456-3600",
+    "internos": [
+      "32125",
+      "32120"
+    ],
+    "email": "receptoria-bb@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=288",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado en lo Civil y Comercial N° 1 - Dolores",
+    "direccion": "Belgrano 141",
+    "localidad": "Dolores",
+    "telefono": "(02245) 532604",
+    "internos": [
+      "30238"
+    ],
+    "email": "juzciv1-do@jusbuenosaires.gov.ar",
+    "juez": "- vacante - Subroga Dr. Felix Adrian",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=312",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado en lo Civil y Comercial N° 2 - Dolores",
+    "direccion": "Belgrano 141",
+    "localidad": "Dolores",
+    "telefono": "(02245) 532605",
+    "internos": [
+      "30241"
+    ],
+    "email": "juzciv2-do@jusbuenosaires.gov.ar",
+    "juez": "Dra. Daniela Galdós",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=313",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado en lo Civil y Comercial N° 3 - Dolores",
+    "direccion": "Belgrano 141",
+    "localidad": "Dolores",
+    "telefono": "(02245) 532606",
+    "internos": [
+      "30236"
+    ],
+    "email": "juzciv3-do@jusbuenosaires.gov.ar",
+    "juez": "Dr. Santiago Francisco Cremonte",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=314",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado en lo Civil y Comercial N° 4 - Dolores",
+    "direccion": "Belgrano 141",
+    "localidad": "Dolores",
+    "telefono": "(02245) 532607",
+    "internos": [
+      "30247"
+    ],
+    "email": "juzciv4-do@jusbuenosaires.gov.ar",
+    "juez": "Dr. Marcos Fernando Val",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=315",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - AYACUCHO",
+    "direccion": "Bartolomé Mitre 1154",
+    "localidad": "Ayacucho",
+    "telefono": "(02296) 452739",
+    "internos": [],
+    "email": "jpayacucho@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Fernanda Guisande",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=121",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - CASTELLI",
+    "direccion": "Mitre 276",
+    "localidad": "Castelli",
+    "telefono": "(02245) 480114",
+    "internos": [],
+    "email": "jpcastelli@jusbuenosaires.gov.ar",
+    "juez": "Dr. José Miguel Echarren",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=122",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - CHASCOMÚS",
+    "direccion": "Bolivar 475",
+    "localidad": "Chascomús",
+    "telefono": "(02241) 423392",
+    "internos": [],
+    "email": "jpchascomus@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Juliana Hernández",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=123",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - DOLORES",
+    "direccion": "Libres del Sur 225",
+    "localidad": "Lezama",
+    "telefono": "(02242) 432150",
+    "internos": [],
+    "email": "jplezama@jusbuenosaires.gov.ar",
+    "juez": "Dr. Juan Emilio Casco Díaz",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1430",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - GENERAL BELGRANO",
+    "direccion": "Doctor Ortiz 416",
+    "localidad": "General Belgrano",
+    "telefono": "(02243) 452188",
+    "internos": [],
+    "email": "jpbelgrano@jusbuenosaires.gov.ar",
+    "juez": "Dra. Angélica Ceballos",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=125",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - GENERAL GUIDO",
+    "direccion": "Belgrano e/ Veinticinco de Mayo y Cepeda",
+    "localidad": "General Guido",
+    "telefono": "(02268) 491014",
+    "internos": [],
+    "email": "jpguido@jusbuenosaires.gov.ar",
+    "juez": "Dr. Ángel Oscar Loubet",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=126",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - GENERAL LAVALLE",
+    "direccion": "Arturo De la Serna 1264",
+    "localidad": "General Lavalle",
+    "telefono": "(02252) 491098",
+    "internos": [],
+    "email": "jplavalle@jusbuenosaires.gov.ar",
+    "juez": "Vacante - Subroga la Dra. Silvia Adriana Guglielmetti",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=128",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - GENERAL MADARIAGA",
+    "direccion": "Belgrano 1199",
+    "localidad": "General Madariaga",
+    "telefono": "(02267) 420389",
+    "internos": [],
+    "email": "jpmadariaga@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Fabián Rodríguez",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=129",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - MAIPÚ",
+    "direccion": "Madero 601",
+    "localidad": "Maipú",
+    "telefono": "(02268) 421051",
+    "internos": [],
+    "email": "jpmaipu@jusbuenosaires.gov.ar",
+    "juez": "Dr. Martín Eduardo Ibarlucía",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=130",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - PARTIDO DE LA COSTA",
+    "direccion": "2 7960",
+    "localidad": "Mar del Tuyú",
+    "telefono": "(02246) 435577",
+    "internos": [],
+    "email": "jpdelacosta@jusbuenosaires.gov.ar",
+    "juez": "Dr. Sergio Eduardo Magioli",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=124",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - PILA",
+    "direccion": "11 e/ Avenida 4",
+    "localidad": "Pila",
+    "telefono": "(02242) 498125",
+    "internos": [],
+    "email": "jppila@jusbuenosaires.gov.ar",
+    "juez": "Dr. Martín Ulises Oria",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=131",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - PINAMAR",
+    "direccion": "Avenida Shaw 87 Piso 1",
+    "localidad": "Pinamar",
+    "telefono": "(02254) 491666-498100",
+    "internos": [],
+    "email": "jppinamar@jusbuenosaires.gov.ar",
+    "juez": "Dra. Silvia Adriana Guglielmetti",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=132",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - TORDILLO",
+    "direccion": "Juan Domingo Perón 22",
+    "localidad": "General Conesa",
+    "telefono": "(02245) 492053",
+    "internos": [],
+    "email": "jptordillo@jusbuenosaires.gov.ar",
+    "juez": "Vacante - Subroga el Dr. Martín Ulises Oria",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=127",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Juzgado de Paz - VILLA GESELL",
+    "direccion": "Buenos Aires 985",
+    "localidad": "Villa Gesell",
+    "telefono": "(02255) 467118/19",
+    "internos": [],
+    "email": "jpgesell@jusbuenosaires.gov.ar",
+    "juez": "Dra. Graciela Dora Jofré",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=133",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Dolores",
+    "organismo": "Receptoría General de Expedientes - Dolores",
+    "direccion": "Belgrano 141",
+    "localidad": "Dolores",
+    "telefono": "(02245) 532610",
+    "internos": [
+      "30209"
+    ],
+    "email": "receptoria-do@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=330",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 2",
+    "localidad": "General San Martín",
+    "telefono": "(011) 3751-1100 (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25834"
+    ],
+    "email": "juzciv1-sm@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1015",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 2",
+    "localidad": "General San Martín",
+    "telefono": "(011) 4724-5836/  Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25837"
+    ],
+    "email": "juzciv2-sm@jusbuenosaires.gov.ar",
+    "juez": "- Vacante Subroga el Dr. Federico Gregorio Eribe",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1016",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 3",
+    "localidad": "General San Martín",
+    "telefono": "(011) 4724-5841/   Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25956",
+      "25843",
+      "42"
+    ],
+    "email": "juzciv3-sm@jusbuenosaires.gov.ar",
+    "juez": "Dr. Silvio José Mazzarello",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1017",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 3",
+    "localidad": "General San Martín",
+    "telefono": "(011) 4724-5845/   Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25846",
+      "45847"
+    ],
+    "email": "juzciv4-sm@jusbuenosaires.gov.ar",
+    "juez": "Dr. Federico Gregorio Gabriel Eribe",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1018",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 5 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 6",
+    "localidad": "General San Martín",
+    "telefono": "(011) 4724-5849/   Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25850",
+      "25851"
+    ],
+    "email": "juzciv5-sm@jusbuenosaires.gov.ar",
+    "juez": "Dra. Gladys Mabel Zaldúa",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1019",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 6 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 6",
+    "localidad": "General San Martín",
+    "telefono": "(011) 4724-5853/   Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25854",
+      "25855"
+    ],
+    "email": "juzciv6-sm@jusbuenosaires.gov.ar",
+    "juez": "Dr. Marcelo Pablo Escola",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1020",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 7 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 2",
+    "localidad": "General San Martín",
+    "telefono": "(011) 47245-5857/   Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25858"
+    ],
+    "email": "juzciv7-sm@jusbuenosaires.gov.ar",
+    "juez": "Dr. Claudio Hugo Fede",
+    "fuero": "Civil y Comercial",
+    "numero": 7,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1021",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 8 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 2",
+    "localidad": "General San Martín",
+    "telefono": "(011) 4724-5863/   Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25860",
+      "25862"
+    ],
+    "email": "juzciv8-sm@jusbuenosaires.gov.ar",
+    "juez": "- Vacante Subroga la Dra. Elina Mercedes Fernandez",
+    "fuero": "Civil y Comercial",
+    "numero": 8,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1022",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 9 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 3",
+    "localidad": "General San Martín",
+    "telefono": "(011) 4724-5868/   Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25866",
+      "25867"
+    ],
+    "email": "juzciv9-sm@jusbuenosaires.gov.ar",
+    "juez": "Dr. Paulo Alberto Maresca",
+    "fuero": "Civil y Comercial",
+    "numero": 9,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1023",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 10 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 3",
+    "localidad": "General San Martín",
+    "telefono": "(011) 4724-5872/   Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25870",
+      "25871"
+    ],
+    "email": "juzciv10-sm@jusbuenosaires.gov.ar",
+    "juez": "Dra. Elina Mercedes Fernández",
+    "fuero": "Civil y Comercial",
+    "numero": 10,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1024",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 11 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 6",
+    "localidad": "General San Martín",
+    "telefono": "(011) 4724-5877/   Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25875"
+    ],
+    "email": "juzciv11-sm@jusbuenosaires.gov.ar",
+    "juez": "- Vacante Subroga el Dr. Marcelo Escola",
+    "fuero": "Civil y Comercial",
+    "numero": 11,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1025",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 12 - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753 Piso 6",
+    "localidad": "General San Martín",
+    "telefono": "(011) 4724-5881/   Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "25879",
+      "25880"
+    ],
+    "email": "juzciv12-sm@jusbuenosaires.gov.ar",
+    "juez": "Dra. Verónica Viviana Vidal",
+    "fuero": "Civil y Comercial",
+    "numero": 12,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1026",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado de Paz - JOSÉ C. PAZ",
+    "direccion": "Lavalle 2282",
+    "localidad": "José C. Paz",
+    "telefono": "(02320) 430376/446085/  Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [],
+    "email": "jpjosecpaz@jusbuenosaires.gov.ar",
+    "juez": "Dra. Liliana Silvia Sawai",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=185",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado de Paz - MALVINAS ARGENTINAS",
+    "direccion": "Godoy Cruz 2252",
+    "localidad": "Los Polvorines",
+    "telefono": "(011) 4660-2678/  Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [],
+    "email": "jpmalvinas@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=186",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado de Paz - SAN MIGUEL",
+    "direccion": "Las Heras 822",
+    "localidad": "San Miguel",
+    "telefono": "(011) 4664-6773 / 4451-5876/  Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [],
+    "email": "jpsanmiguel@jusbuenosaires.gov.ar",
+    "juez": "Dr. Ignacio German Boyle",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=183",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Juzgado de Paz - TRES DE FEBRERO",
+    "direccion": "Bonifacini 5205",
+    "localidad": "Caseros",
+    "telefono": "(011) 45875604/  Conmutador  3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [],
+    "email": "jp3febrero@jusbuenosaires.gov.ar",
+    "juez": "Dra. Nancy Judith Iannelli",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=184",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Receptoría General de Expedientes - General San Martín",
+    "direccion": "Avenida Ricardo Balbín 1753",
+    "localidad": "General San Martín",
+    "telefono": "(011) 4724-5742/Conmutador 3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [
+      "5831"
+    ],
+    "email": "receptoria-sm@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1057",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "General San Martin",
+    "organismo": "Receptoría de Expedientes Descentralizada con sede en San Miguel - General San Martín",
+    "direccion": "Avenida Presidente Perón 2450",
+    "localidad": "San Miguel",
+    "telefono": "(011) 4664-3534/Conmutador 3751-1100- (para ser atendido por el Operador, al habilitar la señal marcar 25000)",
+    "internos": [],
+    "email": "receptoria-smi@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1226",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado en lo Civil y Comercial N° 1 - Junín",
+    "direccion": "Álvarez Rodríguez 141 Piso 3",
+    "localidad": "Junín",
+    "telefono": "(0236) 4447323",
+    "internos": [
+      "48717"
+    ],
+    "email": "juzciv1-ju@jusbuenosaires.gov.ar",
+    "juez": "Dr. Fernando Horacio Castro Mitarotonda",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=342",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado en lo Civil y Comercial N° 2 - Junín",
+    "direccion": "Álvarez Rodríguez 81",
+    "localidad": "Junín",
+    "telefono": "(0236) ",
+    "internos": [
+      "48410"
+    ],
+    "email": "juzciv2-ju@jusbuenosaires.gov.ar",
+    "juez": "Dra. Daniela Karina Ragazzini",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=343",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado en lo Civil y Comercial N° 3 - Junín",
+    "direccion": "Álvarez Rodríguez 81",
+    "localidad": "Junín",
+    "telefono": "(0236) ",
+    "internos": [
+      "48207"
+    ],
+    "email": "juzciv3-ju@jusbuenosaires.gov.ar",
+    "juez": "- vacante - Subroga Dra. Daniela Karina Ragazzine",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=344",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado en lo Civil y Comercial N° 4 - Junín",
+    "direccion": "Álvarez Rodríguez 141",
+    "localidad": "Junín",
+    "telefono": "(0236) ",
+    "internos": [
+      "48738"
+    ],
+    "email": "juzciv4-ju@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=345",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado de Paz - CHACABUCO",
+    "direccion": "Moreno 65",
+    "localidad": "Chacabuco",
+    "telefono": "(02352) 428427",
+    "internos": [],
+    "email": "jpchacabuco@jusbuenosaires.gov.ar",
+    "juez": "Dr. Miguel Ángel Rossetti",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=156",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado de Paz - FLORENTINO AMEGHINO",
+    "direccion": "Avenida 28 93",
+    "localidad": "Ameghino",
+    "telefono": "(03388) 471800",
+    "internos": [],
+    "email": "jpameghino@jusbuenosaires.gov.ar",
+    "juez": "Dra. Alejandra Marisa Bottega",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=157",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado de Paz - GENERAL ARENALES",
+    "direccion": "José Ignacio Arias 10",
+    "localidad": "General Arenales",
+    "telefono": "(02353) 460010",
+    "internos": [],
+    "email": "jparenales@jusbuenosaires.gov.ar",
+    "juez": "Dra. Elida Rosa Cirelli",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=158",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado de Paz - GENERAL PINTO",
+    "direccion": "R. Gowland e/ Gral. San Martín",
+    "localidad": "General Pinto",
+    "telefono": "(02356) 420043",
+    "internos": [],
+    "email": "jppinto@jusbuenosaires.gov.ar",
+    "juez": "Dr. Javier Edgardo Sáenz",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=159",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado de Paz - GENERAL VIAMONTE",
+    "direccion": "Leandro N.Alem 548",
+    "localidad": "Los Toldos",
+    "telefono": "(02358) 442194/5",
+    "internos": [],
+    "email": "jpviamonte@jusbuenosaires.gov.ar",
+    "juez": "Dr. Jorge Aldo Martínez",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=160",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado de Paz - LEANDRO N. ALEM",
+    "direccion": "Maipú 79",
+    "localidad": "Vedia",
+    "telefono": "(02354) 420110",
+    "internos": [],
+    "email": "jpvedia@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Fabiana Noblia",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=161",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado de Paz - LINCOLN",
+    "direccion": "Rawson 78",
+    "localidad": "Lincoln",
+    "telefono": "(02355) 422210",
+    "internos": [],
+    "email": "jplincoln@jusbuenosaires.gov.ar",
+    "juez": "Dra. Daniela Magda Martín",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=162",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Juzgado de Paz - ROJAS",
+    "direccion": "Juan G. Muñoz 523",
+    "localidad": "Rojas",
+    "telefono": "(02475) 463143",
+    "internos": [],
+    "email": "jprojas@jusbuenosaires.gov.ar",
+    "juez": "Dr. Luciano Jorge Callegari",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=163",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Junin",
+    "organismo": "Receptoría General de Expedientes - Junín",
+    "direccion": "Mayor López 2",
+    "localidad": "Junín",
+    "telefono": "(0236) ",
+    "internos": [
+      "41859",
+      "41811",
+      "13"
+    ],
+    "email": "receptoria-ju@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=358",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "La Matanza",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - La Matanza",
+    "direccion": "Avenida Presidente Perón 2850",
+    "localidad": "San Justo",
+    "telefono": "(011) 2120-3850",
+    "internos": [
+      "20605"
+    ],
+    "email": "juzciv1-lm@jusbuenosaires.gov.ar",
+    "juez": "Dra. Laura Elizabeth Mato",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=374",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Matanza",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - La Matanza",
+    "direccion": "Avenida Presidente Perón 2850 Piso 2",
+    "localidad": "San Justo",
+    "telefono": "(011) 4484-5279",
+    "internos": [
+      "20620"
+    ],
+    "email": "juzciv2-lm@jusbuenosaires.gov.ar",
+    "juez": "Dr. Agustín Marano",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=375",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Matanza",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - La Matanza",
+    "direccion": "Avenida Presidente Perón 2850",
+    "localidad": "San Justo",
+    "telefono": "(011) 11 2120.3852",
+    "internos": [
+      "20642"
+    ],
+    "email": "juzciv3-lm@jusbuenosaires.gov.ar",
+    "juez": "Dra. Alejandra Silvia Ronsini",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=376",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Matanza",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - La Matanza",
+    "direccion": "Entre Ríos 2929 Piso 1 2",
+    "localidad": "San Justo",
+    "telefono": "(011) 4441-0683",
+    "internos": [
+      "19606"
+    ],
+    "email": "juzciv4-lm@jusbuenosaires.gov.ar",
+    "juez": "Dr. Norberto Luis Valentini",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=377",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Matanza",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 5 - La Matanza",
+    "direccion": "Entre Ríos 2929",
+    "localidad": "San Justo",
+    "telefono": "(011) 4484-0263",
+    "internos": [
+      "19604"
+    ],
+    "email": "juzciv5-lm@jusbuenosaires.gov.ar",
+    "juez": "Dr. Mariano Gastón Sohaner",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=378",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Matanza",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 6 - La Matanza",
+    "direccion": "Entre Ríos 2929",
+    "localidad": "San Justo",
+    "telefono": "(011) 4441-0762",
+    "internos": [
+      "19603"
+    ],
+    "email": "juzciv6-lm@jusbuenosaires.gov.ar",
+    "juez": "Dr. Ignacio Alberto Trotta",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=379",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Matanza",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 7 - La Matanza",
+    "direccion": "Salta 2269/75 Piso 1y2",
+    "localidad": "San Justo",
+    "telefono": "(011) 46510502",
+    "internos": [
+      "31"
+    ],
+    "email": "juzciv7-lm@jusbuenosaires.gov.ar",
+    "juez": "Dr. Rubén Daniel Iglesias",
+    "fuero": "Civil y Comercial",
+    "numero": 7,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=380",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Matanza",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 8 - La Matanza",
+    "direccion": "Salta 2269/75 Piso 3",
+    "localidad": "San Justo",
+    "telefono": "(011) 44847184",
+    "internos": [
+      "39"
+    ],
+    "email": "juzciv8-lm@jusbuenosaires.gov.ar",
+    "juez": "Dra. Nora Graciela Módolo",
+    "fuero": "Civil y Comercial",
+    "numero": 8,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=381",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Matanza",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 9 - La Matanza",
+    "direccion": "Avenida Comisionado Indart 2147/57",
+    "localidad": "San Justo",
+    "telefono": "(011) 44840981",
+    "internos": [
+      "19805",
+      "19807"
+    ],
+    "email": "juzciv9-lm@jusbuenosaires.gov.ar",
+    "juez": "Dr. Rodrigo Carlos Suárez Della Porta",
+    "fuero": "Civil y Comercial",
+    "numero": 9,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1421",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Matanza",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 10 - La Matanza",
+    "direccion": "Avenida Comisionado Indart 2147/57",
+    "localidad": "San Justo",
+    "telefono": "(011) 44840949",
+    "internos": [
+      "198027"
+    ],
+    "email": "juzciv10-lm@jusbuenosaires.gov.ar",
+    "juez": "Dra. Edith Irene Rota",
+    "fuero": "Civil y Comercial",
+    "numero": 10,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1422",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Matanza",
+    "organismo": "Receptoría General de Expedientes - La Matanza",
+    "direccion": "Avenida Presidente Perón 2850",
+    "localidad": "San Justo",
+    "telefono": "(011) 2120-3853",
+    "internos": [
+      "20618",
+      "20688",
+      "20602"
+    ],
+    "email": "receptoria-lm@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=409",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42248",
+      "42253"
+    ],
+    "email": "juzciv1-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Cecilia Valeros de Córica",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=437",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "44456"
+    ],
+    "email": "juzciv2-lp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Vicente Santos Atela",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=438",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) 4104457",
+    "internos": [
+      "42266",
+      "44457",
+      "42238"
+    ],
+    "email": "juzciv4-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Gladys Mabel Cardoni",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=439",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 5 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42318"
+    ],
+    "email": "juzciv5-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Fabiana Maricel Coradi",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=440",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 6 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42151",
+      "42152",
+      "42145"
+    ],
+    "email": "juzciv6-lp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Juan José De Oliveira",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=441",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 7 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "442176",
+      "42175"
+    ],
+    "email": "juzciv7-lp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Federico Martínez",
+    "fuero": "Civil y Comercial",
+    "numero": 7,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=442",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 8 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42223",
+      "42224"
+    ],
+    "email": "juzciv8-lp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Leonardo Javier Villegas",
+    "fuero": "Civil y Comercial",
+    "numero": 8,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=443",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 9 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42193",
+      "42209"
+    ],
+    "email": "juzciv9-lp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Hugo Damián Taranto",
+    "fuero": "Civil y Comercial",
+    "numero": 9,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=444",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 10 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) 410-4463",
+    "internos": [
+      "42187"
+    ],
+    "email": "juzciv10-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Silvina Cairo",
+    "fuero": "Civil y Comercial",
+    "numero": 10,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=445",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 11 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42575",
+      "44464",
+      "42931"
+    ],
+    "email": "juzciv11-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Paula Buffarini",
+    "fuero": "Civil y Comercial",
+    "numero": 11,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=446",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 12 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "44458",
+      "42251",
+      "42273"
+    ],
+    "email": "juzciv12-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Maria Daniela Ferenc",
+    "fuero": "Civil y Comercial",
+    "numero": 12,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=447",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 13 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42315",
+      "43505",
+      "42888"
+    ],
+    "email": "juzciv13-lp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Mario Raúl Camerini",
+    "fuero": "Civil y Comercial",
+    "numero": 13,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=448",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 14 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) 410-4467",
+    "internos": [
+      "42204",
+      "44467",
+      "42194",
+      "98"
+    ],
+    "email": "juzciv14-lp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Nicolás Jorge Negri",
+    "fuero": "Civil y Comercial",
+    "numero": 14,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=449",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 16 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) 410-44468",
+    "internos": [
+      "42201",
+      "42205",
+      "44468"
+    ],
+    "email": "juzciv16-lp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Enrique Alberto Gorostegui",
+    "fuero": "Civil y Comercial",
+    "numero": 16,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=450",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 17 - La Plata",
+    "direccion": "13 688 y 688 1/2",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "64518",
+      "64521"
+    ],
+    "email": "juzciv17-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Sandra Nilda Grahl",
+    "fuero": "Civil y Comercial",
+    "numero": 17,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=451",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 18 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42568"
+    ],
+    "email": "juzciv18-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Verónica Leglise",
+    "fuero": "Civil y Comercial",
+    "numero": 18,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=452",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 19 - La Plata",
+    "direccion": "13 690",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "56016",
+      "56021"
+    ],
+    "email": "juzciv19-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Cecilia Tanco",
+    "fuero": "Civil y Comercial",
+    "numero": 19,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=453",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 20 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42758",
+      "42165"
+    ],
+    "email": "juzciv20-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Luciana Tedesco Del Rivero",
+    "fuero": "Civil y Comercial",
+    "numero": 20,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1480",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 21 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42177",
+      "44473"
+    ],
+    "email": "juzciv21-lp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Héctor Luján Iacomini",
+    "fuero": "Civil y Comercial",
+    "numero": 21,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=455",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 22 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) 4104460",
+    "internos": [
+      "44460"
+    ],
+    "email": "juzciv22-lp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Alfredo Aníbal Villata",
+    "fuero": "Civil y Comercial",
+    "numero": 22,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=456",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 23 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42297",
+      "42289"
+    ],
+    "email": "juzciv23-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Guillermina Belén di Luca",
+    "fuero": "Civil y Comercial",
+    "numero": 23,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=457",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 25 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) 4104450",
+    "internos": [
+      "42219",
+      "44450"
+    ],
+    "email": "juzciv25-lp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Carlos José Catoggio",
+    "fuero": "Civil y Comercial",
+    "numero": 25,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=458",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 27 - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "42309"
+    ],
+    "email": "juzciv27-lp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Alejandra Salvioli",
+    "fuero": "Civil y Comercial",
+    "numero": 27,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=459",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - BERISSO",
+    "direccion": "Avenida Montevideo 1695",
+    "localidad": "Berisso",
+    "telefono": "221-5129186",
+    "internos": [
+      "64560",
+      "64561"
+    ],
+    "email": "jpberisso@jusbuenosaires.gov.ar",
+    "juez": "Dra. Vanina Cecilia Mosquera",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=3",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - BRANDSEN",
+    "direccion": "Rivadavia 430",
+    "localidad": "Coronel Brandsen",
+    "telefono": "(02223) 442149",
+    "internos": [],
+    "email": "jpbrandsen@jusbuenosaires.gov.ar",
+    "juez": "Dr. Sergio Rubén Arturi",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=89",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - CAÑUELAS",
+    "direccion": "Lara 638",
+    "localidad": "Cañuelas",
+    "telefono": "(0221) 5129196",
+    "internos": [],
+    "email": "jpcanuelas@jusbuenosaires.gov.ar",
+    "juez": "Dra. Inés del Valle Rivarola",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=88",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - ENSENADA",
+    "direccion": "Angel Farella 443",
+    "localidad": "Ensenada",
+    "telefono": "(0221) 5129185",
+    "internos": [],
+    "email": "jpensenada@jusbuenosaires.gov.ar",
+    "juez": "Dra. Vanesa Carla Sagasta",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=90",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - GENERAL PAZ",
+    "direccion": "Dantas 3068",
+    "localidad": "Ranchos",
+    "telefono": "(02241) 481206",
+    "internos": [],
+    "email": "jpranchos@jusbuenosaires.gov.ar",
+    "juez": "Dr. Mario Fernando Cosser Navarro",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=91",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - LOBOS",
+    "direccion": "Salgado Este 158",
+    "localidad": "Lobos",
+    "telefono": "(02227) 421604",
+    "internos": [],
+    "email": "jplobos@jusbuenosaires.gov.ar",
+    "juez": "Dr. Laureano Della Schiava",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=92",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - MAGDALENA",
+    "direccion": "José Miguens 1491",
+    "localidad": "Magdalena",
+    "telefono": "(02221) 453001-454492",
+    "internos": [],
+    "email": "jpmagdalena@jusbuenosaires.gov.ar",
+    "juez": "Dra. Marisol Rosana Guidobono",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=93",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - MONTE",
+    "direccion": "Italia 453",
+    "localidad": "Monte",
+    "telefono": "(02271) 420374/443406",
+    "internos": [],
+    "email": "jpmonte@jusbuenosaires.gov.ar",
+    "juez": "Dra. Marisa Luján Preves",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=94",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - PRESIDENTE PERÓN",
+    "direccion": "Crisologo Larralde 277 Piso 1",
+    "localidad": "Guernica",
+    "telefono": "(011) 39737211",
+    "internos": [],
+    "email": "jpguernica@jusbuenosaires.gov.ar",
+    "juez": "Dra. Amalia María Del Carmen Jaliff",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=95",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - PUNTA INDIO",
+    "direccion": "32 1155",
+    "localidad": "Veronica",
+    "telefono": "(02221) 480410",
+    "internos": [],
+    "email": "jpindio@jusbuenosaires.gov.ar",
+    "juez": "- vacante- subroga el Dr. Mario Fernando Cosser Navarro",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=96",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - ROQUE PÉREZ",
+    "direccion": "Avellaneda 1281",
+    "localidad": "Roque Pérez",
+    "telefono": "221 5129198",
+    "internos": [],
+    "email": "jproqueperez@jusbuenosaires.gov.ar",
+    "juez": "Dr. Misael Mario Abraham",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=97",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - SALADILLO",
+    "direccion": "Bartolomé Mitre 3247",
+    "localidad": "Saladillo",
+    "telefono": "2215129195",
+    "internos": [],
+    "email": "jpsaladillo@jusbuenosaires.gov.ar",
+    "juez": "Dra. Delma Beatriz Capobianco -",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=98",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Juzgado de Paz - SAN VICENTE",
+    "direccion": "25 de Mayo 114",
+    "localidad": "San Vicente",
+    "telefono": "(02225) 481352",
+    "internos": [],
+    "email": "jpsanvicente@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=99",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "La Plata",
+    "organismo": "Receptoría General de Expedientes - La Plata",
+    "direccion": "13 e/ 47 y 48",
+    "localidad": "La Plata",
+    "telefono": "(0221) ",
+    "internos": [
+      "44477",
+      "42303",
+      "42570"
+    ],
+    "email": "receptoria-lp@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=495",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12036",
+      "12034",
+      "12691"
+    ],
+    "email": "juzciv1-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Carlos Mario Casas",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=509",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12690",
+      "12044"
+    ],
+    "email": "juzciv2-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Roberto Carlos Miño Sotero Arnold",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=510",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12050",
+      "12051"
+    ],
+    "email": "juzciv3-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Nicolás Oscar Raggio",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=511",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12058",
+      "12057",
+      "12679"
+    ],
+    "email": "juzciv4-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Roberto Jorge Forzati",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=512",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 5 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12065",
+      "12063",
+      "64"
+    ],
+    "email": "juzciv5-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Felipe Blanco",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=513",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 6 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12071",
+      "12072"
+    ],
+    "email": "juzciv6-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Leonardo Ricardo Puey",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=514",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 7 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12006",
+      "12667"
+    ],
+    "email": "juzciv7-lz@jusbuenosaires.gov.ar",
+    "juez": "- Vacante",
+    "fuero": "Civil y Comercial",
+    "numero": 7,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=515",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 8 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12870",
+      "12013",
+      "12675"
+    ],
+    "email": "juzciv8-lz@jusbuenosaires.gov.ar",
+    "juez": "- vacante - Subroga Dr. Krawiec Krawczuk",
+    "fuero": "Civil y Comercial",
+    "numero": 8,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=516",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 9 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12020",
+      "12021",
+      "12075"
+    ],
+    "email": "juzciv9-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Alberto Pizzo",
+    "fuero": "Civil y Comercial",
+    "numero": 9,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=517",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 10 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12028",
+      "12029"
+    ],
+    "email": "juzciv10-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Esteban Tejada",
+    "fuero": "Civil y Comercial",
+    "numero": 10,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=518",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 11 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque - Piso 2",
+    "localidad": "Banfield",
+    "telefono": "(011) 42021327 INT.12023",
+    "internos": [
+      "12233",
+      "12232"
+    ],
+    "email": "juzciv11-lz@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Zulema Vila",
+    "fuero": "Civil y Comercial",
+    "numero": 11,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=519",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 12 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12092",
+      "12093"
+    ],
+    "email": "juzciv12-lz@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Civil y Comercial",
+    "numero": 12,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=520",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 13 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12256",
+      "13571",
+      "12255"
+    ],
+    "email": "juzciv13-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Leonardo Alejandro Todarelli",
+    "fuero": "Civil y Comercial",
+    "numero": 13,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=521",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 14 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) 12331",
+    "internos": [
+      "12249"
+    ],
+    "email": "juzciv14-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Mariano Cattáneo",
+    "fuero": "Civil y Comercial",
+    "numero": 14,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=522",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 15 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [],
+    "email": "juzciv15-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Javier Calandroni",
+    "fuero": "Civil y Comercial",
+    "numero": 15,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1445",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 16 - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [],
+    "email": "juzciv16-lz@jusbuenosaires.gov.ar",
+    "juez": "Dr. Leonardo Del Bene",
+    "fuero": "Civil y Comercial",
+    "numero": 16,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1446",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado de Paz - ALMIRANTE BROWN",
+    "direccion": "Bynon 1732/36",
+    "localidad": "Adrogué",
+    "telefono": "(011) 4294-0404/4293-0270",
+    "internos": [],
+    "email": "jpbrown@jusbuenosaires.gov.ar",
+    "juez": "Dra. Rosa Beatriz Filippello",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=187",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado de Paz - ESTEBAN ECHEVERRÍA",
+    "direccion": "Rivadavia 164",
+    "localidad": "Monte Grande",
+    "telefono": "(011) 4281-1457",
+    "internos": [],
+    "email": "jpeecheverria@jusbuenosaires.gov.ar",
+    "juez": "Dr. Miguel Ángel Seman",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=189",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Juzgado de Paz - EZEIZA",
+    "direccion": "Chacabuco 298",
+    "localidad": "Ezeiza",
+    "telefono": "011-42701652",
+    "internos": [],
+    "email": "jpezeiza@jusbuenosaires.gov.ar",
+    "juez": "Dr. Adrián Alejandro Damore",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=191",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Lomas de Zamora",
+    "organismo": "Receptoria General de Expedientes - Lomas de Zamora",
+    "direccion": "Camino Pres.Juan Domingo Perón e/ Larroque - Piso P.B",
+    "localidad": "Banfield",
+    "telefono": "(011) ",
+    "internos": [
+      "12095",
+      "99"
+    ],
+    "email": "receptoria-lz@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=568",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Mar del Plata",
+    "direccion": "La Rioja 2126",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) 4911751",
+    "internos": [
+      "58217",
+      "58218"
+    ],
+    "email": "juzciv1-mp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Heber Daniel Amalfi",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=592",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Mar del Plata",
+    "direccion": "Almirante Brown 2241",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) 4911751",
+    "internos": [
+      "58172",
+      "58173"
+    ],
+    "email": "juzciv2-mp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Nancy Micaela Bessone",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=593",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - Mar del Plata",
+    "direccion": "Almirante Brown 2241",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) ",
+    "internos": [
+      "58170",
+      "58171"
+    ],
+    "email": "juzciv3-mp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Luis Diego Benvenuto Vignola",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=594",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - Mar del Plata",
+    "direccion": "La Rioja 2126 Piso 4",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) 4910594",
+    "internos": [
+      "58101",
+      "58131"
+    ],
+    "email": "juzciv4-mp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Martin Zambecchi",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=595",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 5 - Mar del Plata",
+    "direccion": "Almirante Brown 2241",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) 4911154",
+    "internos": [
+      "58103"
+    ],
+    "email": "juzciv5-mp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Guillermo Francisco Drees",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=596",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 6 - Mar del Plata",
+    "direccion": "Almirante Brown 2241 Piso 6",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) 4911154",
+    "internos": [
+      "58221"
+    ],
+    "email": "juzciv6-mp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Gabriela Judit De Sábato",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=597",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 7 - Mar del Plata",
+    "direccion": "Almirante Brown 2241 Piso 7",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) 4910972",
+    "internos": [
+      "58204",
+      "210",
+      "211"
+    ],
+    "email": "juzciv7-mp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Daniela Valeria Basso",
+    "fuero": "Civil y Comercial",
+    "numero": 7,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=598",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 8 - Mar del Plata",
+    "direccion": "Almirante Brown 2241",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) ",
+    "internos": [
+      "58107",
+      "58146"
+    ],
+    "email": "juzciv8-mp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Hernán Félix Krzyszycha",
+    "fuero": "Civil y Comercial",
+    "numero": 8,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=599",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 9 - Mar del Plata",
+    "direccion": "Almirante Brown 2241",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) 4910972",
+    "internos": [
+      "58105",
+      "58143"
+    ],
+    "email": "juzciv9-mp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Guillermo Abel Pocatino",
+    "fuero": "Civil y Comercial",
+    "numero": 9,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=600",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 10 - Mar del Plata",
+    "direccion": "Almirante Brown 1771",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) 4957043",
+    "internos": [
+      "59109",
+      "59105"
+    ],
+    "email": "juzciv10-mp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Mariana Lucìa Tonto de Bessone",
+    "fuero": "Civil y Comercial",
+    "numero": 10,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=601",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 11 - Mar del Plata",
+    "direccion": "Almirante Brown 1771",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) ",
+    "internos": [
+      "59126",
+      "59128",
+      "59133"
+    ],
+    "email": "juzciv11-mp@jusbuenosaires.gov.ar",
+    "juez": "Dra. Patricia Noemí Juárez",
+    "fuero": "Civil y Comercial",
+    "numero": 11,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=602",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 12 - Mar del Plata",
+    "direccion": "Almirante Brown 1771 Piso 2",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) 495-7061",
+    "internos": [
+      "59118",
+      "59122",
+      "59125"
+    ],
+    "email": "juzciv12-mp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Bernardo Marcos Diez",
+    "fuero": "Civil y Comercial",
+    "numero": 12,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=603",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 13 - Mar del Plata",
+    "direccion": "Almirante Brown 1771",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) ",
+    "internos": [
+      "59110",
+      "59117"
+    ],
+    "email": "juzciv13-mp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Maximiliano Colángelo",
+    "fuero": "Civil y Comercial",
+    "numero": 13,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=604",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 14 - Mar del Plata",
+    "direccion": "Corrientes 2395",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) 495-4539",
+    "internos": [
+      "59506",
+      "59508"
+    ],
+    "email": "juzciv14-mp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Patricio Gustavo Groppo",
+    "fuero": "Civil y Comercial",
+    "numero": 14,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=605",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 15 - Mar del Plata",
+    "direccion": "Almirante Brown 1762",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) ",
+    "internos": [
+      "59164",
+      "59139"
+    ],
+    "email": "juzciv15-mp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Héctor Fabián Casas",
+    "fuero": "Civil y Comercial",
+    "numero": 15,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1345",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 16 - Mar del Plata",
+    "direccion": "Almirante Brown 2241 Piso 8",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) ",
+    "internos": [
+      "58243"
+    ],
+    "email": "juzciv16-mp@jusbuenosaires.gov.ar",
+    "juez": "Dr. Alejandro Ulises Almenta",
+    "fuero": "Civil y Comercial",
+    "numero": 16,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1423",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado de Paz - BALCARCE",
+    "direccion": "15 524",
+    "localidad": "Balcarce",
+    "telefono": "(02266) 422774",
+    "internos": [],
+    "email": "jpbalcarce@jusbuenosaires.gov.ar",
+    "juez": "Dr. Ricardo Alberto Crotto",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=153",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado de Paz - GENERAL ALVARADO",
+    "direccion": "Avenida 23 1068",
+    "localidad": "Miramar",
+    "telefono": "(02291) 423257-420810",
+    "internos": [],
+    "email": "jpmiramar@jusbuenosaires.gov.ar",
+    "juez": "Dra. Florencia Hogan",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=155",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Juzgado de Paz - MAR CHIQUITA",
+    "direccion": "Gral. Paz 516",
+    "localidad": "Coronel Vidal",
+    "telefono": "(02265) 432441",
+    "internos": [],
+    "email": "jpmarchiquita@jusbuenosaires.gov.ar",
+    "juez": "Dra. Paola Azzanesi",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=154",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mar del Plata",
+    "organismo": "Receptoria General de Expedientes - Mar del Plata",
+    "direccion": "Tucumán 2316 Piso P.B.",
+    "localidad": "Mar del Plata",
+    "telefono": "(0223) ",
+    "internos": [
+      "57901",
+      "07"
+    ],
+    "email": "receptoria-mp@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=634",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Mercedes",
+    "direccion": "30 619",
+    "localidad": "Mercedes",
+    "telefono": "(02324) 428898-429218  621911",
+    "internos": [],
+    "email": "juzciv1-me@jusbuenosaires.gov.ar",
+    "juez": "Dr. Nicolas Ángel Porfido",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=652",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Mercedes",
+    "direccion": "27 600",
+    "localidad": "Mercedes",
+    "telefono": "(02324) ",
+    "internos": [
+      "39319"
+    ],
+    "email": "juzciv2-me@jusbuenosaires.gov.ar",
+    "juez": "Dr. Carlos Lorenzo Illanes",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=653",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - Mercedes",
+    "direccion": "27 600",
+    "localidad": "Mercedes",
+    "telefono": "(02324) 43-9247",
+    "internos": [
+      "39392"
+    ],
+    "email": "juzciv3-me@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Alejandro Baldassini",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=654",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - Mercedes",
+    "direccion": "27 600",
+    "localidad": "Mercedes",
+    "telefono": "(02324) 43-9250",
+    "internos": [
+      "39118"
+    ],
+    "email": "juzciv4-me@jusbuenosaires.gov.ar",
+    "juez": "Dr. Marcelo Fabian Valle",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=655",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 5 - Mercedes",
+    "direccion": "27 576 Piso 3",
+    "localidad": "Mercedes",
+    "telefono": "(02324) 439136",
+    "internos": [
+      "39186",
+      "39132"
+    ],
+    "email": "juzciv5-me@jusbuenosaires.gov.ar",
+    "juez": "- Vacante Subroga la Dra. Guidoni María",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=656",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 6 - Mercedes",
+    "direccion": "25 627",
+    "localidad": "Mercedes",
+    "telefono": "(02324) 43-9252",
+    "internos": [
+      "39376"
+    ],
+    "email": "juzciv6-me@jusbuenosaires.gov.ar",
+    "juez": "Dr. Martín Hernando Cherubini",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=657",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 7 - Mercedes",
+    "direccion": "26 620",
+    "localidad": "Mercedes",
+    "telefono": "(02324) ",
+    "internos": [
+      "39067"
+    ],
+    "email": "juzciv7-me@jusbuenosaires.gov.ar",
+    "juez": "- Vacante Subroga el Dr. Sheehan Rodolfo",
+    "fuero": "Civil y Comercial",
+    "numero": 7,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=658",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 8 - Mercedes",
+    "direccion": "23 e/ 28 y 30",
+    "localidad": "Mercedes",
+    "telefono": "(02324) 429217-429220",
+    "internos": [],
+    "email": "juzciv8-me@jusbuenosaires.gov.ar",
+    "juez": "Dra. Bárbara Beatriz Fernández Del Tejo",
+    "fuero": "Civil y Comercial",
+    "numero": 8,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=659",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 9 - Mercedes",
+    "direccion": "26 620",
+    "localidad": "Mercedes",
+    "telefono": "(02324) 43-9259",
+    "internos": [
+      "39318"
+    ],
+    "email": "juzciv9-me@jusbuenosaires.gov.ar",
+    "juez": "Dra. Elisa Fabiana Marcelli",
+    "fuero": "Civil y Comercial",
+    "numero": 9,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=660",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 10 - Mercedes",
+    "direccion": "27 e/ 26 y 24 - Piso 1",
+    "localidad": "Mercedes",
+    "telefono": "(02324) ",
+    "internos": [
+      "39334"
+    ],
+    "email": "juzciv10-me@jusbuenosaires.gov.ar",
+    "juez": "Dra. Cintia Carolina Soto",
+    "fuero": "Civil y Comercial",
+    "numero": 10,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=661",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - ALBERTI",
+    "direccion": "Moreno 38",
+    "localidad": "Alberti",
+    "telefono": "(02346) 470350",
+    "internos": [],
+    "email": "jpalberti@jusbuenosaires.gov.ar",
+    "juez": "Dr. Daniel Oscar Palazzo",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=100",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - BRAGADO",
+    "direccion": "Belgrano 1140",
+    "localidad": "Bragado",
+    "telefono": "(02342) 422254 - 422763",
+    "internos": [],
+    "email": "jpbragado@jusbuenosaires.gov.ar",
+    "juez": "Dra. Laura Andrea Margarita Pérez",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=101",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - CARMEN DE ARECO",
+    "direccion": "Moreno 515",
+    "localidad": "Carmen de Areco",
+    "telefono": "(02273) 446200/446209",
+    "internos": [],
+    "email": "jpcarmenareco@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Elisa Bainotti",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=102",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - CHIVILCOY",
+    "direccion": "Rivadavia 113",
+    "localidad": "Chivilcoy",
+    "telefono": "(02346) 433170",
+    "internos": [],
+    "email": "jpchivilcoy@jusbuenosaires.gov.ar",
+    "juez": "Dr. Eduardo Javier María Banchero",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=103",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - GENERAL LAS HERAS",
+    "direccion": "Avenida Villamayor 157",
+    "localidad": "General las Heras",
+    "telefono": "(0220) 4761204",
+    "internos": [],
+    "email": "jplasheras@jusbuenosaires.gov.ar",
+    "juez": "Dra. Paola Specogna",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=104",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - LUJÁN",
+    "direccion": "San Martín 636",
+    "localidad": "Luján",
+    "telefono": "(02323) 0221-5129152",
+    "internos": [],
+    "email": "jplujan@jusbuenosaires.gov.ar",
+    "juez": "Dr. Alfredo José Reyes",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=106",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - MARCOS PAZ",
+    "direccion": "Sarmiento 1842",
+    "localidad": "Marcos Paz",
+    "telefono": "(0220) 4771755",
+    "internos": [],
+    "email": "jpmarcospaz@jusbuenosaires.gov.ar",
+    "juez": "Dra. Gabriela Rosana Molina",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=107",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - NAVARRO",
+    "direccion": "24 478",
+    "localidad": "Navarro",
+    "telefono": "(02272) 420218",
+    "internos": [],
+    "email": "jpnavarro@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Inés Llanos",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=109",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - NUEVE DE JULIO",
+    "direccion": "Hipólito Yrigoyen 854",
+    "localidad": "Nueve de Julio",
+    "telefono": "(02317) 422346",
+    "internos": [],
+    "email": "jp9dejulio@jusbuenosaires.gov.ar",
+    "juez": "Dr. Alejandro Raúl Casas",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=110",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - SALTO",
+    "direccion": "Aristóbulo del Valle 162",
+    "localidad": "Salto",
+    "telefono": "(02474) 425384",
+    "internos": [],
+    "email": "jpsalto@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=111",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - SAN ANDRÉS DE GILES",
+    "direccion": "Belgrano 432",
+    "localidad": "San Andrés de Giles",
+    "telefono": "(02325) 442396",
+    "internos": [],
+    "email": "jpandresgiles@jusbuenosaires.gov.ar",
+    "juez": "Dr. Francisco Ariel Ghibaudi",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=112",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - SAN ANTONIO DE ARECO",
+    "direccion": "Moreno 148",
+    "localidad": "San Antonio de Areco",
+    "telefono": "(02326) 452432",
+    "internos": [],
+    "email": "jpantonioareco@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Oscar Betenile",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=113",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - SUIPACHA",
+    "direccion": "Avenida Hipólito Yrigoyen 37",
+    "localidad": "Suipacha",
+    "telefono": "(02324) 480071",
+    "internos": [],
+    "email": "jpsuipacha@jusbuenosaires.gov.ar",
+    "juez": "Dr. Hernán José Salaverri",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=114",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Juzgado de Paz - VEINTICINCO DE MAYO",
+    "direccion": "9 1217",
+    "localidad": "Veinticinco de Mayo",
+    "telefono": "(02345) 462780-466706",
+    "internos": [],
+    "email": "jp25demayo@jusbuenosaires.gov.ar",
+    "juez": "Dra. Rosana Mabel Farina",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=115",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Mercedes",
+    "organismo": "Receptoria General de Expedientes - Mercedes",
+    "direccion": "27 576",
+    "localidad": "Mercedes",
+    "telefono": "(02324) ",
+    "internos": [
+      "39284",
+      "39361"
+    ],
+    "email": "receptoria-me@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=684",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Moreno - General Rodriguez",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Moreno - General Rodríguez",
+    "direccion": "Merlo 2729",
+    "localidad": "Moreno",
+    "telefono": "(0237) 4609617",
+    "internos": [
+      "75240"
+    ],
+    "email": "juzciv1-mn@jusbuenosaires.gov.ar",
+    "juez": "Dra. Mirtha Inés Francese",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1342",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moreno - General Rodriguez",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Moreno - General Rodríguez",
+    "direccion": "Merlo 2729",
+    "localidad": "Moreno",
+    "telefono": "(0237) 4609619",
+    "internos": [
+      "75260"
+    ],
+    "email": "juzciv2-mn@jusbuenosaires.gov.ar",
+    "juez": "Dr. Gabriel Horacio Acosta",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1343",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moreno - General Rodriguez",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - Moreno - General Rodríguez",
+    "direccion": "Intendente Pedro Whelan 671",
+    "localidad": "General Rodríguez",
+    "telefono": "(0237) 4845402/4845395",
+    "internos": [],
+    "email": "juzciv3-mn@jusbuenosaires.gov.ar",
+    "juez": "Dr. Leandro Nahuel Joandet",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1344",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moreno - General Rodriguez",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - Moreno - General Rodríguez",
+    "direccion": "Merlo 2729",
+    "localidad": "Moreno",
+    "telefono": "(0237) 4609623",
+    "internos": [
+      "75300"
+    ],
+    "email": "juzciv4-mn@jusbuenosaires.gov.ar",
+    "juez": "Dr. Diego Ignacio Sarcona",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1471",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moreno - General Rodriguez",
+    "organismo": "Receptoria General de Expedientes - Moreno - General Rodríguez",
+    "direccion": "Merlo 2719",
+    "localidad": "Moreno",
+    "telefono": "(0237) 4661912",
+    "internos": [],
+    "email": "receptoria-mn@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1333",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 1",
+    "localidad": "Morón",
+    "telefono": "(011) ",
+    "internos": [
+      "17420",
+      "17421"
+    ],
+    "email": "juzciv1-mo@jusbuenosaires.gov.ar",
+    "juez": "Dr. Javier Alberto Occhiuzzi",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=700",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 1",
+    "localidad": "Morón",
+    "telefono": "(011) ",
+    "internos": [
+      "17431",
+      "32"
+    ],
+    "email": "juzciv2-mo@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=701",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 1",
+    "localidad": "Morón",
+    "telefono": "(011) ",
+    "internos": [
+      "17554",
+      "17550",
+      "51"
+    ],
+    "email": "juzciv3-mo@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=702",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 1",
+    "localidad": "Morón",
+    "telefono": "(011) ",
+    "internos": [
+      "17567",
+      "17560",
+      "61"
+    ],
+    "email": "juzciv4-mo@jusbuenosaires.gov.ar",
+    "juez": "Dr. Jorge Eugenio del Valle Cella",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=703",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 5 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 1",
+    "localidad": "Morón",
+    "telefono": "(011) ",
+    "internos": [],
+    "email": "juzciv5-mo@jusbuenosaires.gov.ar",
+    "juez": "Dra. Débora Elena Lelkes",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=704",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 6 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 1",
+    "localidad": "Morón",
+    "telefono": "(011) 4489-8823 Y 4489-8875",
+    "internos": [
+      "17735"
+    ],
+    "email": "juzciv6-mo@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Daniel Rezzónico",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=705",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 7 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 2",
+    "localidad": "Morón",
+    "telefono": "(011) 4489-8824",
+    "internos": [
+      "17442"
+    ],
+    "email": "juzciv7-mo@jusbuenosaires.gov.ar",
+    "juez": "Dr. Ramiro Juliàn Tabossi Chaves",
+    "fuero": "Civil y Comercial",
+    "numero": 7,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=706",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 8 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 2",
+    "localidad": "Morón",
+    "telefono": "(011) ",
+    "internos": [
+      "17455",
+      "17450",
+      "51"
+    ],
+    "email": "juzciv8-mo@jusbuenosaires.gov.ar",
+    "juez": "Dr. Christian Mariano Magnoni",
+    "fuero": "Civil y Comercial",
+    "numero": 8,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=707",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 9 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 2",
+    "localidad": "Morón",
+    "telefono": "(011) ",
+    "internos": [
+      "17574",
+      "17570",
+      "571"
+    ],
+    "email": "juzciv9-mo@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Victoria Aloe",
+    "fuero": "Civil y Comercial",
+    "numero": 9,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=708",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 10 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 2",
+    "localidad": "Morón",
+    "telefono": "(011) ",
+    "internos": [
+      "17585",
+      "17580",
+      "81"
+    ],
+    "email": "juzciv10-mo@jusbuenosaires.gov.ar",
+    "juez": "Dra. Graciela Laura Barbieri",
+    "fuero": "Civil y Comercial",
+    "numero": 10,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=709",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 11 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 2",
+    "localidad": "Morón",
+    "telefono": "(011) 4489-8804 y 4489-8883",
+    "internos": [
+      "17744",
+      "17740",
+      "41"
+    ],
+    "email": "juzciv11-mo@jusbuenosaires.gov.ar",
+    "juez": "Dra. Gabriela Fernanda Gil",
+    "fuero": "Civil y Comercial",
+    "numero": 11,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=710",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 12 - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso 2",
+    "localidad": "Morón",
+    "telefono": "(011) ",
+    "internos": [
+      "17413",
+      "17755"
+    ],
+    "email": "juzciv12-mo@jusbuenosaires.gov.ar",
+    "juez": "Dra. Mónica Liliana Preisz",
+    "fuero": "Civil y Comercial",
+    "numero": 12,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=711",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado de Paz - HURLINGHAM",
+    "direccion": "Av. Gobernador Valentín Vergara 3699",
+    "localidad": "Hurlingham",
+    "telefono": "(011) 11-52637525",
+    "internos": [],
+    "email": "jphurlingham@jusbuenosaires.gov.ar",
+    "juez": "Dr. Juan Carlos Bialobrzeki",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=181",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado de Paz - ITUZAINGÓ",
+    "direccion": "Gregorio Las Heras 492",
+    "localidad": "Ituzaingó",
+    "telefono": "(011) 46234835-46611839",
+    "internos": [],
+    "email": "jpituzaingo@jusbuenosaires.gov.ar",
+    "juez": "Dr. Carlos Alberto Miceli",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=182",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Juzgado de Paz - MERLO",
+    "direccion": "Solanet 68",
+    "localidad": "Merlo",
+    "telefono": "(0220) 4831116",
+    "internos": [],
+    "email": "jpmerlo@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=180",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Moron",
+    "organismo": "Receptoria General de Expedientes - Morón",
+    "direccion": "Almirante Brown e/ Colón - Piso P.B.",
+    "localidad": "Morón",
+    "telefono": "(011) ",
+    "internos": [
+      "17402",
+      "3",
+      "4",
+      "17320",
+      "18828"
+    ],
+    "email": "receptoria-mo@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=745",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Necochea",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Necochea",
+    "direccion": "83 323",
+    "localidad": "Necochea",
+    "telefono": "(02262) 435460 Celular 15-633244",
+    "internos": [],
+    "email": "juzciv1-ne@jusbuenosaires.gov.ar",
+    "juez": "Dr. Jorge Balbi",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=758",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Necochea",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Necochea",
+    "direccion": "83 323",
+    "localidad": "Necochea",
+    "telefono": "(02262) 420060- 421958",
+    "internos": [],
+    "email": "juzciv2-ne@jusbuenosaires.gov.ar",
+    "juez": "Dr. German Sanchez Jauregui",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=759",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Necochea",
+    "organismo": "Juzgado de Paz - LOBERÍA",
+    "direccion": "Mitre 155",
+    "localidad": "Lobería",
+    "telefono": "(02261) 442035",
+    "internos": [],
+    "email": "jploberia@jusbuenosaires.gov.ar",
+    "juez": "Dr. Diego Ignacio Mónaco",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=192",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Necochea",
+    "organismo": "Juzgado de Paz - SAN CAYETANO",
+    "direccion": "12 de octubre 136",
+    "localidad": "San Cayetano",
+    "telefono": "(02983) 470105",
+    "internos": [],
+    "email": "jpcayetano@jusbuenosaires.gov.ar",
+    "juez": "Dr. Sergio Jesús Aguillón",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=193",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Necochea",
+    "organismo": "Receptoria General de Expedientes - Necochea",
+    "direccion": "83 323",
+    "localidad": "Necochea",
+    "telefono": "(02262) 428872",
+    "internos": [],
+    "email": "receptoria-ne@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=769",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Pergamino",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Pergamino",
+    "direccion": "General Pinto 1251",
+    "localidad": "Pergamino",
+    "telefono": "(02477) 2477-392529",
+    "internos": [
+      "29235"
+    ],
+    "email": "juzciv1-pe@jusbuenosaires.gov.ar",
+    "juez": "Dr. Ramiro Ricardo Guerrico",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=779",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Pergamino",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Pergamino",
+    "direccion": "General Pinto 1251",
+    "localidad": "Pergamino",
+    "telefono": "(02477) 2477-392530",
+    "internos": [
+      "29230",
+      "29231"
+    ],
+    "email": "juzciv2-pe@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=780",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Pergamino",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - Pergamino",
+    "direccion": "General Pinto 1251",
+    "localidad": "Pergamino",
+    "telefono": "(02477) 2477-392531",
+    "internos": [
+      "29222"
+    ],
+    "email": "juzciv3-pe@jusbuenosaires.gov.ar",
+    "juez": "Dr. Renato Eduardo Santore",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=781",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Pergamino",
+    "organismo": "Juzgado de Paz - COLÓN",
+    "direccion": "19 734",
+    "localidad": "Colón",
+    "telefono": "(02473) 421960",
+    "internos": [
+      "134"
+    ],
+    "email": "jpcolon@jusbuenosaires.gov.ar",
+    "juez": "Dra Pilar Belén Ibarra",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=194",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Pergamino",
+    "organismo": "Receptoria General de Expedientes - Pergamino",
+    "direccion": "General Pinto 1251",
+    "localidad": "Pergamino",
+    "telefono": "(02477) 2477-392533",
+    "internos": [
+      "29239"
+    ],
+    "email": "receptoria-pe@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=791",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Quilmes",
+    "direccion": "9 de julio 287",
+    "localidad": "Quilmes",
+    "telefono": "(011) 11 4279-6034",
+    "internos": [
+      "71000"
+    ],
+    "email": "juzciv1-ql@jusbuenosaires.gov.ar",
+    "juez": "Dr. Fernando Ernesto Rodríguez",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=806",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Quilmes",
+    "direccion": "9 de julio 287",
+    "localidad": "Quilmes",
+    "telefono": "(011) 11 4279-6035",
+    "internos": [
+      "71020"
+    ],
+    "email": "juzciv2-ql@jusbuenosaires.gov.ar",
+    "juez": "Dr. Hernán Señaris",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=807",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - Quilmes",
+    "direccion": "9 de julio 287",
+    "localidad": "Quilmes",
+    "telefono": "(011) 11 4279-6036",
+    "internos": [
+      "71040"
+    ],
+    "email": "juzciv3-ql@jusbuenosaires.gov.ar",
+    "juez": "Dra. Diana Ivone Español",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=808",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - Quilmes",
+    "direccion": "9 de julio 287",
+    "localidad": "Quilmes",
+    "telefono": "(011) 6065-9716",
+    "internos": [
+      "21723"
+    ],
+    "email": "juzciv4-ql@jusbuenosaires.gov.ar",
+    "juez": "Dr. José Gustavo Fuchs",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=809",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 5 - Quilmes",
+    "direccion": "9 de julio 287",
+    "localidad": "Quilmes",
+    "telefono": "(011) 6065-9717",
+    "internos": [
+      "21750"
+    ],
+    "email": "juzciv5-ql@jusbuenosaires.gov.ar",
+    "juez": "- Vacante",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=810",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 6 - Quilmes",
+    "direccion": "9 de julio 287",
+    "localidad": "Quilmes",
+    "telefono": "(011) 6065-9718",
+    "internos": [
+      "21737"
+    ],
+    "email": "juzciv6-ql@jusbuenosaires.gov.ar",
+    "juez": "- vacante",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=811",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 7 - Quilmes",
+    "direccion": "Alvear 465 Piso 2",
+    "localidad": "Quilmes",
+    "telefono": "(011) 6065-9719",
+    "internos": [
+      "21598"
+    ],
+    "email": "juzciv7-ql@jusbuenosaires.gov.ar",
+    "juez": "Dr. Fernando Sarries",
+    "fuero": "Civil y Comercial",
+    "numero": 7,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=812",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 8 - Quilmes",
+    "direccion": "Alvear 465 Piso 2c/f",
+    "localidad": "Quilmes",
+    "telefono": "(011) 6065-9720",
+    "internos": [
+      "21594"
+    ],
+    "email": "juzciv8-ql@jusbuenosaires.gov.ar",
+    "juez": "Dra. Claudia Noemí Celerier",
+    "fuero": "Civil y Comercial",
+    "numero": 8,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=813",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 9 - Quilmes",
+    "direccion": "Alvear 465",
+    "localidad": "Quilmes",
+    "telefono": "011-60659700",
+    "internos": [
+      "21761",
+      "21503"
+    ],
+    "email": "juzciv9-ql@jusbuenosaires.gov.ar",
+    "juez": "Dra. María del Carmen Campodónico",
+    "fuero": "Civil y Comercial",
+    "numero": 9,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1147",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 10 - Quilmes",
+    "direccion": "Alvear 465",
+    "localidad": "Quilmes",
+    "telefono": "(011) 6065-9722",
+    "internos": [
+      "21101"
+    ],
+    "email": "juzciv10-ql@jusbuenosaires.gov.ar",
+    "juez": "Dra. Vivian Cintia Díaz",
+    "fuero": "Civil y Comercial",
+    "numero": 10,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1240",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 11 - Quilmes",
+    "direccion": "Alvear 465",
+    "localidad": "Quilmes",
+    "telefono": "(011) 11 4279-6044",
+    "internos": [
+      "71200"
+    ],
+    "email": "juzciv11-ql@jusbuenosaires.gov.ar",
+    "juez": "Dr. Eduardo Enrici",
+    "fuero": "Civil y Comercial",
+    "numero": 11,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1536",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado de Primera Instancia en lo Civil y Comercial Nº 12 - Quilmes",
+    "direccion": "",
+    "localidad": "Quilmes",
+    "telefono": "",
+    "internos": [],
+    "email": "",
+    "juez": "",
+    "fuero": "Civil y Comercial",
+    "numero": 12,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1537",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado en lo Civil Y Comercial Nº 12 - Quilmes",
+    "direccion": "Alvear 465 Piso 0",
+    "localidad": "Quilmes",
+    "telefono": "(011) 11 4279-6045",
+    "internos": [
+      "71220"
+    ],
+    "email": "juzciv12-ql@jusbuenosaires.gov.ar",
+    "juez": "Dr. Víctor Gastón Salvá",
+    "fuero": "Civil y Comercial",
+    "numero": 12,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1538",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado de Paz - BERAZATEGUI",
+    "direccion": "149 e/ 17",
+    "localidad": "Berazategui",
+    "telefono": "(011) 11 4279-6009",
+    "internos": [
+      "70280"
+    ],
+    "email": "jpberazategui@jusbuenosaires.gov.ar",
+    "juez": "Dra. Viviana Edith Frois",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=195",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Juzgado de Paz - FLORENCIO VARELA",
+    "direccion": "Gral. Lavalle 350",
+    "localidad": "Florencio Varela",
+    "telefono": "(011) 11 4279-6070",
+    "internos": [
+      "71780"
+    ],
+    "email": "jpvarela@jusbuenosaires.gov.ar",
+    "juez": "Dr. Gabriel Siffredi",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=196",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Receptoria General de Expedientes - Quilmes",
+    "direccion": "9 de julio 287",
+    "localidad": "Quilmes",
+    "telefono": "(011) ",
+    "internos": [
+      "21752"
+    ],
+    "email": "receptoria-ql@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=848",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Receptoria de Expedientes Descentralizada con sede en Berazategui - Quilmes",
+    "direccion": "18 4990",
+    "localidad": "Berazategui",
+    "telefono": "(011) 4356-0840/4216-8977",
+    "internos": [
+      "106",
+      "7"
+    ],
+    "email": "receptoria-bz@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1508",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Quilmes",
+    "organismo": "Receptoria de Expedientes Descentralizada con sede en Florencio Varela - Quilmes",
+    "direccion": "General Lavalle 148",
+    "localidad": "Florencio Varela",
+    "telefono": "(011) 4237-6233/6284",
+    "internos": [],
+    "email": "receptoria-fv@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1400",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 2",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4743-4484",
+    "internos": [
+      "26474"
+    ],
+    "email": "juzciv1-si@jusbuenosaires.gov.ar",
+    "juez": "Dra. Soledad de Vedia",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=860",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 2",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6475",
+    "internos": [],
+    "email": "juzciv2-si@jusbuenosaires.gov.ar",
+    "juez": "Dr. Mariano García Franqueira",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=861",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 3",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6482",
+    "internos": [
+      "26486"
+    ],
+    "email": "juzciv3-si@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Alejandra Peña",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=862",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 3",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6490",
+    "internos": [
+      "26487"
+    ],
+    "email": "juzciv4-si@jusbuenosaires.gov.ar",
+    "juez": "Dr. Miguel Luis Álvarez",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=863",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 5 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 6",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6494",
+    "internos": [
+      "26496"
+    ],
+    "email": "juzciv5-si@jusbuenosaires.gov.ar",
+    "juez": "Dra. Alicia Angela Ortolani",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=864",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 6 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 6",
+    "localidad": "San Isidro",
+    "telefono": "(011) ",
+    "internos": [
+      "26501"
+    ],
+    "email": "juzciv6-si@jusbuenosaires.gov.ar",
+    "juez": "Dr. Mariano Aristóbulo Bonanni",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=865",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 7 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 7",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6504",
+    "internos": [
+      "26503"
+    ],
+    "email": "juzciv7-si@jusbuenosaires.gov.ar",
+    "juez": "Dra. Maria Cecilia Padrones",
+    "fuero": "Civil y Comercial",
+    "numero": 7,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=866",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 8 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 6",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6510",
+    "internos": [
+      "26510"
+    ],
+    "email": "juzciv8-si@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Laura Iglesias",
+    "fuero": "Civil y Comercial",
+    "numero": 8,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=867",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 9 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 6",
+    "localidad": "San Isidro",
+    "telefono": "(011) ",
+    "internos": [
+      "26513"
+    ],
+    "email": "juzciv9-si@jusbuenosaires.gov.ar",
+    "juez": "Dra. Gabriela Antonia Paladín",
+    "fuero": "Civil y Comercial",
+    "numero": 9,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=868",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 10 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 7",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6871",
+    "internos": [
+      "26871"
+    ],
+    "email": "juzciv10-si@jusbuenosaires.gov.ar",
+    "juez": "Dra. Aurora Estela Souza - Cuerpo de Magistrados Suplentes",
+    "fuero": "Civil y Comercial",
+    "numero": 10,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=869",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 11 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 3",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6523",
+    "internos": [
+      "26521"
+    ],
+    "email": "juzciv11-si@jusbuenosaires.gov.ar",
+    "juez": "Dra. Marta Mónica Capalbo",
+    "fuero": "Civil y Comercial",
+    "numero": 11,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=870",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 12 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 2",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6400",
+    "internos": [
+      "26529"
+    ],
+    "email": "juzciv12-si@jusbuenosaires.gov.ar",
+    "juez": "- Vacante Subroga el Dr. Mariano Luis Vieyra",
+    "fuero": "Civil y Comercial",
+    "numero": 12,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=871",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 13 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 3",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6531",
+    "internos": [
+      "26531"
+    ],
+    "email": "juzciv13-si@jusbuenosaires.gov.ar",
+    "juez": "Dr. Guillermo Daniel Ottaviano",
+    "fuero": "Civil y Comercial",
+    "numero": 13,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=872",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 14 - San Isidro",
+    "direccion": "Ituzaingo 340 Piso 2",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6538",
+    "internos": [
+      "26538"
+    ],
+    "email": "juzciv14-si@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Lautaro García Pazos",
+    "fuero": "Civil y Comercial",
+    "numero": 14,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=873",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 15 - San Isidro",
+    "direccion": "Belgrano 321",
+    "localidad": "San Isidro",
+    "telefono": "(011) 48973253/4",
+    "internos": [],
+    "email": "juzciv15-si@jusbuenosaires.gov.ar",
+    "juez": "Dr. Mariano Luis Vieyra",
+    "fuero": "Civil y Comercial",
+    "numero": 15,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1402",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 16 - San Isidro",
+    "direccion": "Belgrano 321",
+    "localidad": "San Isidro",
+    "telefono": "(011) 48973277/8",
+    "internos": [],
+    "email": "juzciv16-si@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Teresa Petrone",
+    "fuero": "Civil y Comercial",
+    "numero": 16,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1403",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado de Paz - PILAR",
+    "direccion": "Estanislao López 1130",
+    "localidad": "Pilar",
+    "telefono": "(0230) 4261297/4429564",
+    "internos": [],
+    "email": "jppilar@jusbuenosaires.gov.ar",
+    "juez": "Dr. Pablo Mariano Castillo",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=164",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado de Paz - SAN FERNANDO",
+    "direccion": "3 de Febrero 901",
+    "localidad": "San Fernando",
+    "telefono": "(011) 4745-0421",
+    "internos": [],
+    "email": "jpsfernando@jusbuenosaires.gov.ar",
+    "juez": "- vacante - Subr.el Dr. Wagener Juz.de Paz deTigre",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=167",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado de Paz - TIGRE",
+    "direccion": "Avenida Libertador Gral. San Martín 254",
+    "localidad": "Tigre",
+    "telefono": "(011) 4731-0844-45181838",
+    "internos": [],
+    "email": "jptigre@jusbuenosaires.gov.ar",
+    "juez": "Dr. Alberto Raúl Wagener",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=165",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Juzgado de Paz - VICENTE LÓPEZ",
+    "direccion": "Maipú 2965",
+    "localidad": "Vicente López",
+    "telefono": "(011) 4711-1469/4711-1465",
+    "internos": [],
+    "email": "jpvlopez@jusbuenosaires.gov.ar",
+    "juez": "Dr. Walter Vergara",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=166",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Receptoria General de Expedientes - San Isidro",
+    "direccion": "Ituzaingo 340 Piso P.B.",
+    "localidad": "San Isidro",
+    "telefono": "(011) 4732-6861/2",
+    "internos": [],
+    "email": "receptoria-si@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1531",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Receptoria de Expedientes Descentralizada con sede en Pilar - San Isidro",
+    "direccion": "Avenida 12 de octubre 741",
+    "localidad": "Pilar",
+    "telefono": "(0230) 4429453",
+    "internos": [],
+    "email": "receptoria-pi@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1227",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "San Isidro",
+    "organismo": "Receptoria de Expedientes Descentralizada con sede en Tigre - San Isidro",
+    "direccion": "Cazón 510",
+    "localidad": "Tigre",
+    "telefono": "(011) 47317340",
+    "internos": [],
+    "email": "receptoria-ti@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1401",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - San Nicolás",
+    "direccion": "Pellegrini 68 Piso P.A.",
+    "localidad": "San Nicolás de los Arroyos",
+    "telefono": "(0336) 4485904",
+    "internos": [],
+    "email": "juzciv1-sn@jusbuenosaires.gov.ar",
+    "juez": "Dr. Hernán Víctor Prat",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=922",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - San Nicolás",
+    "direccion": "Guardias Nacionales 47",
+    "localidad": "San Nicolás de los Arroyos",
+    "telefono": "(0336) 4458275",
+    "internos": [],
+    "email": "juzciv2-sn@jusbuenosaires.gov.ar",
+    "juez": "Dr. Jose Ricardo Eseverri",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=923",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - San Nicolás",
+    "direccion": "Pellegrini 68 Piso 1",
+    "localidad": "San Nicolás de los Arroyos",
+    "telefono": "(0336) 4485817",
+    "internos": [],
+    "email": "juzciv3-sn@jusbuenosaires.gov.ar",
+    "juez": "Dr. Esteban Luis Magni",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=924",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - San Nicolás",
+    "direccion": "Guardias Nacionales 47",
+    "localidad": "San Nicolás de los Arroyos",
+    "telefono": "(0336) 4458239",
+    "internos": [],
+    "email": "juzciv4-sn@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Eugenia Sormani",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=925",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 5 - San Nicolás",
+    "direccion": "Guardias Nacionales 47",
+    "localidad": "San Nicolás de los Arroyos",
+    "telefono": "(0336) 4458270",
+    "internos": [],
+    "email": "juzciv5-sn@jusbuenosaires.gov.ar",
+    "juez": "Dr. José Ignacio Ondarcuhu",
+    "fuero": "Civil y Comercial",
+    "numero": 5,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=926",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 6 - San Nicolás",
+    "direccion": "Guardias Nacionales 47",
+    "localidad": "San Nicolás de los Arroyos",
+    "telefono": "(0336) 4458211",
+    "internos": [],
+    "email": "juzciv6-sn@jusbuenosaires.gov.ar",
+    "juez": "Dr. Fernando Alberto Enghelmayer",
+    "fuero": "Civil y Comercial",
+    "numero": 6,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=927",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Juzgado de Paz - ARRECIFES",
+    "direccion": "Gerardo Risso 241",
+    "localidad": "Arrecifes",
+    "telefono": "(02478) 452408",
+    "internos": [],
+    "email": "jparrecifes@jusbuenosaires.gov.ar",
+    "juez": "Dr. Julio César Muñoz",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=116",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Juzgado de Paz - BARADERO",
+    "direccion": "Avenida San Martín 1257",
+    "localidad": "Baradero",
+    "telefono": "(03329) 480203",
+    "internos": [],
+    "email": "jpbaradero@jusbuenosaires.gov.ar",
+    "juez": "Dr. Federico Rosón",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=117",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Juzgado de Paz - CAPITÁN SARMIENTO",
+    "direccion": "Vte. López y  Planes 746",
+    "localidad": "Capitán Sarmiento",
+    "telefono": "(02478) 481730",
+    "internos": [],
+    "email": "jpsarmiento@jusbuenosaires.gov.ar",
+    "juez": "Dra. Gabriela Soria García",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=118",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Juzgado de Paz - RAMALLO",
+    "direccion": "Belgrano 799",
+    "localidad": "Ramallo",
+    "telefono": "(03407) 421201",
+    "internos": [],
+    "email": "jpramallo@usbuenosaires.gov.ar",
+    "juez": "Dr. Raúl Eduardo García",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=119",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Juzgado de Paz - SAN PEDRO",
+    "direccion": "Belgrano e/ Lavalle",
+    "localidad": "San Pedro",
+    "telefono": "(03329) 425424",
+    "internos": [],
+    "email": "jpspedro@jusbuenosaires.gov.ar",
+    "juez": "Dr. José Ignacio Macchia",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=120",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "San Nicolas",
+    "organismo": "Receptoria General de Expedientes - San Nicolás",
+    "direccion": "Guardias Nacionales 47",
+    "localidad": "San Nicolás de los Arroyos",
+    "telefono": "(0336) 4458260",
+    "internos": [
+      "28302"
+    ],
+    "email": "receptoria-sn@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=943",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Trenque Lauquen",
+    "direccion": "9 de Julio 54",
+    "localidad": "Trenque Lauquen",
+    "telefono": "(02392) 42-2350",
+    "internos": [
+      "233"
+    ],
+    "email": "juzciv1-tl@jusbuenosaires.gov.ar",
+    "juez": "- Vacante Subroga el Dr. Mendez Carlos",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=955",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Trenque Lauquen",
+    "direccion": "9 de Julio 54",
+    "localidad": "Trenque Lauquen",
+    "telefono": "(02392) 42-2055",
+    "internos": [],
+    "email": "juzciv2-tl@jusbuenosaires.gov.ar",
+    "juez": "Dr. Sebastian Alejandro Martiarena",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=956",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - ADOLFO ALSINA",
+    "direccion": "Rivadavia 840",
+    "localidad": "Carhué",
+    "telefono": "(02936) 432242 - 430898",
+    "internos": [],
+    "email": "jpalsina@jusbuenosaires.gov.ar",
+    "juez": "Dra. Mariela Fabiana Ebertz",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=168",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - CARLOS CASARES",
+    "direccion": "Avenida San Martín 380",
+    "localidad": "Carlos Casares",
+    "telefono": "(02395) 450940",
+    "internos": [],
+    "email": "jpcasares@jusbuenosaires.gov.ar",
+    "juez": "Dra. Soledad Contreras",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=169",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - CARLOS TEJEDOR",
+    "direccion": "San Martín e/ Garre",
+    "localidad": "Carlos Tejedor",
+    "telefono": "(02357) 420500",
+    "internos": [],
+    "email": "jptejedor@jusbuenosaires.gov.ar",
+    "juez": "Dr, Mauro Ángel Rossi",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=170",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - DAIREAUX",
+    "direccion": "Rivadavia 156",
+    "localidad": "Daireaux",
+    "telefono": "(02316) 454064",
+    "internos": [],
+    "email": "jpdaireaux@jusbuenosaires.gov.ar",
+    "juez": "Dr. Javier Pablo Heredia",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=171",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - GENERAL VILLEGAS",
+    "direccion": "Moreno 445",
+    "localidad": "General Villegas",
+    "telefono": "(03388) 421500",
+    "internos": [],
+    "email": "jpvillegas@jusbuenosaires.gov.ar",
+    "juez": "Dra. Natalia Nora Sebelli",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=172",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - GUAMINÍ",
+    "direccion": "Freire 355",
+    "localidad": "Guaminí",
+    "telefono": "(02929) 432211",
+    "internos": [],
+    "email": "jpguamini@jusbuenosaires.gov.ar",
+    "juez": "Dra. Marcela Fabiana Alomar",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=173",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - HIPÓLITO YRIGOYEN",
+    "direccion": "9 de Julio 627",
+    "localidad": "Henderson",
+    "telefono": "(02314) 452083",
+    "internos": [],
+    "email": "jphenderson@jusbuenosaires.gov.ar",
+    "juez": "Dra. Lorena Porris",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=174",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - PEHUAJÓ",
+    "direccion": "Avenida Bartolomé Mitre 725",
+    "localidad": "Pehuajó",
+    "telefono": "(02396) 472446",
+    "internos": [],
+    "email": "jppehuajo@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Andrea Sagrera",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=175",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - PELLEGRINI",
+    "direccion": "España 26",
+    "localidad": "Pellegrini",
+    "telefono": "(02392) 498629",
+    "internos": [],
+    "email": "jppellegrini@jusbuenosaires.gov.ar",
+    "juez": "Dra. Corina Anabela Racioppo",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=176",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - RIVADAVIA",
+    "direccion": "Alem 355",
+    "localidad": "América",
+    "telefono": "(02337) 452550",
+    "internos": [],
+    "email": "jprivadavia@jusbuenosaires.gov.ar",
+    "juez": "Dr. - Vacante Subroga el Dr. Rossi",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=177",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - SALLIQUELÓ",
+    "direccion": "Leandro N. Alem 155",
+    "localidad": "Salliqueló",
+    "telefono": "(02394) 480527",
+    "internos": [],
+    "email": "jpsalliquelo@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Andrea Alejandra Rodríguez",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=178",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Juzgado de Paz - TRES LOMAS",
+    "direccion": "J.B. Alberdi 580",
+    "localidad": "Tres Lomas",
+    "telefono": "(02394) 430160",
+    "internos": [],
+    "email": "jptreslomas@jusbuenosaires.gov.ar",
+    "juez": "Dra. María de los Ángeles Pagella",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=179",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Trenque Lauquen",
+    "organismo": "Receptoria General de Expedientes - Trenque Lauquen",
+    "direccion": "San Martin e/ Uruguay",
+    "localidad": "Trenque Lauquen",
+    "telefono": "(02392) 424150",
+    "internos": [],
+    "email": "receptoria-tl@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1335",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Zarate Campana",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 1 - Zárate Campana",
+    "direccion": "Güemes 1112",
+    "localidad": "Campana",
+    "telefono": "(03489) 424306",
+    "internos": [
+      "101"
+    ],
+    "email": "juzciv1-zc@jusbuenosaires.gov.ar",
+    "juez": "- Vacante Subroga la Dra. Gavotti Alicia",
+    "fuero": "Civil y Comercial",
+    "numero": 1,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=978",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Zarate Campana",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 2 - Zárate Campana",
+    "direccion": "Avenida Mitre 755 Piso 4",
+    "localidad": "Zárate",
+    "telefono": "(03487) 422050 - 425680",
+    "internos": [],
+    "email": "juzciv2-zc@jusbuenosaires.gov.ar",
+    "juez": "Dr. Mariano Carlos Otero",
+    "fuero": "Civil y Comercial",
+    "numero": 2,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=979",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Zarate Campana",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 3 - Zárate Campana",
+    "direccion": "Güemes 1112",
+    "localidad": "Campana",
+    "telefono": "(03489) 426862 y 426817",
+    "internos": [],
+    "email": "juzciv3-zc@jusbuenosaires.gov.ar",
+    "juez": "Dr. Oscar Juan Aráoz",
+    "fuero": "Civil y Comercial",
+    "numero": 3,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=980",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Zarate Campana",
+    "organismo": "Juzgado en lo Civil y Comercial Nº 4 - Zárate Campana",
+    "direccion": "Avenida Mitre 755 Piso 4",
+    "localidad": "Zárate",
+    "telefono": "(03487) 430413/430423",
+    "internos": [],
+    "email": "juzciv4-zc@jusbuenosaires.gov.ar",
+    "juez": "Dr. Leandro Marcos Cappello",
+    "fuero": "Civil y Comercial",
+    "numero": 4,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=981",
+    "tipo": "Juzgado Civil y Comercial"
+  },
+  {
+    "departamento_judicial": "Zarate Campana",
+    "organismo": "Juzgado de Paz - ESCOBAR",
+    "direccion": "Felipe Boero 415",
+    "localidad": "Escobar",
+    "telefono": "(0348) 4420478-4435261",
+    "internos": [
+      "106"
+    ],
+    "email": "jpescobar@jusbuenosaires.gov.ar",
+    "juez": "Dra. Claudia Lorena Tatángelo",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=197",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Zarate Campana",
+    "organismo": "Juzgado de Paz - EXALTACIÓN DE LA CRUZ",
+    "direccion": "Fahy 435",
+    "localidad": "Capilla del Señor",
+    "telefono": "(02323) 492085",
+    "internos": [],
+    "email": "jpcapilla@jusbuenosaires.gov.ar",
+    "juez": "Dra. María Elvira Del Valle Núñez Leguizamón",
+    "fuero": "Justicia de Paz",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=198",
+    "tipo": "Juzgado de Paz"
+  },
+  {
+    "departamento_judicial": "Zarate Campana",
+    "organismo": "Receptoria General de Expedientes - Zárate Campana",
+    "direccion": "Del Pino 819",
+    "localidad": "Campana",
+    "telefono": "03489-423781 (Opción 5 / Opción 1   )",
+    "internos": [],
+    "email": "receptoria-zc@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=997",
+    "tipo": "Receptoria de Expedientes"
+  },
+  {
+    "departamento_judicial": "Zarate Campana",
+    "organismo": "Receptoria General de Expedientes - Zárate Campana",
+    "direccion": "Máximo Paz e/ Belgrano",
+    "localidad": "Zárate",
+    "telefono": "(03489) 447511",
+    "internos": [],
+    "email": "receptoria-zc@jusbuenosaires.gov.ar",
+    "juez": "",
+    "fuero": "",
+    "numero": null,
+    "fuente": "https://www.scba.gov.ar/guia/reparticion.asp?idrep=1267",
+    "tipo": "Receptoria de Expedientes"
+  }
+]

@@ -10,12 +10,11 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
-import {
-  getConfiguredDepartamentos,
-  getConfiguredEmpresas,
-} from "@/lib/domain/escritos-config";
+import { getConfiguredEmpresas } from "@/lib/domain/escritos-config";
 import { EjecutadoFormFields } from "../ejecutado-form-fields";
+import { JuzgadoInfoCard } from "../juzgado-info-card";
 import { getById } from "@/lib/data/ejecutados";
+import { getCourtIndex, getById as getJuzgadoById } from "@/lib/data/juzgados";
 import { getEscritosConfig, getMembership, listMembers } from "@/lib/data/estudio";
 import { requireUser } from "@/lib/data/auth";
 import { updateEjecutado, archiveEjecutado, delegateEjecutado } from "./actions";
@@ -39,8 +38,11 @@ export default async function EjecutadoDetailPage({
   if (!ejecutado) notFound();
 
   const escritosConfig = await getEscritosConfig(supabase, ejecutado.estudio_id);
-  const departamentos = getConfiguredDepartamentos(escritosConfig);
   const empresas = getConfiguredEmpresas(escritosConfig);
+  const courtIndex = await getCourtIndex(supabase);
+  const juzgado = ejecutado.juzgado_id
+    ? await getJuzgadoById(supabase, ejecutado.juzgado_id)
+    : null;
 
   // Delegation is head-only. Resolve head status + the estudio's members for the
   // "Delegar a" select (members can only reach their own cases anyway).
@@ -95,7 +97,7 @@ export default async function EjecutadoDetailPage({
           <CardContent className="space-y-4">
             <EjecutadoFormFields
               ejecutado={ejecutado}
-              departamentos={departamentos}
+              courtIndex={courtIndex}
               empresas={empresas}
             />
           </CardContent>
@@ -105,6 +107,8 @@ export default async function EjecutadoDetailPage({
           </CardFooter>
         </form>
       </Card>
+
+      <JuzgadoInfoCard juzgado={juzgado} />
 
       {isHead && (
         <Card>

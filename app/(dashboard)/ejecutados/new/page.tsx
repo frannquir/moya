@@ -9,10 +9,10 @@ import {
 } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import {
-  getConfiguredDepartamentos,
   getConfiguredEmpresas,
   type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
+import { getCourtIndex } from "@/lib/data/juzgados";
 import { EjecutadoFormFields } from "../ejecutado-form-fields";
 import { createEjecutado } from "./actions";
 
@@ -23,8 +23,8 @@ export default async function NewEjecutadoPage() {
     .select("escritos_config")
     .maybeSingle();
   const config = (estudioRow?.escritos_config ?? {}) as EstudioEscritosConfig;
-  const departamentos = getConfiguredDepartamentos(config);
   const empresas = getConfiguredEmpresas(config);
+  const courtIndex = await getCourtIndex(supabase);
 
   return (
     <div className="max-w-2xl">
@@ -34,7 +34,7 @@ export default async function NewEjecutadoPage() {
         </CardHeader>
         <form action={createEjecutado}>
           <CardContent className="space-y-4">
-            <EjecutadoFormFields departamentos={departamentos} empresas={empresas} />
+            <EjecutadoFormFields courtIndex={courtIndex} empresas={empresas} />
           </CardContent>
 
           <CardFooter className="flex justify-between">
