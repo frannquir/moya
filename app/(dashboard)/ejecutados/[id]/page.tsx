@@ -51,6 +51,15 @@ export default async function EjecutadoDetailPage({
   const isHead = membership?.role === "head";
   const members = isHead ? await listMembers(supabase) : [];
 
+  // Transfer targets exclude whoever already owns the case (transferring to the
+  // current owner is a no-op) and include the head, so the head can pull any
+  // member's case into their own. No targets ⇒ a solo estudio ⇒ prompt to invite.
+  const currentOwner =
+    members.find((m) => m.user_id === ejecutado.assigned_to_user_id) ?? null;
+  const transferTargets = members.filter(
+    (m) => m.user_id !== ejecutado.assigned_to_user_id,
+  );
+
   const updateAction = updateEjecutado.bind(null, id);
   const archiveAction = archiveEjecutado.bind(null, id);
   const delegateAction = delegateEjecutado.bind(null, id);
@@ -115,32 +124,61 @@ export default async function EjecutadoDetailPage({
           <CardHeader>
             <CardTitle>Delegar</CardTitle>
             <CardDescription>
-              Asigná este ejecutado a un miembro del estudio. Solo el head y el miembro
-              asignado pueden verlo.
+              Transferí este ejecutado a otro miembro del estudio. Solo el head y el
+              miembro asignado pueden verlo.
             </CardDescription>
           </CardHeader>
-          <form action={delegateAction}>
-            <CardContent>
-              <select
-                name="assigned_to"
-                defaultValue={ejecutado.assigned_to_user_id ?? ""}
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-              >
-                <option value="">Sin delegar (solo head)</option>
-                {members.map((m) => (
-                  <option key={m.user_id} value={m.user_id}>
-                    {m.nombre?.trim() ? m.nombre : m.email}
-                    {m.role === "head" ? " (head)" : ""}
-                  </option>
-                ))}
-              </select>
+          {transferTargets.length === 0 ? (
+            <CardContent className="space-y-1 text-sm">
+              <p className="text-muted-foreground">
+                {currentOwner
+                  ? `Asignado a ${currentOwner.nombre?.trim() ? currentOwner.nombre : currentOwner.email}.`
+                  : "Sin delegar (solo head)."}
+              </p>
+              <p>
+                No hay otros miembros para asignar.{" "}
+                <Link href="/estudio" className="font-medium hover:underline">
+                  ¡Agregá más miembros!
+                </Link>
+              </p>
             </CardContent>
-            <CardFooter>
-              <Button type="submit" variant="outline">
-                Guardar delegación
-              </Button>
-            </CardFooter>
-          </form>
+          ) : (
+            <form action={delegateAction}>
+              <CardContent className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  {currentOwner
+                    ? `Asignado actualmente a ${currentOwner.nombre?.trim() ? currentOwner.nombre : currentOwner.email}.`
+                    : "Sin delegar (solo head)."}
+                </p>
+                <select
+                  name="assigned_to"
+                  defaultValue={transferTargets[0]?.user_id ?? ""}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                >
+                  {transferTargets.map((m) => (
+                    <option key={m.user_id} value={m.user_id}>
+                      {m.nombre?.trim() ? m.nombre : m.email}
+                      {m.user_id === user.id
+                        ? " (vos)"
+                        : m.role === "head"
+                          ? " (head)"
+                          : ""}
+                    </option>
+                  ))}
+                  {/* Pull the case back to head-only, but only if it's currently
+                      delegated — when it's already head-only this is a no-op. */}
+                  {currentOwner && (
+                    <option value="">Sin delegar (solo head)</option>
+                  )}
+                </select>
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" variant="outline">
+                  Reasignar
+                </Button>
+              </CardFooter>
+            </form>
+          )}
         </Card>
       )}
 
