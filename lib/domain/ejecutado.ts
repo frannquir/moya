@@ -1,3 +1,5 @@
+import { extractCausa } from "./mail-match";
+
 export const MOVIMIENTO_OPTIONS = [
   "Inicio Causa",
   "Enviar Cédula",
@@ -60,6 +62,32 @@ export type EjecutadoFormFields = {
   observaciones: string;
 };
 
+// Formalize a free-text expediente into a consistent stored shape so the mess we
+// inherited (bare digits, "OL-840-2019", "TD1436 2021", "16183 - 2024"…) can't
+// reappear via the form. Uses the SAME extractor the matcher reads, so what we
+// store always round-trips: "TD1436 2021" → "TD-1436-2021", "16183 - 2024" →
+// "16183/2024", "1513" → "1513". Unparseable input is returned verbatim and
+// rejected by validateEjecutadoFields.
+export function normalizeNumeroExpediente(raw: string): string {
+  const t = raw.trim();
+  if (t === "") return "";
+  const { causa, depto, año } = extractCausa(t);
+  if (!causa) return t;
+  if (depto && año) return `${depto}-${causa}-${año}`;
+  if (año) return `${causa}/${año}`;
+  return causa;
+}
+
+// Form-level validation shared by the create and update actions. Returns a
+// user-facing (Spanish) error string, or null when the fields are acceptable.
+export function validateEjecutadoFields(f: EjecutadoFormFields): string | null {
+  if (!f.nombre) return "El nombre del demandado es obligatorio.";
+  if (f.numero_expediente !== "" && extractCausa(f.numero_expediente).causa === null) {
+    return "N° de expediente inválido: debe contener un número de causa (1 a 7 dígitos).";
+  }
+  return null;
+}
+
 function str(fd: FormData, key: string): string {
   return String(fd.get(key) ?? "").trim();
 }
@@ -105,7 +133,7 @@ export function parseEjecutadoFormData(fd: FormData): EjecutadoFormFields {
     juzgado: str(fd, "juzgado"),
     juzgado_id: selectNullable(str(fd, "juzgado_id")),
     departamento: selectNullable(str(fd, "departamento")) ?? "",
-    numero_expediente: str(fd, "numero_expediente"),
+    numero_expediente: normalizeNumeroExpediente(str(fd, "numero_expediente")),
     documento: str(fd, "documento"),
     domicilio: str(fd, "domicilio"),
     codemandados: parseCodemandados(str(fd, "codemandados")),

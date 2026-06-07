@@ -311,6 +311,7 @@ export type Database = {
           archived_at: string | null
           body_html: string
           body_text: string
+          candidate_ejecutado_id: string | null
           created_at: string
           ejecutado_id: string | null
           estudio_id: string
@@ -333,6 +334,7 @@ export type Database = {
           archived_at?: string | null
           body_html?: string
           body_text?: string
+          candidate_ejecutado_id?: string | null
           created_at?: string
           ejecutado_id?: string | null
           estudio_id: string
@@ -355,6 +357,7 @@ export type Database = {
           archived_at?: string | null
           body_html?: string
           body_text?: string
+          candidate_ejecutado_id?: string | null
           created_at?: string
           ejecutado_id?: string | null
           estudio_id?: string
@@ -374,6 +377,20 @@ export type Database = {
           to_emails?: string[]
         }
         Relationships: [
+          {
+            foreignKeyName: "emails_candidate_ejecutado_id_fkey"
+            columns: ["candidate_ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "cobros_totals"
+            referencedColumns: ["ejecutado_id"]
+          },
+          {
+            foreignKeyName: "emails_candidate_ejecutado_id_fkey"
+            columns: ["candidate_ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "ejecutados"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "emails_ejecutado_id_fkey"
             columns: ["ejecutado_id"]

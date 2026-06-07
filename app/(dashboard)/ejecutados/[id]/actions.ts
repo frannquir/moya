@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { parseEjecutadoFormData } from "@/lib/domain/ejecutado";
+import { parseEjecutadoFormData, validateEjecutadoFields } from "@/lib/domain/ejecutado";
 import { generateLiquidacion } from "@/lib/data/liquidaciones";
 import { update, archive, unarchive, delegate } from "@/lib/data/ejecutados";
 import { requireUser } from "@/lib/data/auth";
@@ -12,7 +12,8 @@ export async function updateEjecutado(id: string, formData: FormData) {
   const supabase = await createClient();
 
   const fields = parseEjecutadoFormData(formData);
-  if (!fields.nombre) throw new Error("Nombre is required");
+  const validationError = validateEjecutadoFields(fields);
+  if (validationError) throw new Error(validationError);
 
   await update(supabase, id, fields);
 

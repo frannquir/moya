@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { parseEjecutadoFormData } from "@/lib/domain/ejecutado";
+import { parseEjecutadoFormData, validateEjecutadoFields } from "@/lib/domain/ejecutado";
 import { requireUser, getCurrentEstudioId } from "@/lib/data/auth";
 import { create } from "@/lib/data/ejecutados";
 import { generateLiquidacion } from "@/lib/data/liquidaciones";
@@ -14,7 +14,8 @@ export async function createEjecutado(formData: FormData) {
   const estudioId = await getCurrentEstudioId(supabase);
 
   const fields = parseEjecutadoFormData(formData);
-  if (!fields.nombre) throw new Error("Nombre is required");
+  const validationError = validateEjecutadoFields(fields);
+  if (validationError) throw new Error(validationError);
 
   const isDraft = String(formData.get("intent") ?? "activo") === "borrador";
 
