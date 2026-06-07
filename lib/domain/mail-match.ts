@@ -3,15 +3,9 @@ export interface EjecutadoRef {
   id: string;
   nombre: string; // "Apellido, Nombre" or free text
   numero_expediente: string; // free text: bare digits, "OL-840-2019", "TD1436 2021"…
-  juzgado_id: string | null; // FK to juzgados; null on the few unlinked rows
-  departamento: string; // seat city / localidad, e.g. "Olavarría" (court fallback)
-}
-
-export interface JuzgadoRef {
-  id: string;
-  tipo: string; // "Juzgado Civil y Comercial" | "Juzgado de Paz" | "Receptoria…"
-  numero: number | null;
-  localidad: string; // seat city, e.g. "Olavarría", "Tandil", "Mar del Plata"
+  departamento: string; // seat city / localidad, e.g. "Olavarría" — the court signal
+  juzgado_numero: number | null; // court number (via juzgado_id → juzgados.numero);
+  // disambiguates two courts in the same city. null when the case isn't linked.
 }
 
 export interface MailInput {
@@ -105,14 +99,6 @@ export function localidadMatch(
   return levBounded(ka, kb, 1) <= 1;
 }
 
-function tipoClass(s: string | null | undefined): string {
-  const n = normalize(s);
-  if (n.includes("civil") && n.includes("comercial")) return "civil";
-  if (n.includes("paz")) return "paz";
-  if (n.includes("recept")) return "receptoria";
-  return "";
-}
-
 // --- Causa extraction --------------------------------------------------------
 // Canonical from BOTH sides: the mail's "Nro de causa" / subject, and the stored
 // `numero_expediente` (bare digits, "OL-840-2019", "TD1436 2021", "16183 - 2024"…).
@@ -161,15 +147,24 @@ function causaFromText(text: string): { causa: string | null; año: string | nul
 }
 
 // --- MEV header parsing ------------------------------------------------------
-function field(text: string, label: RegExp): string | null {
-  const m = text.match(label);
+// Real MEV bodies often run every field onto ONE line with no newlines
+// ("Organismo: … Carátula: … Nro de causa: … Fecha: …"), so a field ends at the
+// NEXT known label, not at end-of-line. Capturing to EOL swallowed the whole body
+// into `localidad` and broke court matching.
+const NEXT_LABEL =
+  "(?=\\s*(?:organismo|car[aá]tula|nro\\.?\\s*de\\s*causa|fecha|descripci[oó]n|estado)\\s*:|$)";
+
+function field(text: string, labelSrc: string): string | null {
+  const m = text.match(
+    new RegExp(`${labelSrc}\\s*:?\\s*([\\s\\S]*?)${NEXT_LABEL}`, "i"),
+  );
   return m ? m[1].trim() : null;
 }
 
 export function parseMevHeader(text: string): ParsedHeader {
-  const organismo = field(text, /organismo\s*:?\s*([^\n\r]+)/i);
-  const caratula = field(text, /car[aá]tula\s*:?\s*([^\n\r]+)/i);
-  const causaLine = field(text, /n(?:ro|°|º)?\.?\s*de\s*causa\s*:?\s*([^\n\r]+)/i);
+  const organismo = field(text, "organismo");
+  const caratula = field(text, "car[aá]tula");
+  const causaLine = field(text, "n(?:ro|°|º)?\\.?\\s*de\\s*causa");
 
   // Causa: the labelled line first, then any composite/labelled mention in the text.
   let causa: string | null = null;
@@ -220,22 +215,34 @@ export function parseMevHeader(text: string): ParsedHeader {
   return { causa, año, tipo, numero, localidad, demandado };
 }
 
-// --- Court resolution --------------------------------------------------------
-// Map the mail's parsed Organismo to a single juzgado_id. tipo+numero is NOT unique
-// (Azul has a "Nº 1" in both Olavarría and Tandil) — localidad is the disambiguator.
-export function resolveJuzgadoId(
+// --- Court comparison --------------------------------------------------------
+// Court identity is matched by LOCALIDAD (the mail's Organismo tail vs the
+// ejecutado's `departamento` seat city), not by juzgado_id — the latter is assigned
+// by two independent code paths (the picker and this matcher) that need not agree,
+// and a disagreement was vetoing correct matches. Localidad disambiguates the
+// cross-city collisions (Azul's Nº 1 exists in both Olavarría and Tandil); the court
+// NUMBER additionally separates two courts in the same city.
+//   hit      → localidad matches and the court numbers don't contradict
+//   conflict → localidad is present on both sides but differs (different city) →
+//              with a causa hit this is a number collision in another court → veto
+function courtSignals(
   header: ParsedHeader,
-  juzgados: JuzgadoRef[],
-): string | null {
-  const cls = tipoClass(header.tipo);
-  if (!cls || !header.localidad) return null;
-  const hits = juzgados.filter(
-    (j) =>
-      tipoClass(j.tipo) === cls &&
-      (header.numero == null || j.numero === header.numero) &&
-      localidadMatch(header.localidad, j.localidad),
-  );
-  return hits.length === 1 ? hits[0].id : null;
+  e: EjecutadoRef,
+): { hit: boolean; conflict: boolean } {
+  if (!header.localidad || !e.departamento) return { hit: false, conflict: false };
+  if (!localidadMatch(header.localidad, e.departamento)) {
+    return { hit: false, conflict: true };
+  }
+  // Same city: a known, differing court number is not a hit, but it's a soft signal
+  // (the ranking/auto-gate handles it) rather than a hard veto.
+  if (
+    header.numero != null &&
+    e.juzgado_numero != null &&
+    header.numero !== e.juzgado_numero
+  ) {
+    return { hit: false, conflict: false };
+  }
+  return { hit: true, conflict: false };
 }
 
 // Defendant name: full match if one side contains the other, or every mail-name
@@ -256,49 +263,76 @@ function nameSignals(
 }
 
 // --- The matcher -------------------------------------------------------------
+// Per-ejecutado scoring breakdown — shared by matchEmail and explainMatch so the
+// trace can never drift from the real decision.
+export interface EjecutadoScore {
+  id: string;
+  nombre: string;
+  numero_expediente: string;
+  ejCausa: string | null; // causa extracted from the stored numero_expediente
+  causaHit: boolean;
+  courtHit: boolean;
+  courtConflict: boolean;
+  nameFull: boolean;
+  sharedTokens: number;
+  añoConflict: boolean;
+  score: number;
+  canAuto: boolean;
+}
+
+export function scoreEjecutado(header: ParsedHeader, e: EjecutadoRef): EjecutadoScore {
+  const ec = extractCausa(e.numero_expediente);
+  const causaHit = !!header.causa && !!ec.causa && ec.causa === header.causa;
+  const { hit: courtHit, conflict: courtConflict } = courtSignals(header, e);
+  const { full: nameFull, shared } = nameSignals(header.demandado, e.nombre);
+  const añoConflict = !!header.año && !!ec.año && header.año !== ec.año;
+
+  // A full NAME match neutralizes a court conflict. The conflict veto exists to catch
+  // the same-causa-DIFFERENT-court collision (Olavarría-1513 vs Tandil-1513), where the
+  // defendant names differ. But `departamento` is noisy — it sometimes holds the
+  // judicial department ("Azul") instead of the city ("Olavarría"), arrives mojibake'd,
+  // or (Paz courts) parses to the court name — so causa + a matching name is trusted
+  // over a court-only disagreement.
+  const effectiveConflict = courtConflict && !nameFull;
+
+  let score = 0;
+  if (causaHit) score += W_CAUSA;
+  if (courtHit) score += W_COURT;
+  if (nameFull) score += W_NAME_FULL;
+  else score += Math.min(W_NAME_TOKEN_CAP, shared * W_NAME_TOKEN);
+  if (causaHit && effectiveConflict) score += W_COURT_CONFLICT;
+  if (añoConflict) score += W_AÑO_CONFLICT;
+
+  // AUTO gate: causa (identifying) + a corroborator, with no contradicting signal.
+  const canAuto =
+    causaHit && (courtHit || nameFull) && !effectiveConflict && !añoConflict;
+
+  return {
+    id: e.id,
+    nombre: e.nombre,
+    numero_expediente: e.numero_expediente,
+    ejCausa: ec.causa,
+    causaHit,
+    courtHit,
+    courtConflict,
+    nameFull,
+    sharedTokens: shared,
+    añoConflict,
+    score,
+    canAuto,
+  };
+}
+
 export function matchEmail(
   mail: MailInput,
   ejecutados: EjecutadoRef[],
-  juzgados: JuzgadoRef[],
 ): MailMatch {
   const text = `${mail.subject ?? ""}\n${mail.snippet ?? ""}\n${mail.body_text ?? ""}`;
   const header = parseMevHeader(text);
-  const mailJuzgadoId = resolveJuzgadoId(header, juzgados);
 
-  type Scored = { id: string; score: number; canAuto: boolean; hasCausa: boolean };
-  const scored: Scored[] = [];
-
-  for (const e of ejecutados) {
-    const ec = extractCausa(e.numero_expediente);
-    const causaHit = !!header.causa && !!ec.causa && ec.causa === header.causa;
-
-    const courtHit = mailJuzgadoId
-      ? e.juzgado_id === mailJuzgadoId
-      : !!header.localidad && localidadMatch(header.localidad, e.departamento);
-    const courtConflict = mailJuzgadoId
-      ? !!e.juzgado_id && e.juzgado_id !== mailJuzgadoId
-      : !!header.localidad &&
-        !!e.departamento &&
-        !localidadMatch(header.localidad, e.departamento);
-
-    const { full: nameFull, shared } = nameSignals(header.demandado, e.nombre);
-    const añoConflict = !!header.año && !!ec.año && header.año !== ec.año;
-
-    let score = 0;
-    if (causaHit) score += W_CAUSA;
-    if (courtHit) score += W_COURT;
-    if (nameFull) score += W_NAME_FULL;
-    else score += Math.min(W_NAME_TOKEN_CAP, shared * W_NAME_TOKEN);
-    if (causaHit && courtConflict) score += W_COURT_CONFLICT;
-    if (añoConflict) score += W_AÑO_CONFLICT;
-
-    if (score <= 0) continue;
-
-    // AUTO gate: causa (identifying) + a corroborator, with no contradicting signal.
-    const canAuto =
-      causaHit && (courtHit || nameFull) && !courtConflict && !añoConflict;
-    scored.push({ id: e.id, score, canAuto, hasCausa: causaHit });
-  }
+  const scored = ejecutados
+    .map((e) => scoreEjecutado(header, e))
+    .filter((s) => s.score > 0);
 
   if (scored.length === 0) return { ejecutadoId: null, candidateId: null, confidence: 0 };
 
@@ -316,7 +350,7 @@ export function matchEmail(
   // CANDIDATE: above the floor. Drop a top tie that has no identifying signal —
   // a name-only coin-flip shouldn't silently file into someone's folder.
   if (confidence >= CANDIDATE_FLOOR) {
-    if (tie && !top.hasCausa) {
+    if (tie && !top.causaHit) {
       return { ejecutadoId: null, candidateId: null, confidence: 0 };
     }
     return {
@@ -327,4 +361,20 @@ export function matchEmail(
   }
 
   return { ejecutadoId: null, candidateId: null, confidence: 0 };
+}
+
+// Debug helper: returns the parsed header + the ranked scoring breakdown for the
+// top ejecutados, so a caller can see exactly WHY a mail matched or didn't.
+export function explainMatch(
+  mail: MailInput,
+  ejecutados: EjecutadoRef[],
+  topN = 6,
+): { header: ParsedHeader; ranked: EjecutadoScore[] } {
+  const text = `${mail.subject ?? ""}\n${mail.snippet ?? ""}\n${mail.body_text ?? ""}`;
+  const header = parseMevHeader(text);
+  const ranked = ejecutados
+    .map((e) => scoreEjecutado(header, e))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topN);
+  return { header, ranked };
 }

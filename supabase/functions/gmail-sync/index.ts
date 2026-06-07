@@ -14,7 +14,6 @@ import {
 } from "../_shared/gmail.ts";
 import {
   type EjecutadoRef,
-  type JuzgadoRef,
   matchEmail,
 } from "../../../lib/domain/mail-match.ts";
 
@@ -76,19 +75,30 @@ async function syncConnection(
     const refreshToken = await decryptToken(conn.refresh_token_encrypted);
     const { accessToken, expiresIn } = await refreshAccessToken(refreshToken);
 
+    // Court is matched by localidad (departamento) + the linked court number, so
+    // pull the juzgado's numero via the FK. juzgado_id itself is not used for matching.
     const { data: ejecutados } = await supabase
       .from("ejecutados")
-      .select("id, nombre, numero_expediente, juzgado_id, departamento")
+      .select("id, nombre, numero_expediente, departamento, juzgado:juzgados(numero)")
       .eq("estudio_id", conn.estudio_id)
       .is("archived_at", null);
-    const refs: EjecutadoRef[] = ejecutados ?? [];
-
-    // Global court reference (no estudio_id) — used to resolve a mail's Organismo
-    // line to a juzgado_id, the second half of the causa+court composite key.
-    const { data: juzgadosRows } = await supabase
-      .from("juzgados")
-      .select("id, tipo, numero, localidad");
-    const juzgados: JuzgadoRef[] = juzgadosRows ?? [];
+    type EjRow = {
+      id: string;
+      nombre: string;
+      numero_expediente: string;
+      departamento: string;
+      juzgado: { numero: number | null } | { numero: number | null }[] | null;
+    };
+    const refs: EjecutadoRef[] = ((ejecutados ?? []) as EjRow[]).map((e) => {
+      const juz = Array.isArray(e.juzgado) ? e.juzgado[0] : e.juzgado;
+      return {
+        id: e.id,
+        nombre: e.nombre,
+        numero_expediente: e.numero_expediente,
+        departamento: e.departamento,
+        juzgado_numero: juz?.numero ?? null,
+      };
+    });
 
     const ids = await listMessageIds(
       accessToken,
@@ -100,7 +110,7 @@ async function syncConnection(
     let proposed = 0;
     for (const id of ids) {
       const parsed = await getMessage(accessToken, id);
-      const match = matchEmail(parsed, refs, juzgados);
+      const match = matchEmail(parsed, refs);
       const isDelegated = parsed.from_email === MEV_SENDER;
 
       // ignoreDuplicates:true → existing rows (incl. manual matches) are never

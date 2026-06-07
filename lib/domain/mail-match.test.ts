@@ -2,36 +2,25 @@ import { describe, it, expect } from "vitest";
 import {
   extractCausa,
   parseMevHeader,
-  resolveJuzgadoId,
   matchEmail,
   normalize,
   localidadMatch,
   type EjecutadoRef,
-  type JuzgadoRef,
   type MailInput,
 } from "./mail-match";
 
-// --- Court reference (mirrors the real juzgados rows for these departments) ---
-// Note: Azul has a "Nº 1" in BOTH Olavarría and Tandil — localidad disambiguates.
-const J = {
-  ola1: { id: "j-ola-1", tipo: "Juzgado Civil y Comercial", numero: 1, localidad: "Olavarría" },
-  ola2: { id: "j-ola-2", tipo: "Juzgado Civil y Comercial", numero: 2, localidad: "Olavarría" },
-  tan1: { id: "j-tan-1", tipo: "Juzgado Civil y Comercial", numero: 1, localidad: "Tandil" },
-  mdp4: { id: "j-mdp-4", tipo: "Juzgado Civil y Comercial", numero: 4, localidad: "Mar del Plata" },
-  azul1: { id: "j-azul-1", tipo: "Juzgado Civil y Comercial", numero: 1, localidad: "Azul" },
-} satisfies Record<string, JuzgadoRef>;
-const juzgados: JuzgadoRef[] = Object.values(J);
-
-// --- Ejecutados (the intended matches for the five real mails) ----------------
+// Court is matched by localidad (+ court number). `departamento` holds the seat city;
+// `juzgado_numero` is the linked court number. Note Azul's "Nº 1" exists in BOTH
+// Olavarría and Tandil — localidad disambiguates.
 const E = {
-  lucero: { id: "e-lucero", nombre: "Lucero, Hugo Maximiliano", numero_expediente: "1513", juzgado_id: J.ola1.id, departamento: "Olavarría" },
-  battista: { id: "e-battista", nombre: "Battista, Juan Carlos", numero_expediente: "6564", juzgado_id: J.ola2.id, departamento: "Olavarría" },
-  // Exercises the "DEPTO N AÑO" extractor (space-separated, glued prefix).
-  della: { id: "e-della", nombre: "Della Maggiora, Mariana Edith", numero_expediente: "TD55725 2024", juzgado_id: J.tan1.id, departamento: "Tandil" },
-  alvea: { id: "e-alvea", nombre: "Alvea, Vanessa Elizabeth", numero_expediente: "MP-16183-2024", juzgado_id: J.mdp4.id, departamento: "Mar del Plata" },
-  lescano: { id: "e-lescano", nombre: "Lescano, Carlos Alberto", numero_expediente: "65609", juzgado_id: J.azul1.id, departamento: "Azul" },
-  // Collision: same causa number 1513, but a DIFFERENT court (Tandil, not Olavarría).
-  collision: { id: "e-collision", nombre: "Gomez, Pedro", numero_expediente: "1513", juzgado_id: J.tan1.id, departamento: "Tandil" },
+  lucero: { id: "e-lucero", nombre: "Lucero, Hugo Maximiliano", numero_expediente: "1513", departamento: "Olavarría", juzgado_numero: 1 },
+  battista: { id: "e-battista", nombre: "Battista, Juan Carlos", numero_expediente: "6564", departamento: "Olavarría", juzgado_numero: 2 },
+  // Exercises the "DEPTO N AÑO" extractor (glued prefix, space-separated año).
+  della: { id: "e-della", nombre: "Della Maggiora, Mariana Edith", numero_expediente: "TD55725 2024", departamento: "Tandil", juzgado_numero: 1 },
+  alvea: { id: "e-alvea", nombre: "Alvea, Vanessa Elizabeth", numero_expediente: "MP-16183-2024", departamento: "Mar del Plata", juzgado_numero: 4 },
+  lescano: { id: "e-lescano", nombre: "Lescano, Carlos Alberto", numero_expediente: "65609", departamento: "Azul", juzgado_numero: 1 },
+  // Collision: same causa 1513, different city (Tandil, not Olavarría).
+  collision: { id: "e-collision", nombre: "Gomez, Pedro", numero_expediente: "1513", departamento: "Tandil", juzgado_numero: 1 },
 } satisfies Record<string, EjecutadoRef>;
 const ejecutados: EjecutadoRef[] = Object.values(E);
 
@@ -91,7 +80,7 @@ describe("extractCausa", () => {
 });
 
 describe("parseMevHeader", () => {
-  it("pulls causa, court (tipo/numero/localidad) and demandado", () => {
+  it("pulls causa, court (numero/localidad) and demandado", () => {
     const h = parseMevHeader(mail1.body_text!);
     expect(h.causa).toBe("1513");
     expect(h.numero).toBe(1);
@@ -108,15 +97,6 @@ describe("parseMevHeader", () => {
   });
 });
 
-describe("resolveJuzgadoId — localidad disambiguates same tipo+numero", () => {
-  it("Olavarría Nº1 and Tandil Nº1 resolve to different ids", () => {
-    const hOla = parseMevHeader(mail1.body_text!);
-    const hTan = parseMevHeader(mail3.body_text!);
-    expect(resolveJuzgadoId(hOla, juzgados)).toBe(J.ola1.id);
-    expect(resolveJuzgadoId({ ...hTan, numero: 1 }, juzgados)).toBe(J.tan1.id);
-  });
-});
-
 describe("matchEmail — AUTO on the five real mails", () => {
   const cases: [string, MailInput, string][] = [
     ["mail1 → Lucero", mail1, E.lucero.id],
@@ -127,7 +107,7 @@ describe("matchEmail — AUTO on the five real mails", () => {
   ];
   for (const [name, mail, id] of cases) {
     it(name, () => {
-      const m = matchEmail(mail, ejecutados, juzgados);
+      const m = matchEmail(mail, ejecutados);
       expect(m.ejecutadoId).toBe(id);
       expect(m.candidateId).toBeNull();
       expect(m.confidence).toBeGreaterThanOrEqual(0.9);
@@ -137,23 +117,88 @@ describe("matchEmail — AUTO on the five real mails", () => {
 
 describe("matchEmail — composite key & VETO", () => {
   it("causa 1513 + Olavarría picks Lucero, not the Tandil-1513 collision", () => {
-    const m = matchEmail(mail1, ejecutados, juzgados);
+    const m = matchEmail(mail1, ejecutados);
     expect(m.ejecutadoId).toBe(E.lucero.id);
-    expect(m.ejecutadoId).not.toBe(E.collision.id);
   });
-  it("a causa that hits a different court is vetoed (no auto-attach)", () => {
-    // Same causa 1513 but the mail is from Tandil → should land on the collision case,
-    // never on Lucero (Olavarría).
+  it("same causa from Tandil lands on the Tandil case, never Lucero (Olavarría)", () => {
     const tandilMail = mevBody("Juzgado Civil y Comercial Nº 1 Tandil", "TARTAN S.A. C/ GOMEZ PEDRO S/ COBRO EJECUTIVO -", "1513");
-    const m = matchEmail(tandilMail, ejecutados, juzgados);
+    const m = matchEmail(tandilMail, ejecutados);
     expect(m.ejecutadoId).toBe(E.collision.id);
+  });
+  it("causa hit but wrong city, and the right case absent → vetoed, no false candidate", () => {
+    // Mail from Tandil for causa 1513, but only the Olavarría-1513 case (Lucero) is loaded.
+    const tandilMail = mevBody("Juzgado Civil y Comercial Nº 1 Tandil", "TARTAN S.A. C/ QUIROGA SOFIA S/ COBRO EJECUTIVO -", "1513");
+    const m = matchEmail(tandilMail, [E.lucero]);
+    expect(m.ejecutadoId).toBeNull();
+    expect(m.candidateId).toBeNull();
+  });
+});
+
+describe("matchEmail — court number disambiguates within a city", () => {
+  it("same causa+city but a different court number → not auto", () => {
+    const e1 = { id: "x", nombre: "Test, Uno", numero_expediente: "7777", departamento: "Olavarría", juzgado_numero: 1 };
+    const mailN2 = mevBody("Juzgado Civil y Comercial Nº 2 Olavarría", "TARTAN S.A. C/ OTRO NOMBRE S/ COBRO EJECUTIVO -", "7777");
+    const m = matchEmail(mailN2, [e1]);
+    expect(m.ejecutadoId).toBeNull(); // court number contradicts → only a weak candidate at most
+  });
+});
+
+describe("matchEmail — real MEV body with NO newlines between fields", () => {
+  // Reproduces the actual format: all fields run onto one line. A naive EOL capture
+  // swallows the whole body into `localidad` and breaks the court match.
+  const runOn: MailInput = {
+    subject: "Juzgado Civil y Comercial Nº 1 (AZ) - Causa: 65609 - INFORME POR CEDULA / CEDULA INFORMADA",
+    snippet: "",
+    body_text:
+      "Organismo: Juzgado Civil y Comercial Nº 1 Azul " +
+      "Carátula: TARTAN SA C/ LESCANO CARLOS ALBERTO Y OTRO/AS/ COBRO EJECUTIVO - " +
+      "Nro de causa: 65609 Fecha: 29/05/2026 8:30:52 Descripción: INFORME POR CEDULA / CEDULA INFORMADA Estado: En Letra",
+    from_email: "mev@scba.gov.ar",
+  };
+
+  it("parses localidad cleanly (not the rest of the body)", () => {
+    const h = parseMevHeader(runOn.body_text!);
+    expect(h.causa).toBe("65609");
+    expect(h.numero).toBe(1);
+    expect(localidadMatch(h.localidad, "Azul")).toBe(true);
+    expect(normalize(h.demandado)).toBe("lescano carlos alberto");
+  });
+
+  it("auto-matches Lescano (causa + Azul)", () => {
+    const m = matchEmail(runOn, ejecutados);
+    expect(m.ejecutadoId).toBe(E.lescano.id);
+    expect(m.confidence).toBeGreaterThanOrEqual(0.9);
+  });
+});
+
+describe("matchEmail — name overrides a noisy court mismatch", () => {
+  it("departamento holds the judicial dept (Azul) but mail city is Olavarría → still matches on causa+name", () => {
+    const battistaAzul: EjecutadoRef = {
+      id: "b",
+      nombre: "BATTISTA JUAN CARLOS",
+      numero_expediente: "6564",
+      departamento: "Azul", // judicial department, not the city → conflicts with "Olavarría"
+      juzgado_numero: 2,
+    };
+    const mail = mevBody("Juzgado Civil y Comercial Nº 2 Olavarría", "TARTAN SA C/ BATTISTA JUAN CARLOS S/ COBRO EJECUTIVO -", "6564");
+    const m = matchEmail(mail, [battistaAzul]);
+    expect(m.ejecutadoId).toBe("b");
+  });
+
+  it("but a DIFFERENT name with the same causa in another city is still vetoed", () => {
+    // Mail from Tandil, causa 1513, defendant Quiroga; only the Olavarría-1513 case
+    // (Lucero) exists — name differs, so the court conflict still vetoes it.
+    const tandilMail = mevBody("Juzgado Civil y Comercial Nº 1 Tandil", "TARTAN S.A. C/ QUIROGA SOFIA S/ COBRO EJECUTIVO -", "1513");
+    const m = matchEmail(tandilMail, [E.lucero]);
+    expect(m.ejecutadoId).toBeNull();
+    expect(m.candidateId).toBeNull();
   });
 });
 
 describe("matchEmail — encoding tolerance", () => {
-  it("mojibake localidad ('Olavarr¡a') still resolves the court", () => {
+  it("mojibake localidad ('Olavarr¡a') still matches the court", () => {
     const garbled = mevBody("Juzgado Civil y Comercial Nº 1 Olavarr¡a", "TARTAN S.A. C/ LUCERO HUGO MAXIMILIANO Y OTRO/A S/ COBRO EJECUTIVO -", "1513");
-    const m = matchEmail(garbled, ejecutados, juzgados);
+    const m = matchEmail(garbled, ejecutados);
     expect(m.ejecutadoId).toBe(E.lucero.id);
   });
 });
@@ -161,14 +206,14 @@ describe("matchEmail — encoding tolerance", () => {
 describe("matchEmail — CANDIDATE (no causa) and no-match", () => {
   it("name + court but unknown causa → candidate, not auto", () => {
     const noCausa = mevBody("Juzgado Civil y Comercial Nº 1 Olavarría", "TARTAN S.A. C/ LUCERO HUGO MAXIMILIANO Y OTRO/A S/ COBRO EJECUTIVO -", "999999");
-    const m = matchEmail(noCausa, ejecutados, juzgados);
+    const m = matchEmail(noCausa, ejecutados);
     expect(m.ejecutadoId).toBeNull();
     expect(m.candidateId).toBe(E.lucero.id);
     expect(m.confidence).toBeGreaterThanOrEqual(0.5);
   });
   it("nothing relevant → no match at all", () => {
     const stranger = mevBody("Juzgado Civil y Comercial Nº 9 La Plata", "BANCO X C/ PERALTA RAMONA S/ COBRO EJECUTIVO -", "42");
-    const m = matchEmail(stranger, ejecutados, juzgados);
+    const m = matchEmail(stranger, ejecutados);
     expect(m.ejecutadoId).toBeNull();
     expect(m.candidateId).toBeNull();
   });
