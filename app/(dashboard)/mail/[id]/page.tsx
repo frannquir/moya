@@ -7,6 +7,7 @@ import { sanitizeBodyHtml } from "@/lib/gmail/sanitize";
 import { formatArDateTime } from "@/lib/domain/dates";
 import { getEmailById } from "@/lib/data/mail";
 import { confirmEvent } from "./actions";
+import { MailAssign } from "./mail-assign";
 
 interface Ejecutado {
   id: string;
@@ -24,7 +25,10 @@ interface EmailRow {
   body_text: string;
   received_at: string | null;
   is_delegated: boolean;
+  ejecutado_id: string | null;
+  candidate_ejecutado_id: string | null;
   ejecutados: Ejecutado | Ejecutado[] | null;
+  candidato: Ejecutado | Ejecutado[] | null;
 }
 
 interface EventRow {
@@ -56,6 +60,7 @@ export default async function Page({
     .order("confidence", { ascending: false });
 
   const ejecutado = normalizeEjecutado(email.ejecutados);
+  const candidato = normalizeEjecutado(email.candidato);
   const bodyHtml = sanitizeBodyHtml(email.body_html);
 
   return (
@@ -80,20 +85,9 @@ export default async function Page({
             <Badge variant="outline" className="ml-2">MEV</Badge>
           )}
         </p>
-        <p className="text-sm">
-          {ejecutado ? (
-            <Link
-              href={`/ejecutados/${ejecutado.id}`}
-              className="hover:underline"
-            >
-              Asignado a <strong>{ejecutado.nombre}</strong>
-              {ejecutado.numero_expediente && ` · ${ejecutado.numero_expediente}`}
-            </Link>
-          ) : (
-            <span className="text-muted-foreground">Sin asignar</span>
-          )}
-        </p>
       </header>
+
+      <MailAssign emailId={email.id} ejecutado={ejecutado} candidato={candidato} />
 
       {(events ?? []).length > 0 && (
         <section className="space-y-3 rounded-md border p-4">

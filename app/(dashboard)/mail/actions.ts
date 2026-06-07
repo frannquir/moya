@@ -31,3 +31,69 @@ export async function syncGmailNow() {
 
   revalidatePath("/mail");
 }
+
+// Manual match: pin a mail to an ejecutado. match_manual=true so the next sync /
+// re-match never overrides it; clears any pending candidate. RLS limits who can
+// run this (the head, or a member acting on a mail they can already see).
+export async function assignEmail(emailId: string, ejecutadoId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("emails")
+    .update({
+      ejecutado_id: ejecutadoId,
+      candidate_ejecutado_id: null,
+      match_manual: true,
+    })
+    .eq("id", emailId);
+  if (error) throw error;
+
+  revalidatePath("/mail");
+  revalidatePath(`/mail/${emailId}`);
+}
+
+// Accept the matcher's suggestion: promote candidate_ejecutado_id → ejecutado_id.
+// Read-then-write because PostgREST can't SET one column from another in place.
+export async function confirmCandidate(emailId: string) {
+  const supabase = await createClient();
+
+  const { data, error: readError } = await supabase
+    .from("emails")
+    .select("candidate_ejecutado_id")
+    .eq("id", emailId)
+    .maybeSingle();
+  if (readError) throw readError;
+
+  const candidateId = data?.candidate_ejecutado_id;
+  if (!candidateId) return;
+
+  const { error } = await supabase
+    .from("emails")
+    .update({
+      ejecutado_id: candidateId,
+      candidate_ejecutado_id: null,
+      match_manual: true,
+    })
+    .eq("id", emailId);
+  if (error) throw error;
+
+  revalidatePath("/mail");
+  revalidatePath(`/mail/${emailId}`);
+}
+
+// Reject the matcher's suggestion: drop the candidate and mark the mail manual so
+// the next sync / re-match doesn't re-propose it. ejecutado_id stays null, so for
+// a member the mail leaves their view (it was only theirs via the candidate).
+export async function rejectCandidate(emailId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("emails")
+    .update({
+      candidate_ejecutado_id: null,
+      match_manual: true,
+    })
+    .eq("id", emailId);
+  if (error) throw error;
+
+  revalidatePath("/mail");
+  revalidatePath(`/mail/${emailId}`);
+}
