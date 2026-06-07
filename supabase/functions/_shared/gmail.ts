@@ -179,39 +179,3 @@ function decodeBase64Url(data: string): string {
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return new TextDecoder().decode(bytes);
 }
-
-export interface EjecutadoRef {
-  id: string;
-  numero_expediente: string;
-}
-
-export interface ExpedienteMatch {
-  ejecutado_id: string | null;
-  match_confidence: number;
-}
-
-// Matches an email to an ejecutado by checking whether its expediente number
-// (length >= 4 to avoid noise) appears in the email's text. A single hit is a
-// confident auto-match; multiple hits are ambiguous, so we leave it unmatched
-// rather than guessing (numero_expediente is free text and not unique).
-export function matchExpediente(
-  email: ParsedEmail,
-  ejecutados: EjecutadoRef[],
-): ExpedienteMatch {
-  const haystack = [
-    email.subject,
-    email.snippet,
-    email.body_text,
-    email.from_email,
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  const hits = ejecutados.filter((e) => {
-    const num = e.numero_expediente?.trim().toLowerCase();
-    return num && num.length >= 4 && haystack.includes(num);
-  });
-
-  if (hits.length === 1) return { ejecutado_id: hits[0].id, match_confidence: 0.9 };
-  return { ejecutado_id: null, match_confidence: 0 };
-}

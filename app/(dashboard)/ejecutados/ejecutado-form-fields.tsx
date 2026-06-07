@@ -89,8 +89,14 @@ export function EjecutadoFormFields({
           <Input
             id="numero_expediente"
             name="numero_expediente"
+            placeholder="N° de causa, ej. 1513 o 1513/2019"
+            pattern=".*\d.*"
+            title="Debe contener el número de causa (1 a 7 dígitos)."
             defaultValue={ejecutado?.numero_expediente ?? ""}
           />
+          <p className="text-xs text-muted-foreground">
+            Se guarda el número de causa; el juzgado lo identifica el selector de arriba.
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="empresa">Empresa</Label>

@@ -12,11 +12,13 @@ export type GmailConnection = {
   archived_at: string | null;
 };
 
+// `emails` now has two FKs to `ejecutados` (ejecutado_id + candidate_ejecutado_id),
+// so the embed must hint which one (`!ejecutado_id`) or PostgREST can't disambiguate.
 const EMAIL_LIST_COLUMNS =
-  "id, subject, from_email, from_name, snippet, received_at, is_delegated, ejecutado_id, ejecutados(id, nombre, numero_expediente)";
+  "id, subject, from_email, from_name, snippet, received_at, is_delegated, ejecutado_id, ejecutados!ejecutado_id(id, nombre, numero_expediente)";
 
 const EMAIL_DETAIL_COLUMNS =
-  "id, subject, from_email, from_name, to_emails, body_html, body_text, received_at, is_delegated, ejecutados(id, nombre, numero_expediente)";
+  "id, subject, from_email, from_name, to_emails, body_html, body_text, received_at, is_delegated, ejecutados!ejecutado_id(id, nombre, numero_expediente)";
 
 // Newest first
 export async function listEmailsInWindow(

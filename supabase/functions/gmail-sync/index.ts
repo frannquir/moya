@@ -1,18 +1,21 @@
 // Daily Gmail sync. For each estudio's connection: refresh the access token,
-// pull recent messages, parse them, match to an ejecutado by expediente number,
-// and upsert into `emails` (idempotent on estudio_id + gmail_message_id).
+// pull recent messages, parse them, match to an ejecutado via the shared matcher
+// (lib/domain/mail-match.ts — causa + juzgado composite key, with a candidate
+// fallback), and upsert into `emails` (idempotent on estudio_id + gmail_message_id).
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { classifyMailEvents } from "../_shared/classify.ts";
 import { decryptToken } from "../_shared/crypto.ts";
 import {
-  type EjecutadoRef,
   getMessage,
   listMessageIds,
-  matchExpediente,
   MEV_SENDER,
   refreshAccessToken,
 } from "../_shared/gmail.ts";
+import {
+  type EjecutadoRef,
+  matchEmail,
+} from "../../../lib/domain/mail-match.ts";
 
 
 const SYNC_QUERY = "in:inbox newer_than:3d";
@@ -72,12 +75,30 @@ async function syncConnection(
     const refreshToken = await decryptToken(conn.refresh_token_encrypted);
     const { accessToken, expiresIn } = await refreshAccessToken(refreshToken);
 
+    // Court is matched by localidad (departamento) + the linked court number, so
+    // pull the juzgado's numero via the FK. juzgado_id itself is not used for matching.
     const { data: ejecutados } = await supabase
       .from("ejecutados")
-      .select("id, numero_expediente")
+      .select("id, nombre, numero_expediente, departamento, juzgado:juzgados(numero)")
       .eq("estudio_id", conn.estudio_id)
       .is("archived_at", null);
-    const refs: EjecutadoRef[] = ejecutados ?? [];
+    type EjRow = {
+      id: string;
+      nombre: string;
+      numero_expediente: string;
+      departamento: string;
+      juzgado: { numero: number | null } | { numero: number | null }[] | null;
+    };
+    const refs: EjecutadoRef[] = ((ejecutados ?? []) as EjRow[]).map((e) => {
+      const juz = Array.isArray(e.juzgado) ? e.juzgado[0] : e.juzgado;
+      return {
+        id: e.id,
+        nombre: e.nombre,
+        numero_expediente: e.numero_expediente,
+        departamento: e.departamento,
+        juzgado_numero: juz?.numero ?? null,
+      };
+    });
 
     const ids = await listMessageIds(
       accessToken,
@@ -89,16 +110,20 @@ async function syncConnection(
     let proposed = 0;
     for (const id of ids) {
       const parsed = await getMessage(accessToken, id);
-      const match = matchExpediente(parsed, refs);
+      const match = matchEmail(parsed, refs);
       const isDelegated = parsed.from_email === MEV_SENDER;
 
+      // ignoreDuplicates:true → existing rows (incl. manual matches) are never
+      // touched; only brand-new mail gets the matcher result. Re-matching the
+      // backlog is the job of scripts/rematch-emails.ts.
       const { error: upsertErr } = await supabase.from("emails").upsert(
         {
           estudio_id: conn.estudio_id,
           gmail_connection_id: conn.id,
           ...parsed,
-          ejecutado_id: match.ejecutado_id,
-          match_confidence: match.match_confidence,
+          ejecutado_id: match.ejecutadoId,
+          candidate_ejecutado_id: match.candidateId,
+          match_confidence: match.confidence,
           is_delegated: isDelegated,
         },
         { onConflict: "estudio_id,gmail_message_id", ignoreDuplicates: true },
@@ -106,7 +131,8 @@ async function syncConnection(
       if (upsertErr) continue;
       inserted++;
 
-      const ejecutadoId = match.ejecutado_id;
+      // Event proposals only for confident auto-matches, never for candidates.
+      const ejecutadoId = match.ejecutadoId;
       if (!isDelegated || !ejecutadoId) continue;
 
       const proposals = classifyMailEvents(parsed);
