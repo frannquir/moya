@@ -1,0 +1,80 @@
+/* Auth-only styles, co-located with the (auth) route group so they never leak
+   into the dashboard. Imported by app/(auth)/layout.tsx. */
+
+/* Decorative brand panel — navy gradient + soft gold radial wash, ported from
+   moya-design/login.html. */
+.brand-panel {
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 20%, oklch(0.42 0.1 255 / 0.55), transparent 60%),
+    radial-gradient(ellipse 80% 60% at 10% 90%, oklch(0.28 0.08 255 / 0.7), transparent 60%),
+    linear-gradient(180deg, oklch(0.22 0.06 255), oklch(0.16 0.04 255));
+  position: relative;
+  overflow: hidden;
+}
+
+/* Grid mask overlay (the faint engraved lines). */
+.brand-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(1 0 0 / 0.04) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  -webkit-mask: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  pointer-events: none;
+}
+
+/* Press ripple on the primary submit button — coordinate set by ripple-button.tsx. */
+.auth-ripple {
+  position: relative;
+  overflow: hidden;
+}
+.auth-ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at var(--rx, 50%) var(--ry, 50%),
+    oklch(1 0 0 / 0.22),
+    transparent 45%
+  );
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.auth-ripple:active::after {
+  opacity: 1;
+  transition: opacity 0s;
+}
+
+/* Form entry animation — re-runs on every login <-> signup navigation because
+   it lives on template.tsx (Next remounts templates on navigation). Mirrors the
+   mockup's auth-form-in: fade + 8px translate-y. */
+@keyframes auth-form-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.auth-form-in {
+  animation: auth-form-in 0.3s ease both;
+}
+
+/* Honor reduced-motion: no entry animation, no ripple, no active scale. */
+@media (prefers-reduced-motion: reduce) {
+  .auth-form-in {
+    animation: none;
+  }
+  .auth-ripple::after {
+    display: none;
+  }
+  .auth-ripple:active {
+    transform: none;
+  }
+}
