@@ -8,8 +8,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-heading);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -27,13 +27,20 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
@@ -48,73 +55,111 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Brand */
+  --background: oklch(0.99 0.005 250);
+  --foreground: oklch(0.18 0.02 250);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.18 0.02 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.18 0.02 250);
+
+  /* Toga Navy — primary brand (deep, serious, court-association blue) */
+  --primary: oklch(0.32 0.08 255);
+  --primary-foreground: oklch(0.98 0.005 250);
+  --primary-hover: oklch(0.28 0.09 255);
+
+  /* Document Gold — accent, used sparingly for highlights */
+  --accent: oklch(0.78 0.12 85);
+  --accent-foreground: oklch(0.22 0.04 80);
+  --accent-soft: oklch(0.95 0.04 85);
+
+  /* Surfaces */
+  --secondary: oklch(0.96 0.008 250);
+  --secondary-foreground: oklch(0.22 0.02 250);
+  --muted: oklch(0.96 0.008 250);
+  --muted-foreground: oklch(0.50 0.02 250);
+
+  /* Semantic */
+  --success: oklch(0.62 0.15 145);
+  --success-soft: oklch(0.94 0.04 145);
+  --warning: oklch(0.72 0.18 65);
+  --warning-soft: oklch(0.96 0.06 85);
+  --destructive: oklch(0.55 0.20 27);
+  --destructive-soft: oklch(0.96 0.04 27);
+
+  /* Lines + focus */
+  --border: oklch(0.91 0.01 250);
+  --input: oklch(0.91 0.01 250);
+  --ring: oklch(0.55 0.12 255);
+
+  /* Charts */
+  --chart-1: oklch(0.42 0.12 255); /* navy */
+  --chart-2: oklch(0.65 0.12 200); /* teal */
+  --chart-3: oklch(0.78 0.12 85);  /* gold */
+  --chart-4: oklch(0.55 0.12 320); /* plum */
+  --chart-5: oklch(0.68 0.10 145); /* sage */
+
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Sidebar */
+  --sidebar: oklch(0.22 0.04 255);
+  --sidebar-foreground: oklch(0.95 0.01 250);
+  --sidebar-primary: oklch(0.78 0.12 85);
+  --sidebar-primary-foreground: oklch(0.22 0.04 80);
+  --sidebar-accent: oklch(0.28 0.05 255);
+  --sidebar-accent-foreground: oklch(0.98 0.005 250);
+  --sidebar-border: oklch(0.28 0.05 255);
+  --sidebar-ring: oklch(0.55 0.12 255);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: oklch(0.15 0.02 250);
+  --foreground: oklch(0.96 0.005 250);
+  --card: oklch(0.20 0.03 255);
+  --card-foreground: oklch(0.96 0.005 250);
+  --popover: oklch(0.20 0.03 255);
+  --popover-foreground: oklch(0.96 0.005 250);
+
+  --primary: oklch(0.78 0.12 255);
+  --primary-foreground: oklch(0.18 0.04 255);
+  --primary-hover: oklch(0.82 0.12 255);
+
+  --accent: oklch(0.78 0.12 85);
+  --accent-foreground: oklch(0.22 0.04 80);
+  --accent-soft: oklch(0.30 0.06 85);
+
+  --secondary: oklch(0.25 0.03 255);
+  --secondary-foreground: oklch(0.96 0.005 250);
+  --muted: oklch(0.25 0.03 255);
+  --muted-foreground: oklch(0.70 0.02 250);
+
+  --success: oklch(0.70 0.15 145);
+  --success-soft: oklch(0.28 0.06 145);
+  --warning: oklch(0.78 0.16 65);
+  --warning-soft: oklch(0.30 0.06 65);
+  --destructive: oklch(0.65 0.20 27);
+  --destructive-soft: oklch(0.28 0.06 27);
+
+  --border: oklch(0.28 0.03 255);
+  --input: oklch(0.28 0.03 255);
+  --ring: oklch(0.65 0.12 255);
+
+  --chart-1: oklch(0.42 0.12 255);
+  --chart-2: oklch(0.65 0.12 200);
+  --chart-3: oklch(0.78 0.12 85);
+  --chart-4: oklch(0.55 0.12 320);
+  --chart-5: oklch(0.68 0.10 145);
+
+  --sidebar: oklch(0.18 0.03 255);
+  --sidebar-foreground: oklch(0.96 0.005 250);
+  --sidebar-primary: oklch(0.78 0.12 85);
+  --sidebar-primary-foreground: oklch(0.22 0.04 80);
+  --sidebar-accent: oklch(0.25 0.04 255);
+  --sidebar-accent-foreground: oklch(0.98 0.005 250);
+  --sidebar-border: oklch(0.25 0.04 255);
+  --sidebar-ring: oklch(0.65 0.12 255);
 }
 
 @layer base {
@@ -128,3 +173,24 @@
     @apply font-sans;
   }
 }
+
+/* Serif accent for headings — Source Serif 4 (loaded via next/font as
+   --font-heading); the utility lets non-heading elements opt in too. */
+.font-heading {
+  font-family: var(--font-heading), "Source Serif 4", Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+/* Movimiento badge colors stable per state so lawyers can scan tables
+   visually. Will use later. */
+.mov-inicio { background: oklch(0.94 0.04 250); color: oklch(0.30 0.10 250); }
+.mov-cedula { background: oklch(0.94 0.06 85); color: oklch(0.32 0.10 85); }
+.mov-mandamiento { background: oklch(0.94 0.06 65); color: oklch(0.35 0.12 65); }
+.mov-sentencia { background: oklch(0.93 0.06 320); color: oklch(0.32 0.10 320); }
+.mov-cobro { background: oklch(0.93 0.06 145); color: oklch(0.30 0.10 145); }
+
+.dark .mov-inicio { background: oklch(0.28 0.06 250); color: oklch(0.85 0.08 250); }
+.dark .mov-cedula { background: oklch(0.30 0.08 85); color: oklch(0.88 0.10 85); }
+.dark .mov-mandamiento { background: oklch(0.30 0.08 65); color: oklch(0.88 0.10 65); }
+.dark .mov-sentencia { background: oklch(0.28 0.06 320); color: oklch(0.85 0.08 320); }
+.dark .mov-cobro { background: oklch(0.28 0.06 145); color: oklch(0.85 0.08 145); }
