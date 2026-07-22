@@ -138,6 +138,11 @@ export function MailBoard({
         {connected && (
           <div className="flex items-center gap-3">
             {isHead && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/mail/sin-asignar">Sin asignar</Link>
+              </Button>
+            )}
+            {isHead && (
               <Button
                 variant="outline"
                 size="sm"

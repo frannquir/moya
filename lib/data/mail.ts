@@ -50,6 +50,24 @@ export async function getEmailById<T = Tables<"emails">>(
   return data;
 }
 
+// Unassigned mail: estudio mail the matcher left with no ejecutado and no candidate,
+// that nobody filed by hand. Head-only in practice — the /mail/sin-asignar page gates
+// on role and RLS scopes rows to the head's estudio. Returns only the fields the
+// parser/clusterer needs.
+export async function listUnassignedEmails(supabase: Client, estudioId: string) {
+  const { data, error } = await supabase
+    .from("emails")
+    .select("id, subject, snippet, body_text, from_email, received_at")
+    .eq("estudio_id", estudioId)
+    .is("ejecutado_id", null)
+    .is("candidate_ejecutado_id", null)
+    .eq("match_manual", false)
+    .is("archived_at", null)
+    .order("received_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function getGmailConnection(
   supabase: Client,
 ): Promise<GmailConnection | null> {

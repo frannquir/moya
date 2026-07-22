@@ -13,10 +13,28 @@ import {
   type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
 import { getCourtIndex } from "@/lib/data/juzgados";
+import { type Tables } from "@/lib/supabase/db-helpers";
 import { EjecutadoFormFields } from "../ejecutado-form-fields";
 import { createEjecutado } from "./actions";
 
-export default async function NewEjecutadoPage() {
+// Prefill params arrive from the /mail/sin-asignar "Crear ejecutado" link.
+// cluster_causa / cluster_localidad are passed through hidden inputs so the create
+// action can recompute the cluster and attach its mail.
+type NewSearchParams = {
+  nombre?: string;
+  numero_expediente?: string;
+  departamento?: string;
+  juzgado_id?: string;
+  cluster_causa?: string;
+  cluster_localidad?: string;
+};
+
+export default async function NewEjecutadoPage({
+  searchParams,
+}: {
+  searchParams: Promise<NewSearchParams>;
+}) {
+  const params = await searchParams;
   const supabase = await createClient();
   const { data: estudioRow } = await supabase
     .from("estudios")
@@ -26,6 +44,24 @@ export default async function NewEjecutadoPage() {
   const empresas = getConfiguredEmpresas(config);
   const courtIndex = await getCourtIndex(supabase);
 
+  // Build a partial ejecutado from the prefill params; EjecutadoFormFields already
+  // reads defaults off its `ejecutado` prop. Null when there is nothing to prefill,
+  // so a plain "Nuevo ejecutado" navigation behaves exactly as before.
+  const hasPrefill =
+    !!params.nombre ||
+    !!params.numero_expediente ||
+    !!params.departamento ||
+    !!params.juzgado_id;
+  const prefill = hasPrefill
+    ? ({
+        nombre: params.nombre ?? "",
+        numero_expediente: params.numero_expediente ?? "",
+        departamento: params.departamento ?? "",
+        juzgado_id: params.juzgado_id ?? null,
+        juzgado: "",
+      } as Partial<Tables<"ejecutados">> as Tables<"ejecutados">)
+    : null;
+
   return (
     <div className="max-w-2xl">
       <Card>
@@ -34,7 +70,21 @@ export default async function NewEjecutadoPage() {
         </CardHeader>
         <form action={createEjecutado}>
           <CardContent className="space-y-4">
-            <EjecutadoFormFields courtIndex={courtIndex} empresas={empresas} />
+            {params.cluster_causa && (
+              <input type="hidden" name="cluster_causa" value={params.cluster_causa} />
+            )}
+            {params.cluster_localidad && (
+              <input
+                type="hidden"
+                name="cluster_localidad"
+                value={params.cluster_localidad}
+              />
+            )}
+            <EjecutadoFormFields
+              ejecutado={prefill}
+              courtIndex={courtIndex}
+              empresas={empresas}
+            />
           </CardContent>
 
           <CardFooter className="flex justify-between">

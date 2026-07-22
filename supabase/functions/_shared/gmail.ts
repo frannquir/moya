@@ -2,6 +2,8 @@
 // messages, parse them into our `emails` shape, and match to an ejecutado by
 // expediente number. gmail.readonly is the only scope used.
 
+import { decodeMimePart } from "../../../lib/domain/mime.ts";
+
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 const API_BASE = "https://gmail.googleapis.com/gmail/v1/users/me";
 
@@ -154,10 +156,25 @@ function collectBodies(
   if (!part) return;
   const mime = part.mimeType ?? "";
   if (!part.filename && part.body?.data) {
-    if (mime === "text/plain" && !out.text) out.text = decodeBase64Url(part.body.data);
-    else if (mime === "text/html" && !out.html) out.html = decodeBase64Url(part.body.data);
+    // Decode with the part's declared charset (SCBA/MEV mail is often Latin-1),
+    // not always UTF-8 — see lib/domain/mime.ts.
+    const contentType = headerValue(part.headers, "Content-Type");
+    if (mime === "text/plain" && !out.text) {
+      out.text = decodeMimePart(part.body.data, contentType);
+    } else if (mime === "text/html" && !out.html) {
+      out.html = decodeMimePart(part.body.data, contentType);
+    }
   }
   for (const child of part.parts ?? []) collectBodies(child, out);
+}
+
+function headerValue(
+  headers: { name: string; value: string }[] | undefined,
+  name: string,
+): string | null {
+  if (!headers) return null;
+  const lower = name.toLowerCase();
+  return headers.find((h) => h.name.toLowerCase() === lower)?.value ?? null;
 }
 
 function parseAddress(raw: string): { name: string; email: string } {
@@ -170,12 +187,4 @@ function parseAddress(raw: string): { name: string; email: string } {
     };
   }
   return { name: "", email: trimmed.toLowerCase() };
-}
-
-function decodeBase64Url(data: string): string {
-  const b64 = data.replace(/-/g, "+").replace(/_/g, "/");
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
 }
