@@ -16,7 +16,7 @@ export async function generateLiquidacion(
   const { data: ej, error } = await supabase
     .from("ejecutados")
     .select(
-      "id, estudio_id, created_by_user_id, numero_expediente, nombre, fecha_mora, fecha_deuda, deuda_inicial, gastos",
+      "id, estudio_id, created_by_user_id, numero_expediente, nombre, fecha_mora, fecha_deuda, deuda_inicial, gastos, interes_gastos",
     )
     .eq("id", ejecutadoId)
     .maybeSingle();
@@ -44,6 +44,8 @@ export async function generateLiquidacion(
         fechaHasta,
         capital: Number(ej.deuda_inicial),
         gastos: Number(ej.gastos ?? 0),
+        // NULL stays NULL through the calculation — "not entered" contributes 0.
+        interesGastos: ej.interes_gastos == null ? null : Number(ej.interes_gastos),
       },
       tasas,
     );
@@ -59,8 +61,12 @@ export async function generateLiquidacion(
         fecha_hasta: formatLocalDate(fechaHasta),
         capital: result.capital,
         total_intereses: result.totalIntereses,
+        total_compensatorios: result.totalCompensatorios,
+        total_punitorios: result.totalPunitorios,
         iva: result.iva,
         gastos: result.gastos,
+        // Preserve "not entered" in the snapshot rather than storing a 0.
+        interes_gastos: ej.interes_gastos == null ? null : result.interesGastos,
         monto_adeudado: result.total,
       },
       { onConflict: "ejecutado_id" },

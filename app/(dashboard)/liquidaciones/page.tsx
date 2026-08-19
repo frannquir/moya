@@ -88,6 +88,8 @@ export default async function LiquidacionesPage() {
                           fechaHasta: l.fecha_hasta,
                           capital: Number(l.capital),
                           gastos: Number(l.gastos),
+                          interesGastos:
+                            l.interes_gastos == null ? null : Number(l.interes_gastos),
                         }}
                         tasas={tasas}
                         label="PDF"

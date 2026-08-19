@@ -9,6 +9,7 @@ import { type EscritoSignalState, type ScorerTemplate } from "./escritos";
 
 function tmpl(overrides: Partial<ScorerTemplate> = {}): ScorerTemplate {
   return {
+    clave: null,
     sugerido_movimiento: [],
     sugerido_medida_cautelar: [],
     sugerido_evento: [],
@@ -203,5 +204,221 @@ describe("rankEscritos", () => {
     expect(ranked.map((r) => r.score)).toEqual([100, 10, 0]);
     expect(ranked[0].recomendado).toBe(true);
     expect(ranked[1].recomendado).toBe(false);
+  });
+});
+
+// The 1b/1c sets Fran locked with the client. These encode the exact orderings;
+// the pinned layer exists to make them hold.
+describe("rankEscritos — pinned sets (movimiento × diligenciada)", () => {
+  // A stand-in library carrying the real tags of the templates involved.
+  const LIBRARY: ScorerTemplate[] = [
+    tmpl({ clave: "preparar-via-cautelar", sugerido_movimiento: ["Inicio Causa"] }),
+    tmpl({
+      clave: "sentencia-trance-remate",
+      sugerido_movimiento: ["Pedir Sentencia"],
+      sugerido_evento: ["mandamiento.diligenciado"],
+      sugerido_diligenciada: true,
+    }),
+    tmpl({
+      clave: "oficio-renaper",
+      sugerido_movimiento: ["Enviar Cédula"],
+      sugerido_evento: ["cedula.revocada"],
+      sugerido_diligenciada: false,
+    }),
+    tmpl({
+      clave: "cedula-habilitacion",
+      sugerido_movimiento: ["Enviar Cédula"],
+      sugerido_evento: ["cedula.revocada"],
+      sugerido_diligenciada: false,
+    }),
+    tmpl({
+      clave: "cedula-bajo-responsabilidad",
+      sugerido_movimiento: ["Enviar Cédula"],
+      sugerido_evento: ["cedula.revocada"],
+      sugerido_diligenciada: false,
+    }),
+    tmpl({
+      clave: "nuevo-mandamiento",
+      sugerido_movimiento: ["Enviar Mandamiento"],
+      sugerido_diligenciada: false,
+    }),
+    // Noise: scores 100 against En Cobro, must never displace a pin.
+    tmpl({ clave: "solicita-saldo", sugerido_movimiento: ["En Cobro"] }),
+  ];
+
+  function pinnedOf(s: EscritoSignalState): (string | null)[] {
+    return rankEscritos(LIBRARY, s)
+      .filter((t) => t.reasons.includes("fijado"))
+      .map((t) => t.clave);
+  }
+
+  it("Cédula diligenciada → Preparar vía first, RENAPER second, no cédula variants", () => {
+    expect(
+      pinnedOf(state({ movimiento: "Enviar Cédula", diligenciada: true })),
+    ).toEqual(["preparar-via-cautelar", "oficio-renaper"]);
+  });
+
+  it("Cédula NOT diligenciada → both variants (habilitación first), RENAPER third", () => {
+    expect(
+      pinnedOf(state({ movimiento: "Enviar Cédula", diligenciada: false })),
+    ).toEqual(["cedula-habilitacion", "cedula-bajo-responsabilidad", "oficio-renaper"]);
+  });
+
+  it("Cédula NOT diligenciada does not offer Preparar vía", () => {
+    const ranked = rankEscritos(
+      LIBRARY,
+      state({ movimiento: "Enviar Cédula", diligenciada: false }),
+    );
+    const preparar = ranked.find((t) => t.clave === "preparar-via-cautelar")!;
+    expect(preparar.reasons).not.toContain("fijado");
+    expect(preparar.recomendado).toBe(false);
+  });
+
+  it("Mandamiento diligenciada → Sentencia de trance y remate", () => {
+    expect(
+      pinnedOf(state({ movimiento: "Enviar Mandamiento", diligenciada: true })),
+    ).toEqual(["sentencia-trance-remate"]);
+  });
+
+  it("Mandamiento NOT diligenciada → Solicita nuevo mandamiento", () => {
+    expect(
+      pinnedOf(state({ movimiento: "Enviar Mandamiento", diligenciada: false })),
+    ).toEqual(["nuevo-mandamiento"]);
+  });
+
+  it("pinned templates lead the ranking, ahead of higher-scoring ones", () => {
+    const ranked = rankEscritos(
+      LIBRARY,
+      state({ movimiento: "Enviar Cédula", diligenciada: false }),
+    );
+    expect(ranked.slice(0, 3).map((t) => t.clave)).toEqual([
+      "cedula-habilitacion",
+      "cedula-bajo-responsabilidad",
+      "oficio-renaper",
+    ]);
+  });
+
+  it("pinning rescues templates the scorer would hide", () => {
+    // This is why the layer exists. Against a diligenciada cédula, Preparar vía
+    // only scores stage-adjacent (35) and RENAPER is dragged to 10 by
+    // diligUnmet — both below the threshold, yet both are what to file next.
+    const ranked = rankEscritos(
+      LIBRARY,
+      state({ movimiento: "Enviar Cédula", diligenciada: true }),
+    );
+    const [first, second] = ranked;
+    expect(first.clave).toBe("preparar-via-cautelar");
+    expect(second.clave).toBe("oficio-renaper");
+    expect(first.score).toBe(WEIGHTS.stageAdjacent);
+    expect(second.score).toBe(WEIGHTS.stagePrimary + WEIGHTS.diligUnmet);
+    expect(first.score).toBeLessThan(RECOMENDADO_THRESHOLD);
+    expect(second.score).toBeLessThan(RECOMENDADO_THRESHOLD);
+    expect(first.recomendado).toBe(true);
+    expect(second.recomendado).toBe(true);
+  });
+
+  it("the /escritos feed's top-3 slice is exactly the cédula pinned set", () => {
+    // The feed card renders PER_CARD = 3 recomendados; the three pins must fill
+    // it rather than being cut by an unrelated high scorer.
+    const top3 = rankEscritos(
+      LIBRARY,
+      state({ movimiento: "Enviar Cédula", diligenciada: false }),
+    )
+      .filter((t) => t.recomendado)
+      .slice(0, 3)
+      .map((t) => t.clave);
+    expect(top3).toEqual([
+      "cedula-habilitacion",
+      "cedula-bajo-responsabilidad",
+      "oficio-renaper",
+    ]);
+  });
+
+  it("never lists a pinned template twice", () => {
+    const ranked = rankEscritos(
+      LIBRARY,
+      state({ movimiento: "Enviar Cédula", diligenciada: false }),
+    );
+    const claves = ranked.map((t) => t.clave);
+    expect(new Set(claves).size).toBe(claves.length);
+    expect(ranked).toHaveLength(LIBRARY.length);
+  });
+
+  it("unknown diligenciada pins nothing and falls back to pure scoring", () => {
+    const ranked = rankEscritos(
+      LIBRARY,
+      state({ movimiento: "Enviar Cédula", diligenciada: null }),
+    );
+    expect(ranked.every((t) => !t.reasons.includes("fijado"))).toBe(true);
+  });
+
+  it("a movimiento with no pinned rule falls back to pure scoring", () => {
+    const ranked = rankEscritos(
+      LIBRARY,
+      state({ movimiento: "En Cobro", diligenciada: true }),
+    );
+    expect(ranked.every((t) => !t.reasons.includes("fijado"))).toBe(true);
+    expect(ranked[0].clave).toBe("solicita-saldo");
+  });
+});
+
+// 1a end-to-end at the scoring layer: a confirmed liquidación evento must lift
+// BOTH liquidación escritos over the threshold, whichever of the pair the
+// lawyer confirmed on /mail/[id].
+describe("rankEscritos — liquidación evento surfaces both escritos", () => {
+  const LIQ_TAGS = ["liquidacion.practicable", "liquidacion.aprobada"];
+  const LIBRARY: ScorerTemplate[] = [
+    tmpl({
+      clave: "solicita-aprobacion-liquidacion",
+      sugerido_movimiento: ["Pedir Sentencia", "En Cobro"],
+      sugerido_evento: LIQ_TAGS,
+    }),
+    tmpl({
+      clave: "practica-nueva-liquidacion-oficio",
+      sugerido_movimiento: ["En Cobro"],
+      sugerido_evento: LIQ_TAGS,
+    }),
+    tmpl({ clave: "otro", sugerido_movimiento: ["Inicio Causa"] }),
+  ];
+
+  it.each(["liquidacion.practicable", "liquidacion.aprobada"])(
+    "both are recomendado after confirming %s",
+    (evento) => {
+      const ranked = rankEscritos(
+        LIBRARY,
+        // Deliberately a stage neither template is tagged for: the evento alone
+        // has to carry them over the threshold.
+        state({ movimiento: "Enviar Mandamiento", ultimo_evento: evento }),
+      );
+      const recomendados = ranked.filter((t) => t.recomendado).map((t) => t.clave);
+      expect(recomendados).toContain("solicita-aprobacion-liquidacion");
+      expect(recomendados).toContain("practica-nueva-liquidacion-oficio");
+      expect(recomendados).not.toContain("otro");
+    },
+  );
+
+  it("neither is recomendado without a confirmed liquidación evento", () => {
+    const ranked = rankEscritos(
+      LIBRARY,
+      state({ movimiento: "Enviar Mandamiento", ultimo_evento: null }),
+    );
+    expect(ranked.filter((t) => t.recomendado)).toHaveLength(0);
+  });
+});
+
+// 1a: "Cumple intimación – Caducidad" is tagged caducidad.intimada and carries
+// no stage constraint, so the evento alone must surface it.
+describe("rankEscritos — intimación evento surfaces the caducidad escrito", () => {
+  it("baseline + evento clears the threshold", () => {
+    const t = tmpl({
+      clave: "cumple-intimacion-caducidad",
+      sugerido_evento: ["caducidad.intimada"],
+    });
+    const ranked = rankEscritos(
+      [t],
+      state({ movimiento: "En Cobro", ultimo_evento: "caducidad.intimada" }),
+    );
+    expect(ranked[0].score).toBe(WEIGHTS.baseline + WEIGHTS.evento);
+    expect(ranked[0].recomendado).toBe(true);
   });
 });

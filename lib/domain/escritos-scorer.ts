@@ -2,6 +2,7 @@
 
 import { MOVIMIENTO_OPTIONS } from "./ejecutado";
 import { type EscritoSignalState, type ScorerTemplate } from "./escritos";
+import { pinnedClavesFor } from "./escritos-pinned";
 
 export const WEIGHTS = {
   stagePrimary: 100,
@@ -89,14 +90,38 @@ export type RankedEscrito<T extends ScorerTemplate> = T & {
   recomendado: boolean;
 };
 
+// Two-layer ranking: the pinned set for the current movimiento + diligenciada
+// comes first, in its declared order and always flagged recomendado; everything
+// else follows, scored and sorted as before. A pinned template is removed from
+// the scored tail so it can't appear twice.
 export function rankEscritos<T extends ScorerTemplate>(
   templates: T[],
   state: EscritoSignalState,
 ): RankedEscrito<T>[] {
-  return templates
+  const byClave = new Map<string, T>();
+  for (const t of templates) {
+    if (t.clave) byClave.set(t.clave, t);
+  }
+
+  const pinned: RankedEscrito<T>[] = [];
+  const pinnedClaves = new Set<string>();
+  for (const clave of pinnedClavesFor(state)) {
+    const t = byClave.get(clave);
+    if (!t || pinnedClaves.has(clave)) continue;
+    pinnedClaves.add(clave);
+    // Keep the real score/reasons for transparency in the UI, but the pin is
+    // what decides both placement and recomendado.
+    const { score, reasons } = scoreEscrito(t, state);
+    pinned.push({ ...t, score, reasons: [...reasons, "fijado"], recomendado: true });
+  }
+
+  const rest = templates
+    .filter((t) => !(t.clave && pinnedClaves.has(t.clave)))
     .map((t) => {
       const { score, reasons } = scoreEscrito(t, state);
       return { ...t, score, reasons, recomendado: score >= RECOMENDADO_THRESHOLD };
     })
     .sort((a, b) => b.score - a.score);
+
+  return [...pinned, ...rest];
 }

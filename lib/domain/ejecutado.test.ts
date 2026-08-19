@@ -15,6 +15,8 @@ function fields(over: Partial<EjecutadoFormFields> = {}): EjecutadoFormFields {
     codemandados: [],
     deuda_inicial: 0,
     gastos: 0,
+    fecha_gastos: null,
+    interes_gastos: null,
     fecha_mora: null,
     fecha_deuda: null,
     dinero_en_cuenta: null,
@@ -29,6 +31,21 @@ function fields(over: Partial<EjecutadoFormFields> = {}): EjecutadoFormFields {
     ...over,
   };
 }
+
+describe("validateEjecutadoFields — interés sobre gastos", () => {
+  it("accepts a blank interés (not entered)", () => {
+    expect(validateEjecutadoFields(fields({ interes_gastos: null }))).toBeNull();
+  });
+
+  it("accepts zero and positive amounts", () => {
+    expect(validateEjecutadoFields(fields({ interes_gastos: 0 }))).toBeNull();
+    expect(validateEjecutadoFields(fields({ interes_gastos: 1234.56 }))).toBeNull();
+  });
+
+  it("rejects a negative amount", () => {
+    expect(validateEjecutadoFields(fields({ interes_gastos: -1 }))).toMatch(/negativo/i);
+  });
+});
 
 describe("normalizeNumeroExpediente — one consistent stored shape", () => {
   it("bare causa stays bare", () => {

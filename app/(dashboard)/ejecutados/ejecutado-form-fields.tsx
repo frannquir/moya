@@ -174,6 +174,34 @@ export function EjecutadoFormFields({
           />
         </div>
       </div>
+      {/* Gastos accrue interest at rates other than the debt's, so it is typed
+          in rather than calculated. Both blank by default. */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="fecha_gastos">Fecha gastos</Label>
+          <Input
+            id="fecha_gastos"
+            name="fecha_gastos"
+            type="date"
+            defaultValue={ejecutado?.fecha_gastos ?? ""}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="interes_gastos">Interés (ARS)</Label>
+          <Input
+            id="interes_gastos"
+            name="interes_gastos"
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="Sin definir"
+            defaultValue={ejecutado?.interes_gastos ?? ""}
+          />
+          <p className="text-xs text-muted-foreground">
+            Interés sobre gastos. Se suma al total de la liquidación.
+          </p>
+        </div>
+      </div>
       <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="fecha_mora">Fecha de mora (desde)</Label>

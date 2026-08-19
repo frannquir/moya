@@ -177,7 +177,7 @@ async function processEstudio(
       }
     }
 
-    // Residual = still nothing after re-match. Group for Day 33 formalization.
+    // Still nothing after re-match: group these so they surface as unassigned.
     if (!match.ejecutadoId && !match.candidateId) {
       const header = parseMevHeader(
         `${email.subject ?? ""}\n${email.snippet ?? ""}\n${email.body_text ?? ""}`,

@@ -92,6 +92,16 @@ export async function generarEscrito(ejecutadoId: string, formData: FormData) {
   });
 
   const gastos = Number(liq?.gastos ?? ej.gastos ?? 0);
+  const interesGastos = Number(liq?.interes_gastos ?? ej.interes_gastos ?? 0);
+
+  // The liquidación long stored only the combined total_intereses, so rows
+  // written before the split columns existed have neither half. By construction
+  // punitorios is exactly half the compensatorios (see calcularLiquidacion), so
+  // the combined figure splits 2/3 - 1/3 — an exact fallback, asserted in
+  // liquidaciones.test.ts. New rows carry the real snapshot and use it.
+  const totalIntereses = Number(liq?.total_intereses ?? 0);
+  const compensatorios = Number(liq?.total_compensatorios ?? (totalIntereses * 2) / 3);
+  const punitorios = Number(liq?.total_punitorios ?? totalIntereses / 3);
 
   const tokens: Record<string, string> = {
     ENCABEZADO: encabezado,
@@ -116,8 +126,15 @@ export async function generarEscrito(ejecutadoId: string, formData: FormData) {
   if (liq) {
     tokens.CAPITAL = money(liq.capital);
     tokens.FECHA_MORA = fmtDate(liq.fecha_desde);
+    tokens.INTERESES_COMPENSATORIOS = money(compensatorios);
+    tokens.INTERESES_PUNITORIOS = money(punitorios);
     tokens.IVA_INTERESES = money(liq.iva);
+    tokens.GASTOS = money(gastos);
+    tokens.INTERES_GASTOS = money(interesGastos);
     tokens.TOTAL_LIQUIDACION = money(liq.monto_adeudado);
+    // Legacy: the bullet list used to carry a conditional gastos line. Kept
+    // resolving so escritos generated from an older template body don't come
+    // out with a "[GASTOS_LINEA]" marker in them.
     tokens.GASTOS_LINEA = gastos > 0 ? `• Gastos: ${money(gastos)}` : "";
   }
 

@@ -39,6 +39,7 @@ type ComputedInput = {
   fechaHasta: string;
   capital: number;
   gastos: number;
+  interesGastos: number;
 };
 
 export function LiquidacionCalculator({ tasas }: { tasas: TasaRow[] }) {
@@ -50,6 +51,7 @@ export function LiquidacionCalculator({ tasas }: { tasas: TasaRow[] }) {
   const [fechaHasta, setFechaHasta] = useState(today);
   const [capital, setCapital] = useState("");
   const [gastos, setGastos] = useState("0");
+  const [interesGastos, setInteresGastos] = useState("0");
 
   const [result, setResult] = useState<LiquidacionResult | null>(null);
   const [computed, setComputed] = useState<ComputedInput | null>(null);
@@ -61,9 +63,12 @@ export function LiquidacionCalculator({ tasas }: { tasas: TasaRow[] }) {
 
     const cap = parseSpanishNumber(capital);
     const gas = parseSpanishNumber(gastos || "0");
+    const intGas = parseSpanishNumber(interesGastos || "0");
     if (!fechaDesde) return setError("Ingresá la fecha desde.");
     if (isNaN(cap)) return setError("El capital debe ser un número válido.");
     if (isNaN(gas)) return setError("Los gastos deben ser un número válido.");
+    if (isNaN(intGas))
+      return setError("El interés sobre gastos debe ser un número válido.");
 
     const end = fechaHasta || today;
     try {
@@ -75,11 +80,20 @@ export function LiquidacionCalculator({ tasas }: { tasas: TasaRow[] }) {
           fechaHasta: parseLocalDate(end),
           capital: cap,
           gastos: gas,
+          interesGastos: intGas,
         },
         tasas,
       );
       setResult(res);
-      setComputed({ cuenta, apynom, fechaDesde, fechaHasta: end, capital: cap, gastos: gas });
+      setComputed({
+        cuenta,
+        apynom,
+        fechaDesde,
+        fechaHasta: end,
+        capital: cap,
+        gastos: gas,
+        interesGastos: intGas,
+      });
     } catch (err) {
       setResult(null);
       setComputed(null);
@@ -121,6 +135,14 @@ export function LiquidacionCalculator({ tasas }: { tasas: TasaRow[] }) {
             <Field label="Gastos">
               <Input value={gastos} onChange={(e) => setGastos(e.target.value)} placeholder="0,00" className="font-mono" />
             </Field>
+            <Field label="Interés s/ gastos">
+              <Input
+                value={interesGastos}
+                onChange={(e) => setInteresGastos(e.target.value)}
+                placeholder="0,00"
+                className="font-mono"
+              />
+            </Field>
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
@@ -130,11 +152,12 @@ export function LiquidacionCalculator({ tasas }: { tasas: TasaRow[] }) {
 
         {result && computed && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 rounded-md border p-4 bg-muted/30">
+            <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 rounded-md border p-4 bg-muted/30">
               <Money label="Capital" value={result.capital} />
               <Money label="Intereses" value={result.totalIntereses} />
               <Money label="IVA (21%)" value={result.iva} />
               <Money label="Gastos" value={result.gastos} />
+              <Money label="Interés s/ gastos" value={result.interesGastos} />
               <Money label="Monto adeudado" value={result.total} highlight />
             </div>
 

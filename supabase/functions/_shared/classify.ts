@@ -19,6 +19,7 @@ export type EventoTipo =
   | "mandamiento.diligenciado"
   | "mandamiento.devuelto"
   | "sentencia.dictada"
+  | "liquidacion.practicable"
   | "liquidacion.aprobada"
   | "liquidacion.impugnada"
   | "oficio.diligenciado"
@@ -29,21 +30,48 @@ export type EventoTipo =
 interface Rule {
   event: EventoTipo;
   needles: string[];
+  // Any of these in the haystack vetoes the rule. Only for stems whose word
+  // carries more than one legal meaning — keep the list short and specific.
+  exclude?: string[];
 }
 
 // Needles are already normalized (lowercase, no accents). Stems are used to
 // catch conjugations: "diligenc" matches "diligenciado/diligenciada/diligenciar".
+//
+// Stems must also stop BEFORE any accented character. MEV subjects reach us
+// mojibake'd by a Latin-1 decode upstream ("liquidaci?n"), and normalize()
+// only strips real diacritics — it cannot repair a "?". So "liquidaci" matches
+// "liquidacion", "liquidación" (normalized) and "liquidaci?n" alike, whereas
+// the full "liquidacion" silently misses the mojibake form. Same for "intimaci".
 const RULES: Rule[] = [
   { event: "cedula.revocada", needles: ["cedul", "revoc"] },
   { event: "cedula.confirmada", needles: ["cedul", "notific"] },
   { event: "mandamiento.diligenciado", needles: ["mandamient", "diligenc"] },
   { event: "mandamiento.devuelto", needles: ["mandamient", "devuel"] },
   { event: "sentencia.dictada", needles: ["sentencia"] },
-  { event: "liquidacion.aprobada", needles: ["liquidacion", "aprob"] },
-  { event: "liquidacion.impugnada", needles: ["liquidacion", "impugn"] },
+  // The keyword alone means the liquidación is now actionable — it may be
+  // solicitable OR freshly approved, and the lawyer picks which escrito fits.
+  // The aprobada/impugnada rules stay as the more specific (higher-confidence)
+  // readings of the same mail.
+  { event: "liquidacion.practicable", needles: ["liquidaci"] },
+  { event: "liquidacion.aprobada", needles: ["liquidaci", "aprob"] },
+  // "aprobar" is stem-changing (o -> ue), so "aprob" alone misses the very
+  // common "se aprueba la liquidación" phrasing.
+  { event: "liquidacion.aprobada", needles: ["liquidaci", "aprueb"] },
+  { event: "liquidacion.impugnada", needles: ["liquidaci", "impugn"] },
   { event: "oficio.diligenciado", needles: ["oficio", "diligenc"] },
   { event: "pago.acreditado", needles: ["pago", "acredit"] },
   { event: "caducidad.intimada", needles: ["caducidad"] },
+  // "intimación" is overloaded: the caducidad warning we want, but also the
+  // payment demand carried by every mandamiento ("MANDAMIENTO INTIMACION DE
+  // PAGO", "INTIMACION DE OFICIO"). Measured against 522 stored mails the bare
+  // stem matched only the payment sense, so those readings are vetoed here.
+  {
+    event: "caducidad.intimada",
+    needles: ["intimaci"],
+    exclude: ["intimacion de pago", "intimaci?n de pago", "intimacion de oficio", "intimaci?n de oficio"],
+  },
+  { event: "caducidad.intimada", needles: ["cumple", "intimaci"] },
   { event: "traslado.notificado", needles: ["traslado"] },
 ];
 
@@ -60,6 +88,7 @@ export function classifyMailEvents(email: ParsedEmail): EventProposal[] {
   // Collect the most-specific match per event (longer needle lists win ties).
   const best = new Map<EventoTipo, number>();
   for (const rule of RULES) {
+    if (rule.exclude?.some((n) => haystack.includes(n))) continue;
     if (rule.needles.every((n) => haystack.includes(n))) {
       const confidence = confidenceFor(rule.needles.length);
       const prev = best.get(rule.event) ?? 0;

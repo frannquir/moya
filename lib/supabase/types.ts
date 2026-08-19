@@ -207,9 +207,11 @@ export type Database = {
           empresa: string | null
           estudio_id: string
           fecha_deuda: string | null
+          fecha_gastos: string | null
           fecha_mora: string | null
           gastos: number
           id: string
+          interes_gastos: number | null
           is_draft: boolean
           juzgado: string
           juzgado_id: string | null
@@ -239,9 +241,11 @@ export type Database = {
           empresa?: string | null
           estudio_id: string
           fecha_deuda?: string | null
+          fecha_gastos?: string | null
           fecha_mora?: string | null
           gastos?: number
           id?: string
+          interes_gastos?: number | null
           is_draft?: boolean
           juzgado?: string
           juzgado_id?: string | null
@@ -271,9 +275,11 @@ export type Database = {
           empresa?: string | null
           estudio_id?: string
           fecha_deuda?: string | null
+          fecha_gastos?: string | null
           fecha_mora?: string | null
           gastos?: number
           id?: string
+          interes_gastos?: number | null
           is_draft?: boolean
           juzgado?: string
           juzgado_id?: string | null
@@ -493,6 +499,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           categoria: string
+          clave: string | null
           contenido: string
           created_at: string
           id: string
@@ -507,6 +514,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           categoria?: string
+          clave?: string | null
           contenido?: string
           created_at?: string
           id?: string
@@ -521,6 +529,7 @@ export type Database = {
         Update: {
           archived_at?: string | null
           categoria?: string
+          clave?: string | null
           contenido?: string
           created_at?: string
           id?: string
@@ -964,9 +973,12 @@ export type Database = {
           fecha_hasta: string
           gastos: number
           id: string
+          interes_gastos: number | null
           iva: number
           monto_adeudado: number
+          total_compensatorios: number | null
           total_intereses: number
+          total_punitorios: number | null
           updated_at: string
         }
         Insert: {
@@ -982,9 +994,12 @@ export type Database = {
           fecha_hasta: string
           gastos?: number
           id?: string
+          interes_gastos?: number | null
           iva?: number
           monto_adeudado?: number
+          total_compensatorios?: number | null
           total_intereses?: number
+          total_punitorios?: number | null
           updated_at?: string
         }
         Update: {
@@ -1000,9 +1015,12 @@ export type Database = {
           fecha_hasta?: string
           gastos?: number
           id?: string
+          interes_gastos?: number | null
           iva?: number
           monto_adeudado?: number
+          total_compensatorios?: number | null
           total_intereses?: number
+          total_punitorios?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -1070,6 +1088,7 @@ export type Database = {
       honorarios_with_balance: {
         Row: {
           archived_at: string | null
+          cap_gross_jus: number | null
           created_at: string | null
           created_by_user_id: string | null
           ejecutado_id: string | null
@@ -1078,11 +1097,13 @@ export type Database = {
           monto_total_jus: number | null
           observaciones: string | null
           pagado_jus: number | null
+          pendiente_gross_jus: number | null
           pendiente_jus: number | null
           updated_at: string | null
         }
         Insert: {
           archived_at?: string | null
+          cap_gross_jus?: never
           created_at?: string | null
           created_by_user_id?: string | null
           ejecutado_id?: string | null
@@ -1091,11 +1112,13 @@ export type Database = {
           monto_total_jus?: number | null
           observaciones?: string | null
           pagado_jus?: never
+          pendiente_gross_jus?: never
           pendiente_jus?: never
           updated_at?: string | null
         }
         Update: {
           archived_at?: string | null
+          cap_gross_jus?: never
           created_at?: string | null
           created_by_user_id?: string | null
           ejecutado_id?: string | null
@@ -1104,6 +1127,7 @@ export type Database = {
           monto_total_jus?: number | null
           observaciones?: string | null
           pagado_jus?: never
+          pendiente_gross_jus?: never
           pendiente_jus?: never
           updated_at?: string | null
         }
@@ -1151,6 +1175,7 @@ export type Database = {
           id: string
         }[]
       }
+      honorario_gross_cap: { Args: { base_jus: number }; Returns: number }
       is_current_user_head: { Args: never; Returns: boolean }
     }
     Enums: {

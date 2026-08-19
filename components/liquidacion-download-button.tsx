@@ -12,6 +12,9 @@ type Input = {
   fechaHasta: string;
   capital: number;
   gastos: number;
+  // The PDF is recomputed here rather than read from the stored snapshot, so
+  // the manual interés has to be handed in or it vanishes from the summary.
+  interesGastos?: number | null;
 };
 
 export function LiquidacionDownloadButton({
@@ -37,6 +40,7 @@ export function LiquidacionDownloadButton({
           fechaHasta,
           capital: input.capital,
           gastos: input.gastos,
+          interesGastos: input.interesGastos,
         },
         tasas,
       );
