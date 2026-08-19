@@ -58,6 +58,7 @@ export async function LiquidacionesSection({
               <Money label="Intereses" value={liq.total_intereses} />
               <Money label="IVA (21%)" value={liq.iva} />
               <Money label="Gastos" value={liq.gastos} />
+              <Money label="Interés s/ gastos" value={liq.interes_gastos ?? 0} />
               <Money label="Monto adeudado" value={liq.monto_adeudado} highlight />
             </div>
 
@@ -81,6 +82,8 @@ export async function LiquidacionesSection({
                 fechaHasta: liq.fecha_hasta,
                 capital: Number(liq.capital),
                 gastos: Number(liq.gastos),
+                interesGastos:
+                  liq.interes_gastos == null ? null : Number(liq.interes_gastos),
               }}
               tasas={tasas}
             />

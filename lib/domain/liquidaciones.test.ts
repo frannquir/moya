@@ -201,4 +201,94 @@ describe("liquidaciones", () => {
       });
     });
   });
+
+  describe("calcularLiquidacion — interés sobre gastos", () => {
+    const base = {
+      cuenta: "123",
+      apynom: "Test",
+      ultVenc: new Date(2005, 0, 15),
+      fechaHasta: new Date(2005, 2, 20),
+      capital: 10000,
+      gastos: 500,
+    };
+
+    function calc(interesGastos?: number | null) {
+      return calcularLiquidacion({ ...base, interesGastos }, TASAS_BASE);
+    }
+
+    it("adds the manual interés to the total verbatim", () => {
+      const without = calc(0);
+      const withInteres = calc(1234.56);
+      expect(withInteres.interesGastos).toBe(1234.56);
+      expect(withInteres.total - without.total).toBeCloseTo(1234.56, 6);
+    });
+
+    it("treats a not-entered interés as zero without changing the total", () => {
+      const omitted = calc(undefined);
+      const nulled = calc(null);
+      const zero = calc(0);
+      expect(omitted.interesGastos).toBe(0);
+      expect(nulled.interesGastos).toBe(0);
+      expect(omitted.total).toBe(zero.total);
+      expect(nulled.total).toBe(zero.total);
+    });
+
+    it("leaves capital, intereses, IVA and gastos untouched", () => {
+      const without = calc(0);
+      const withInteres = calc(5000);
+      expect(withInteres.capital).toBe(without.capital);
+      expect(withInteres.totalIntereses).toBe(without.totalIntereses);
+      // Interés on gastos is NOT part of the base the 21% IVA is charged on.
+      expect(withInteres.iva).toBe(without.iva);
+      expect(withInteres.gastos).toBe(without.gastos);
+    });
+
+    it("total is capital + intereses + IVA + gastos + interés", () => {
+      const r = calc(777);
+      expect(r.total).toBeCloseTo(
+        r.capital + r.totalIntereses + r.iva + r.gastos + r.interesGastos,
+        6,
+      );
+    });
+  });
+
+  describe("calcularLiquidacion — compensatorios / punitorios split", () => {
+    const result = calcularLiquidacion(
+      {
+        cuenta: "123",
+        apynom: "Test",
+        ultVenc: new Date(2005, 0, 15),
+        fechaHasta: new Date(2005, 2, 20),
+        capital: 10000,
+        gastos: 0,
+      },
+      TASAS_BASE,
+    );
+
+    it("reports each half summed from the rows", () => {
+      expect(result.totalCompensatorios).toBeCloseTo(
+        result.rows.reduce((s, r) => s + r.intsCompensatorios, 0),
+        6,
+      );
+      expect(result.totalPunitorios).toBeCloseTo(
+        result.rows.reduce((s, r) => s + r.intsPunitorios, 0),
+        6,
+      );
+    });
+
+    it("the two halves add up to totalIntereses", () => {
+      expect(result.totalCompensatorios + result.totalPunitorios).toBeCloseTo(
+        result.totalIntereses,
+        6,
+      );
+    });
+
+    it("matches the 2/3 - 1/3 derivation while punitorios stay half of comp", () => {
+      // The fallback in escritos-actions.ts relies on this for rows snapshotted
+      // before the split columns existed. If this ever fails, that fallback is
+      // lying and must be removed.
+      expect(result.totalCompensatorios).toBeCloseTo((result.totalIntereses * 2) / 3, 6);
+      expect(result.totalPunitorios).toBeCloseTo(result.totalIntereses / 3, 6);
+    });
+  });
 });

@@ -49,6 +49,9 @@ export type EjecutadoFormFields = {
   codemandados: string[];
   deuda_inicial: number;
   gastos: number;
+  // Both blank by default — NULL means "not entered", not zero.
+  fecha_gastos: string | null;
+  interes_gastos: number | null;
   fecha_mora: string | null;
   fecha_deuda: string | null;
   dinero_en_cuenta: number | null;
@@ -84,6 +87,10 @@ export function validateEjecutadoFields(f: EjecutadoFormFields): string | null {
   if (!f.nombre) return "El nombre del demandado es obligatorio.";
   if (f.numero_expediente !== "" && extractCausa(f.numero_expediente).causa === null) {
     return "N° de expediente inválido: debe contener un número de causa (1 a 7 dígitos).";
+  }
+  // Only validated when present — blank stays blank rather than becoming 0.
+  if (f.interes_gastos !== null && !(f.interes_gastos >= 0)) {
+    return "El interés sobre gastos no puede ser negativo.";
   }
   return null;
 }
@@ -139,6 +146,8 @@ export function parseEjecutadoFormData(fd: FormData): EjecutadoFormFields {
     codemandados: parseCodemandados(str(fd, "codemandados")),
     deuda_inicial: numOrNull(fd, "deuda_inicial") ?? 0,
     gastos: numOrNull(fd, "gastos") ?? 0,
+    fecha_gastos: str(fd, "fecha_gastos") || null,
+    interes_gastos: numOrNull(fd, "interes_gastos"),
     fecha_mora: str(fd, "fecha_mora") || null,
     fecha_deuda: str(fd, "fecha_deuda") || null,
     dinero_en_cuenta: numOrNull(fd, "dinero_en_cuenta"),

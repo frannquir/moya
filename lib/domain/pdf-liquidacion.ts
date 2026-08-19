@@ -89,8 +89,8 @@ export function generateLiquidacionPDFBlob(input: PDFLiquidacionInput): Blob {
     `$${formatCurrencyPDF(row.intsPunitorios)}`,
   ]);
 
-  const totalCompensatorios = result.rows.reduce((sum, r) => sum + r.intsCompensatorios, 0);
-  const totalPunitorios = result.rows.reduce((sum, r) => sum + r.intsPunitorios, 0);
+  const totalCompensatorios = result.totalCompensatorios;
+  const totalPunitorios = result.totalPunitorios;
 
   tableBody.push([
     "TOTAL",
@@ -142,12 +142,16 @@ export function generateLiquidacionPDFBlob(input: PDFLiquidacionInput): Blob {
   const finalY =
     (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 0.3;
 
+  // INTERES sits directly below GASTOS and is always printed, matching how
+  // GASTOS itself prints $0,00 when nothing was spent — a missing row reads as
+  // an omission, a zero reads as a fact.
   const summaryData = [
     ["CAPITAL", `$${formatCurrencyPDF(result.capital)}`],
     ["INTS. COMPENSATORIOS", `$${formatCurrencyPDF(totalCompensatorios)}`],
     ["INTS. PUNITORIOS", `$${formatCurrencyPDF(totalPunitorios)}`],
     ["I.V.A.", `$${formatCurrencyPDF(result.iva)}`],
     ["GASTOS", `$${formatCurrencyPDF(result.gastos)}`],
+    ["INTERES", `$${formatCurrencyPDF(result.interesGastos)}`],
     ["TOTAL", `$${formatCurrencyPDF(result.total)}`],
   ];
 
@@ -172,7 +176,8 @@ export function generateLiquidacionPDFBlob(input: PDFLiquidacionInput): Blob {
       1: { halign: "right", cellWidth: 1.3 },
     },
     didParseCell: function (data) {
-      if (data.row.index === 5) {
+      // Highlight the TOTAL row — last one, wherever it lands.
+      if (data.row.index === summaryData.length - 1) {
         data.cell.styles.fillColor = [255, 101, 101]; // #FF6565
       }
     },

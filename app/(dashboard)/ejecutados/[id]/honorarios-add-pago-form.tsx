@@ -4,26 +4,39 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatArs, formatJus, jusToArs, arsToJus } from "@/lib/domain/honorarios";
+import {
+  IVA_RATE,
+  APORTES_RATE,
+  formatArs,
+  formatJus,
+  jusToArs,
+  arsToJus,
+  splitGross,
+} from "@/lib/domain/honorarios";
 import { addPago } from "./honorarios-actions";
 
 export function HonorariosAddPagoForm({
   honorarioId,
   jusValue,
-  pendienteJus,
+  pendienteGrossJus,
 }: {
   honorarioId: string;
   jusValue: number;
-  pendienteJus: number;
+  pendienteGrossJus: number;
 }) {
   const [unidad, setUnidad] = useState<"jus" | "ars">("jus");
   const [monto, setMonto] = useState("");
 
   const n = Number(monto || 0);
+  const montoJus = unidad === "jus" ? n : arsToJus(n, jusValue);
   const preview =
     unidad === "jus"
       ? `≈ ${formatArs(jusToArs(n, jusValue))}`
       : `≈ ${formatJus(arsToJus(n, jusValue))}`;
+
+  // What the lawyer is actually charging vs. what is tax they collect and remit.
+  const split = splitGross(montoJus > 0 ? montoJus : 0);
+  const excede = montoJus > pendienteGrossJus;
 
   return (
     <form
@@ -74,6 +87,31 @@ export function HonorariosAddPagoForm({
         </div>
       </div>
 
+      {/* The point of the tax model: how much of this is fee, how much is tax. */}
+      {montoJus > 0 && (
+        <div className="rounded-md border bg-muted/30 p-3 text-xs">
+          <div className="mb-1 text-muted-foreground">De este pago:</div>
+          <div className="grid grid-cols-3 gap-2 tabular-nums">
+            <SplitCell label="Honorario" jus={split.base} jusValue={jusValue} />
+            <SplitCell
+              label={`IVA ${Math.round(IVA_RATE * 100)}%`}
+              jus={split.iva}
+              jusValue={jusValue}
+            />
+            <SplitCell
+              label={`Aportes ${Math.round(APORTES_RATE * 100)}%`}
+              jus={split.aportes}
+              jusValue={jusValue}
+            />
+          </div>
+          {excede && (
+            <p className="mt-2 text-destructive">
+              Excede lo pendiente con IVA y aportes ({formatJus(pendienteGrossJus)}).
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="fecha">Fecha</Label>
@@ -101,9 +139,27 @@ export function HonorariosAddPagoForm({
           size="sm"
           variant="outline"
         >
-          Saldar ({formatJus(pendienteJus)})
+          Saldar ({formatJus(pendienteGrossJus)})
         </Button>
       </div>
     </form>
+  );
+}
+
+function SplitCell({
+  label,
+  jus,
+  jusValue,
+}: {
+  label: string;
+  jus: number;
+  jusValue: number;
+}) {
+  return (
+    <div>
+      <div className="text-muted-foreground">{label}</div>
+      <div className="font-medium">{formatJus(jus)}</div>
+      <div className="text-muted-foreground">{formatArs(jusToArs(jus, jusValue))}</div>
+    </div>
   );
 }

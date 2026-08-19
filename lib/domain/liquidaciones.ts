@@ -93,8 +93,14 @@ export type LiquidacionResult = {
   rows: LiquidacionRow[];
   capital: number;
   totalIntereses: number;
+  // The two halves of totalIntereses, summed from the rows. Kept separate so the
+  // snapshot and the escrito can report them without re-deriving from the total.
+  totalCompensatorios: number;
+  totalPunitorios: number;
   iva: number;
   gastos: number;
+  // Manually entered interest on gastos — see LiquidacionInput.
+  interesGastos: number;
   total: number;
 };
 
@@ -105,6 +111,10 @@ export type LiquidacionInput = {
   fechaHasta: Date; // FECHA FINAL CALCULO (end)
   capital: number;
   gastos: number;
+  // Interest accrued on the gastos. Entered by hand because gastos accrue at
+  // rates other than the debt's, so it can't come out of the BCRA table.
+  // Null/undefined = not entered, which contributes zero.
+  interesGastos?: number | null;
 };
 
 // Calculate liquidación — replicates VBA Liquidar() exactly.
@@ -113,6 +123,7 @@ export function calcularLiquidacion(
   tasas: TasaRow[],
 ): LiquidacionResult {
   const { ultVenc, fechaHasta, capital, gastos } = input;
+  const interesGastos = input.interesGastos ?? 0;
 
   const filainicio = filaFecha(ultVenc, tasas);
   const filafin = filaFecha(fechaHasta, tasas, true); // clamp end to latest
@@ -211,14 +222,23 @@ export function calcularLiquidacion(
     });
   }
 
-  const totalIntereses = rows.reduce(
-    (sum, row) => sum + row.intsCompensatorios + row.intsPunitorios,
-    0,
-  );
+  const totalCompensatorios = rows.reduce((sum, row) => sum + row.intsCompensatorios, 0);
+  const totalPunitorios = rows.reduce((sum, row) => sum + row.intsPunitorios, 0);
+  const totalIntereses = totalCompensatorios + totalPunitorios;
   const iva = totalIntereses * 0.21;
-  const total = capital + totalIntereses + iva + gastos;
+  const total = capital + totalIntereses + iva + gastos + interesGastos;
 
-  return { rows, capital, totalIntereses, iva, gastos, total };
+  return {
+    rows,
+    capital,
+    totalIntereses,
+    totalCompensatorios,
+    totalPunitorios,
+    iva,
+    gastos,
+    interesGastos,
+    total,
+  };
 }
 
 export function formatCurrency(value: number): string {

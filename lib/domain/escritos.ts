@@ -13,6 +13,7 @@ export const EVENTO_OPTIONS = [
   "mandamiento.diligenciado",
   "mandamiento.devuelto",
   "sentencia.dictada",
+  "liquidacion.practicable",
   "liquidacion.aprobada",
   "liquidacion.impugnada",
   "oficio.diligenciado",
@@ -34,6 +35,9 @@ export type EscritoSignalState = {
 };
 
 export type ScorerTemplate = {
+  // Stable machine key. Only templates the pinned sets reference carry one;
+  // everything else is NULL and is ranked purely by score.
+  clave: string | null;
   sugerido_movimiento: string[];
   sugerido_medida_cautelar: string[];
   sugerido_evento: string[];
@@ -45,6 +49,7 @@ export const REASON_LABELS: Record<string, string> = {
   medida: "Medida cautelar",
   diligenciada: "Diligenciada",
   evento: "Evento",
+  fijado: "Paso siguiente",
 };
 
 export const MEDIDA_CAUTELAR_LABELS: Record<MedidaCautelar, string> = {

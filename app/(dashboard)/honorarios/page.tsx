@@ -9,7 +9,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { formatJus, formatArs, jusToArs } from "@/lib/domain/honorarios";
+import {
+  IVA_RATE,
+  APORTES_RATE,
+  formatJus,
+  formatArs,
+  jusToArs,
+} from "@/lib/domain/honorarios";
 
 export default async function HonorariosPage() {
   const supabase = await createClient();
@@ -31,15 +37,19 @@ export default async function HonorariosPage() {
   const rows = (honorarios ?? []).filter((h) => !h.ejecutado?.archived_at);
 
   const jusValue = (jusRow?.value as { value: number })?.value ?? 0;
+  // "Pendiente" means there is still something collectable — measured against
+  // the gross cap, since IVA + aportes are collected on top of the fee.
   const pendingCount =
-    rows?.filter((h) => (h.pendiente_jus ?? 0) > 0).length ?? 0;
+    rows?.filter((h) => (h.pendiente_gross_jus ?? 0) > 0).length ?? 0;
 
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-semibold">Honorarios</h1>
         <p className="text-sm text-muted-foreground">
-          {rows?.length ?? 0} honorarios · {pendingCount} pendientes · Valor JUS: {formatArs(jusValue)}
+          {rows?.length ?? 0} honorarios · {pendingCount} pendientes · Valor JUS:{" "}
+          {formatArs(jusValue)} · Máximo cobrable = honorario + IVA{" "}
+          {Math.round(IVA_RATE * 100)}% + aportes {Math.round(APORTES_RATE * 100)}%
         </p>
       </div>
 
@@ -49,16 +59,22 @@ export default async function HonorariosPage() {
             <TableRow>
               <TableHead>Ejecutado</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Pactado</TableHead>
-              <TableHead className="text-right">Pagado</TableHead>
-              <TableHead className="text-right">Pendiente</TableHead>
+              <TableHead className="text-right">Honorario</TableHead>
+              <TableHead className="text-right">Máximo c/ imp.</TableHead>
+              <TableHead className="text-right">Cobrado</TableHead>
+              <TableHead className="text-right">Restante</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows && rows.length > 0 ? (
               rows.map((h) => {
                 const isPaid =
-                  (h.monto_total_jus ?? 0) > 0 && (h.pendiente_jus ?? 0) <= 0;
+                  (h.monto_total_jus ?? 0) > 0 && (h.pendiente_gross_jus ?? 0) <= 0;
+                // Fee covered but the tax on it not yet — a real intermediate state.
+                const baseCubierto =
+                  !isPaid &&
+                  (h.monto_total_jus ?? 0) > 0 &&
+                  (h.pendiente_jus ?? 0) <= 0;
                 return (
                   <TableRow key={h.id} className={isPaid ? "opacity-60" : ""}>
                     <TableCell className="font-medium">
@@ -74,6 +90,8 @@ export default async function HonorariosPage() {
                         <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
                           Pagado
                         </Badge>
+                      ) : baseCubierto ? (
+                        <Badge variant="outline">Honorario cubierto</Badge>
                       ) : (
                         <Badge variant="outline">Pendiente</Badge>
                       )}
@@ -85,21 +103,29 @@ export default async function HonorariosPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
+                      {formatJus(h.cap_gross_jus ?? 0)}
+                      <div className="text-xs text-muted-foreground">
+                        {formatArs(jusToArs(h.cap_gross_jus ?? 0, jusValue))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
                       {formatJus(h.pagado_jus ?? 0)}
                     </TableCell>
                     <TableCell
                       className={`text-right tabular-nums ${
-                        (h.pendiente_jus ?? 0) > 0 ? "text-orange-600 font-medium" : ""
+                        (h.pendiente_gross_jus ?? 0) > 0
+                          ? "text-orange-600 font-medium"
+                          : ""
                       }`}
                     >
-                      {formatJus(h.pendiente_jus ?? 0)}
+                      {formatJus(h.pendiente_gross_jus ?? 0)}
                     </TableCell>
                   </TableRow>
                 );
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   Aún no hay honorarios. Creá el primero desde un ejecutado.
                 </TableCell>
               </TableRow>

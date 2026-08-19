@@ -6,7 +6,8 @@ import {
   type HonorarioTipo,
   arsToJus,
   jusToArs,
-  remainingJus,
+  grossCapJus,
+  remainingGrossJus,
 } from "@/lib/domain/honorarios";
 
 type Client = SupabaseClient<Database>;
@@ -47,12 +48,16 @@ export async function setHonorarioTipo(
     throw new Error(`Tipo de honorario inválido: ${input.tipoJus} (debe ser 3.5 o 7 JUS).`);
   }
 
-  // Lowering the type below what's already been paid would strand the balance. The DB
-  // only caps pagos, not the total, so fence it here with a clean message.
+  // Lowering the type below what's already been collected would strand the balance.
+  // The DB only caps pagos, not the total, so fence it here with a clean message.
+  // Compared against the GROSS cap of the new type — collections legitimately run
+  // past the base by IVA + aportes.
   const existing = await getHonorarioWithBalance(supabase, input.ejecutadoId);
-  if (existing && (existing.pagado_jus ?? 0) > input.tipoJus) {
+  const newCap = grossCapJus(input.tipoJus);
+  if (existing && (existing.pagado_jus ?? 0) > newCap) {
     throw new Error(
-      `No se puede fijar el honorario en ${input.tipoJus} JUS: ya se pagaron ${existing.pagado_jus} JUS.`,
+      `No se puede fijar el honorario en ${input.tipoJus} JUS: ya se cobraron ${existing.pagado_jus} JUS, ` +
+        `más de lo que permite ese tipo con IVA y aportes (${newCap} JUS).`,
     );
   }
 
@@ -85,6 +90,8 @@ export async function listHonorarioPagos(
 
 // Add a pago entered in JUS, in ARS, or via "saldar" (fill exact remaining). JUS is
 // canonical (the cap is JUS); ARS converts at the current jus value. Both are stored.
+// Amounts are GROSS — what actually came in, fee plus IVA plus aportes — so the
+// ceiling is the gross cap, not the regulated base.
 export async function addHonorarioPago(
   supabase: Client,
   input: {
@@ -108,7 +115,7 @@ export async function addHonorarioPago(
   if (honError) throw honError;
   if (!hon) throw new Error("Honorario no encontrado.");
 
-  const remaining = remainingJus(hon.monto_total_jus ?? 0, hon.pagado_jus ?? 0);
+  const remaining = remainingGrossJus(hon.monto_total_jus ?? 0, hon.pagado_jus ?? 0);
 
   // Resolve the (JUS, ARS) pair from whichever unit the caller provided.
   let montoJus: number;
@@ -130,7 +137,9 @@ export async function addHonorarioPago(
   // Friendly fence; the DB trigger is the hard one.
   if (!(montoJus > 0)) throw new Error("El monto del pago debe ser mayor a 0.");
   if (montoJus > remaining) {
-    throw new Error(`El pago de ${montoJus} JUS excede lo pendiente (${remaining} JUS).`);
+    throw new Error(
+      `El pago de ${montoJus} JUS excede lo pendiente con IVA y aportes (${remaining} JUS).`,
+    );
   }
 
   const { error } = await supabase.from("honorarios_pagos").insert({
