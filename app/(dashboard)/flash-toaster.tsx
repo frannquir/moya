@@ -10,6 +10,10 @@ import { toast } from "sonner";
 const TOASTS: Record<string, { type: "success" | "error"; text: string }> = {
   ejecutado_creado: { type: "success", text: "Ejecutado creado." },
   ejecutado_guardado: { type: "success", text: "Cambios guardados." },
+  demanda_creada: { type: "success", text: "Demanda creada." },
+  codemandado_agregado: { type: "success", text: "Codemandado agregado." },
+  codemandado_guardado: { type: "success", text: "Codemandado actualizado." },
+  codemandado_archivado: { type: "success", text: "Codemandado eliminado." },
   invite_ok: { type: "success", text: "Miembro agregado." },
   invite_notfound: { type: "error", text: "Ese email no tiene cuenta todavía." },
   invite_exists: { type: "error", text: "Ese usuario ya pertenece a un estudio." },

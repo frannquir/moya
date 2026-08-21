@@ -13,8 +13,8 @@ import {
   MOVIMIENTO_OPTIONS,
   MEDIDA_CAUTELAR_OPTIONS,
   MEDIDA_ESTADO_OPTIONS,
-  formatCodemandados,
 } from "@/lib/domain/ejecutado";
+import { CuilInput } from "@/components/cuil-input";
 import { formatArDate } from "@/lib/domain/dates";
 import { type Tables } from "@/lib/supabase/db-helpers";
 import { type CourtEntry } from "@/lib/data/juzgados";
@@ -46,34 +46,40 @@ export function EjecutadoFormFields({
         <Label htmlFor="nombre">Demandado *</Label>
         <Input id="nombre" name="nombre" defaultValue={ejecutado?.nombre ?? ""} required />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="codemandados">Codemandados</Label>
-        <Textarea
-          id="codemandados"
-          name="codemandados"
-          rows={2}
-          placeholder="Separados por coma"
-          defaultValue={formatCodemandados(ejecutado?.codemandados)}
-        />
-        {ejecutado && (ejecutado.codemandados?.length ?? 0) === 0 && (
-          <p className="text-xs text-muted-foreground">Sin codemandados.</p>
-        )}
-      </div>
       <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="cuil">CUIL</Label>
+          <CuilInput id="cuil" name="cuil" defaultValue={ejecutado?.cuil ?? ""} showDni />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="documento">Documento</Label>
           <Input
             id="documento"
             name="documento"
-            placeholder="DNI / CUIT"
+            placeholder="DNI"
             defaultValue={ejecutado?.documento ?? ""}
           />
+          {/* Kept editable for legacy rows that carry a DNI and no CUIL. Once a
+              CUIL is present the save derives documento from it and this is
+              ignored - mail-match and the escritos tokens still read it. */}
+          <p className="text-xs text-muted-foreground">
+            Se completa solo desde el CUIL.
+          </p>
         </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="domicilio">Domicilio</Label>
           <Input id="domicilio" name="domicilio" defaultValue={ejecutado?.domicilio ?? ""} />
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="telefono">Teléfono</Label>
+          <Input id="telefono" name="telefono" defaultValue={ejecutado?.telefono ?? ""} />
+        </div>
       </div>
+      <p className="text-xs text-muted-foreground">
+        Los codemandados se administran desde la ficha del ejecutado.
+      </p>
 
       {/* Expediente */}
       <SectionTitle>Expediente</SectionTitle>

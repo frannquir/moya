@@ -2,6 +2,7 @@ import { type SupabaseClient } from "@supabase/supabase-js";
 import { type Database } from "@/lib/supabase/types";
 import { type Tables } from "@/lib/supabase/db-helpers";
 import { type EjecutadoFormFields } from "@/lib/domain/ejecutado";
+import { type DemandadoExtraFields } from "@/lib/domain/demanda";
 
 type Client = SupabaseClient<Database>;
 export type Ejecutado = Tables<"ejecutados">;
@@ -80,6 +81,10 @@ export async function create(
     isDraft: boolean;
     assignedToUserId: string | null;
     fields: EjecutadoFormFields;
+    // Set by the "Iniciar demanda" flow; drives the Demanda card on the detail
+    // page and tells 2B which cases it owns.
+    origen?: "manual" | "demanda" | "migracion";
+    demandado?: DemandadoExtraFields;
   },
 ): Promise<Ejecutado> {
   const { data, error } = await supabase
@@ -90,6 +95,8 @@ export async function create(
       assigned_to_user_id: input.assignedToUserId,
       is_draft: input.isDraft,
       ...input.fields,
+      ...(input.demandado ?? {}),
+      ...(input.origen ? { origen: input.origen } : {}),
     })
     .select("*")
     .single();
@@ -120,6 +127,16 @@ export async function update(
     .from("ejecutados")
     .update(fields)
     .eq("id", id);
+  if (error) throw error;
+}
+
+/** The demanda-only columns, edited from the Demanda card on the detail page. */
+export async function updateDemandado(
+  supabase: Client,
+  id: string,
+  fields: DemandadoExtraFields,
+): Promise<void> {
+  const { error } = await supabase.from("ejecutados").update(fields).eq("id", id);
   if (error) throw error;
 }
 

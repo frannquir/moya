@@ -171,8 +171,11 @@ export function EjecutadosBoard({
           <Button variant="outline" asChild>
             <Link href="/ejecutados/archivados">Archivados</Link>
           </Button>
-          <Button asChild>
+          <Button variant="outline" asChild>
             <Link href="/ejecutados/new">Nuevo ejecutado</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/ejecutados/demanda">Iniciar demanda</Link>
           </Button>
         </div>
       </div>
