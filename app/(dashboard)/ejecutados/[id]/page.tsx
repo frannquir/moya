@@ -22,6 +22,9 @@ import { CobrosCard } from "./cobros-card";
 import { HonorariosCard } from "./honorarios-card";
 import { LiquidacionesSection } from "./liquidaciones-section";
 import { EscritosSection } from "./escritos-section";
+import { CodemandadosCard } from "./codemandados-card";
+import { DemandaCard } from "./demanda-card";
+import { updateDemandaDatos } from "./demanda-actions";
 import { Badge } from "@/components/ui/badge";
 import { activarBorrador, moverABorrador } from "../../borradores/actions";
 
@@ -63,6 +66,7 @@ export default async function EjecutadoDetailPage({
   const updateAction = updateEjecutado.bind(null, id);
   const archiveAction = archiveEjecutado.bind(null, id);
   const delegateAction = delegateEjecutado.bind(null, id);
+  const demandaAction = updateDemandaDatos.bind(null, id);
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -180,6 +184,26 @@ export default async function EjecutadoDetailPage({
             </form>
           )}
         </Card>
+      )}
+
+      <CodemandadosCard ejecutadoId={id} />
+
+      {/* Only for cases started from "Iniciar demanda" - a migrated or manually
+          loaded case has none of these fields. */}
+      {ejecutado.origen === "demanda" && (
+        <DemandaCard
+          updateAction={demandaAction}
+          initial={{
+            trabaja: ejecutado.trabaja === true,
+            empleador_nombre: ejecutado.empleador_nombre,
+            empleador_cuit: ejecutado.empleador_cuit,
+            empleador_domicilio: ejecutado.empleador_domicilio,
+            empleador_telefono: ejecutado.empleador_telefono,
+            tarjeta_cabal: ejecutado.tarjeta_cabal,
+            cuenta_cliper: ejecutado.cuenta_cliper,
+            fecha_contrato: ejecutado.fecha_contrato,
+          }}
+        />
       )}
 
       <LiquidacionesSection ejecutadoId={id} />

@@ -127,6 +127,91 @@ export type Database = {
           },
         ]
       }
+      codemandados: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by_user_id: string | null
+          cuil: string
+          domicilio: string
+          ejecutado_id: string
+          empleador_cuit: string
+          empleador_domicilio: string
+          empleador_nombre: string
+          empleador_telefono: string
+          estudio_id: string
+          id: string
+          nombre: string
+          orden: number
+          tarjeta_cabal: string
+          telefono: string
+          trabaja: boolean
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          cuil?: string
+          domicilio?: string
+          ejecutado_id: string
+          empleador_cuit?: string
+          empleador_domicilio?: string
+          empleador_nombre?: string
+          empleador_telefono?: string
+          estudio_id: string
+          id?: string
+          nombre: string
+          orden?: number
+          tarjeta_cabal?: string
+          telefono?: string
+          trabaja?: boolean
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by_user_id?: string | null
+          cuil?: string
+          domicilio?: string
+          ejecutado_id?: string
+          empleador_cuit?: string
+          empleador_domicilio?: string
+          empleador_nombre?: string
+          empleador_telefono?: string
+          estudio_id?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          tarjeta_cabal?: string
+          telefono?: string
+          trabaja?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "codemandados_ejecutado_id_fkey"
+            columns: ["ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "cobros_totals"
+            referencedColumns: ["ejecutado_id"]
+          },
+          {
+            foreignKeyName: "codemandados_ejecutado_id_fkey"
+            columns: ["ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "ejecutados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "codemandados_estudio_id_fkey"
+            columns: ["estudio_id"]
+            isOneToOne: false
+            referencedRelation: "estudios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ejecutado_eventos: {
         Row: {
           aplicado: boolean
@@ -196,16 +281,22 @@ export type Database = {
         Row: {
           archived_at: string | null
           assigned_to_user_id: string | null
-          codemandados: string[]
           created_at: string
           created_by_user_id: string | null
+          cuenta_cliper: string
+          cuil: string
           departamento: string
           deuda_inicial: number
           dinero_en_cuenta: number | null
           documento: string
           domicilio: string
+          empleador_cuit: string
+          empleador_domicilio: string
+          empleador_nombre: string
+          empleador_telefono: string
           empresa: string | null
           estudio_id: string
+          fecha_contrato: string | null
           fecha_deuda: string | null
           fecha_gastos: string | null
           fecha_mora: string | null
@@ -224,22 +315,32 @@ export type Database = {
           nombre: string
           numero_expediente: string
           observaciones: string
+          origen: string
           practica_liquidacion: string | null
+          tarjeta_cabal: string
+          telefono: string
+          trabaja: boolean | null
           updated_at: string
         }
         Insert: {
           archived_at?: string | null
           assigned_to_user_id?: string | null
-          codemandados?: string[]
           created_at?: string
           created_by_user_id?: string | null
+          cuenta_cliper?: string
+          cuil?: string
           departamento?: string
           deuda_inicial?: number
           dinero_en_cuenta?: number | null
           documento?: string
           domicilio?: string
+          empleador_cuit?: string
+          empleador_domicilio?: string
+          empleador_nombre?: string
+          empleador_telefono?: string
           empresa?: string | null
           estudio_id: string
+          fecha_contrato?: string | null
           fecha_deuda?: string | null
           fecha_gastos?: string | null
           fecha_mora?: string | null
@@ -258,22 +359,32 @@ export type Database = {
           nombre: string
           numero_expediente?: string
           observaciones?: string
+          origen?: string
           practica_liquidacion?: string | null
+          tarjeta_cabal?: string
+          telefono?: string
+          trabaja?: boolean | null
           updated_at?: string
         }
         Update: {
           archived_at?: string | null
           assigned_to_user_id?: string | null
-          codemandados?: string[]
           created_at?: string
           created_by_user_id?: string | null
+          cuenta_cliper?: string
+          cuil?: string
           departamento?: string
           deuda_inicial?: number
           dinero_en_cuenta?: number | null
           documento?: string
           domicilio?: string
+          empleador_cuit?: string
+          empleador_domicilio?: string
+          empleador_nombre?: string
+          empleador_telefono?: string
           empresa?: string | null
           estudio_id?: string
+          fecha_contrato?: string | null
           fecha_deuda?: string | null
           fecha_gastos?: string | null
           fecha_mora?: string | null
@@ -292,7 +403,11 @@ export type Database = {
           nombre?: string
           numero_expediente?: string
           observaciones?: string
+          origen?: string
           practica_liquidacion?: string | null
+          tarjeta_cabal?: string
+          telefono?: string
+          trabaja?: boolean | null
           updated_at?: string
         }
         Relationships: [

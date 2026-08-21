@@ -1,4 +1,5 @@
 import { extractCausa } from "./mail-match";
+import { cuilToDni, formatCuil, isValidCuil } from "./cuil";
 
 export const MOVIMIENTO_OPTIONS = [
   "Inicio Causa",
@@ -22,19 +23,6 @@ export const MEDIDA_ESTADO_OPTIONS = ["Solicitada", "Proveída"] as const;
 
 export type MedidaEstado = (typeof MEDIDA_ESTADO_OPTIONS)[number];
 
-// codemandados is stored as TEXT[]. The form collects a comma/newline-separated
-// string; split, trim, drop empties on the way in, join with ", " on the way out.
-export function parseCodemandados(raw: string): string[] {
-  return raw
-    .split(/[\n,]+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-}
-
-export function formatCodemandados(values: string[] | null | undefined): string {
-  return (values ?? []).join(", ");
-}
-
 // Shared set of writable ejecutado columns parsed from a create/edit form.
 // Both createEjecutado and updateEjecutado go through this so the field mapping
 // stays in one place.
@@ -44,9 +32,12 @@ export type EjecutadoFormFields = {
   juzgado_id: string | null;
   departamento: string;
   numero_expediente: string;
+  // documento is derived from cuil on save and kept in sync: mail-match and the
+  // escritos token layer still read it (locked decision #11).
   documento: string;
+  cuil: string;
   domicilio: string;
-  codemandados: string[];
+  telefono: string;
   deuda_inicial: number;
   gastos: number;
   // Both blank by default — NULL means "not entered", not zero.
@@ -85,6 +76,9 @@ export function normalizeNumeroExpediente(raw: string): string {
 // user-facing (Spanish) error string, or null when the fields are acceptable.
 export function validateEjecutadoFields(f: EjecutadoFormFields): string | null {
   if (!f.nombre) return "El nombre del demandado es obligatorio.";
+  if (f.cuil !== "" && !isValidCuil(f.cuil)) {
+    return "CUIL inválido: revisá el número, el dígito verificador no coincide.";
+  }
   if (f.numero_expediente !== "" && extractCausa(f.numero_expediente).causa === null) {
     return "N° de expediente inválido: debe contener un número de causa (1 a 7 dígitos).";
   }
@@ -135,15 +129,21 @@ export function parseEjecutadoFormData(fd: FormData): EjecutadoFormFields {
 
   const empresaRaw = selectNullable(str(fd, "empresa"));
 
+  // Normalize the mask before anything reads it, so a value typed without dashes
+  // is stored the same way as one typed with them.
+  const cuil = formatCuil(str(fd, "cuil"));
+
   return {
     nombre: str(fd, "nombre"),
     juzgado: str(fd, "juzgado"),
     juzgado_id: selectNullable(str(fd, "juzgado_id")),
     departamento: selectNullable(str(fd, "departamento")) ?? "",
     numero_expediente: normalizeNumeroExpediente(str(fd, "numero_expediente")),
-    documento: str(fd, "documento"),
+    // Keep documento in sync from the CUIL whenever one is present.
+    documento: cuil === "" ? str(fd, "documento") : cuilToDni(cuil),
+    cuil,
     domicilio: str(fd, "domicilio"),
-    codemandados: parseCodemandados(str(fd, "codemandados")),
+    telefono: str(fd, "telefono"),
     deuda_inicial: numOrNull(fd, "deuda_inicial") ?? 0,
     gastos: numOrNull(fd, "gastos") ?? 0,
     fecha_gastos: str(fd, "fecha_gastos") || null,
