@@ -29,9 +29,13 @@ export async function EscritosSection({ ejecutadoId }: { ejecutadoId: string }) 
 
   const [{ data: templates }, { data: ultEvento }, { data: liq }] =
     await Promise.all([
+      // Only 'escrito' rows are library documents. Cautelar fragments are pieces
+      // of the demanda and the demanda itself starts a case, so neither may be
+      // offered against an existing ejecutado.
       supabase
         .from("escritos_templates")
         .select("*")
+        .eq("tipo", "escrito")
         .is("archived_at", null)
         .order("orden", { ascending: true }),
       supabase

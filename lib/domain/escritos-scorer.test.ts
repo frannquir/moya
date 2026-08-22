@@ -422,3 +422,84 @@ describe("rankEscritos — intimación evento surfaces the caducidad escrito", (
     expect(ranked[0].recomendado).toBe(true);
   });
 });
+
+// Week 2B: the library and the recommendation feed hold only 'escrito' rows.
+// A cautelar fragmento is a piece of another document, and a demanda opens a
+// case — offering either against an ejecutado that already exists is nonsense.
+// The queries filter on tipo, and rankEscritos filters again so the guarantee
+// belongs to the scorer rather than to every call site that might be added.
+describe("rankEscritos — tipo discriminator", () => {
+  const EVENTOS = [
+    null,
+    "sentencia.dictada",
+    "mandamiento.diligenciado",
+    "traslado.notificado",
+    "liquidacion.practicable",
+    "liquidacion.aprobada",
+    "liquidacion.impugnada",
+    "intimacion.caducidad",
+  ];
+
+  // Every signal state the UI can produce.
+  function allStates(): EscritoSignalState[] {
+    const out: EscritoSignalState[] = [];
+    for (const movimiento of [
+      null,
+      "Inicio Causa",
+      "Enviar Cédula",
+      "Enviar Mandamiento",
+      "Pedir Sentencia",
+      "En Cobro",
+    ] as const) {
+      for (const medida of [null, "embargo", "igb"] as const) {
+        for (const diligenciada of [null, true, false]) {
+          for (const ultimo_evento of EVENTOS) {
+            out.push(
+              state({ movimiento, medida_cautelar: medida, diligenciada, ultimo_evento }),
+            );
+          }
+        }
+      }
+    }
+    return out;
+  }
+
+  it("never returns the demanda, for any signal state", () => {
+    const demanda = tmpl({ clave: "demanda.cobro-ejecutivo", tipo: "demanda" });
+    const normal = tmpl({ clave: "practica-liquidacion", tipo: "escrito" });
+    for (const s of allStates()) {
+      const claves = rankEscritos([demanda, normal], s).map((t) => t.clave);
+      expect(claves).not.toContain("demanda.cobro-ejecutivo");
+    }
+  });
+
+  it("never returns a cautelar fragmento, for any signal state", () => {
+    const fragmentos = [
+      tmpl({ clave: "cautelar.haberes", tipo: "fragmento" }),
+      tmpl({ clave: "cautelar.mercadopago", tipo: "fragmento" }),
+      tmpl({ clave: "cautelar.mixto", tipo: "fragmento" }),
+    ];
+    const normal = tmpl({ clave: "practica-liquidacion", tipo: "escrito" });
+    for (const s of allStates()) {
+      const claves = rankEscritos([...fragmentos, normal], s).map((t) => t.clave);
+      for (const f of fragmentos) expect(claves).not.toContain(f.clave);
+    }
+  });
+
+  it("excludes them even when a pinned rule names their clave", () => {
+    // A fragmento cannot be smuggled in through the pinned set either.
+    const smuggled = tmpl({ clave: "preparar-via-cautelar", tipo: "fragmento" });
+    const ranked = rankEscritos(
+      [smuggled],
+      state({ movimiento: "Enviar Cédula", diligenciada: true }),
+    );
+    expect(ranked).toHaveLength(0);
+  });
+
+  it("keeps ranking rows whose tipo is absent (they predate the column)", () => {
+    const legacy = tmpl({ clave: "practica-liquidacion" });
+    expect(rankEscritos([legacy], state()).map((t) => t.clave)).toEqual([
+      "practica-liquidacion",
+    ]);
+  });
+});

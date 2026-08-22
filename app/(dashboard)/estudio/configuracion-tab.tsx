@@ -16,6 +16,7 @@ import {
 } from "@/lib/domain/escritos-config";
 import { DomiciliosEditor } from "./domicilios-editor";
 import { EmpresasEditor } from "./empresas-editor";
+import { EncargadoEditor } from "./encargado-editor";
 import { updateEstudio, updateEstudioEscritosConfig } from "./actions";
 
 export function ConfiguracionTab({
@@ -74,13 +75,23 @@ export function ConfiguracionTab({
         <CardHeader>
           <CardTitle>Configuración de escritos</CardTitle>
           <CardDescription>
-            Datos del estudio que se usan en el encabezado de los escritos
-            (compartidos por todo el estudio). Los datos personales del abogado se
-            editan en tu Perfil.
+            Datos del estudio que se usan en los escritos, compartidos por todo
+            el estudio.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form action={updateEstudioEscritosConfig} className="space-y-6">
+            <div className="space-y-3">
+              <div>
+                <div className="text-sm font-medium">Encargado del estudio</div>
+                <p className="text-xs text-muted-foreground">
+                  El apoderado que firma los escritos. Se imprime en el encabezado
+                  de todos los escritos, sin importar quién los genere.
+                </p>
+              </div>
+              <EncargadoEditor initial={config.encargado ?? {}} />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="cuenta_honorarios">Cuenta de honorarios</Label>
               <Textarea
@@ -91,6 +102,7 @@ export function ConfiguracionTab({
                 placeholder={CUENTA_HONORARIOS}
               />
             </div>
+
 
             <div className="space-y-3">
               <div>

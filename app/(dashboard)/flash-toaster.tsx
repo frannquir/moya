@@ -11,6 +11,10 @@ const TOASTS: Record<string, { type: "success" | "error"; text: string }> = {
   ejecutado_creado: { type: "success", text: "Ejecutado creado." },
   ejecutado_guardado: { type: "success", text: "Cambios guardados." },
   demanda_creada: { type: "success", text: "Demanda creada." },
+  demanda_sin_liquidacion: {
+    type: "error",
+    text: "Demanda creada, pero sin liquidación: falta la fecha de mora.",
+  },
   codemandado_agregado: { type: "success", text: "Codemandado agregado." },
   codemandado_guardado: { type: "success", text: "Codemandado actualizado." },
   codemandado_archivado: { type: "success", text: "Codemandado eliminado." },

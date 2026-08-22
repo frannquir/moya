@@ -145,42 +145,51 @@ export function parsePartiesJson(raw: string): PartyFields[] {
  * Sueldo" model prints the full employer block - but it is enforced here rather
  * than with a DB constraint, because legacy rows have none of it.
  */
-export function validateParty(p: PartyFields, label: string): string | null {
-  if (p.nombre === "") return `${label}: el nombre es obligatorio.`;
-  if (p.cuil !== "" && !isValidCuil(p.cuil)) {
-    return `${label}: CUIL inválido, el dígito verificador no coincide.`;
+/**
+ * The employment half, shared by validateParty and validateDemandadoExtra.
+ * A working party needs the full employer block because the haberes model prints
+ * it: "… y trabaja para [EMPLEADOR] (CUIT …) con domicilio en […]".
+ */
+function validateEmpleo(
+  p: Pick<PartyFields, "trabaja" | "empleador_nombre" | "empleador_cuit">,
+  label: string,
+): string | null {
+  if (!p.trabaja) return null;
+  if (p.empleador_nombre === "") {
+    return `${label}: si trabaja, el nombre del empleador es obligatorio.`;
   }
-  if (p.trabaja) {
-    if (p.empleador_nombre === "") {
-      return `${label}: si trabaja, el nombre del empleador es obligatorio.`;
-    }
-    if (p.empleador_cuit === "") {
-      return `${label}: si trabaja, el CUIT del empleador es obligatorio.`;
-    }
-    // A CUIT is the same mod-11 construction with a 30/33/34 prefix.
-    if (!isValidCuil(p.empleador_cuit)) {
-      return `${label}: CUIT del empleador inválido, el dígito verificador no coincide.`;
-    }
+  if (p.empleador_cuit === "") {
+    return `${label}: si trabaja, el CUIT del empleador es obligatorio.`;
+  }
+  // A CUIT is the same mod-11 construction with a 30/33/34 prefix.
+  if (!isValidCuil(p.empleador_cuit)) {
+    return `${label}: CUIT del empleador inválido, el dígito verificador no coincide.`;
   }
   return null;
 }
 
+export function validateParty(p: PartyFields, label: string): string | null {
+  if (p.nombre === "") return `${label}: el nombre es obligatorio.`;
+  // CUIL and domicilio are required (Fran, 2026-08-21): all three cautelar
+  // fragments print both for every party, so a blank one is not a missing field
+  // in a database, it is a hole in the middle of a filed court document.
+  if (p.cuil === "") return `${label}: el CUIL es obligatorio.`;
+  if (!isValidCuil(p.cuil)) {
+    return `${label}: CUIL inválido, el dígito verificador no coincide.`;
+  }
+  if (p.domicilio === "") return `${label}: el domicilio es obligatorio.`;
+  return validateEmpleo(p, label);
+}
+
 /**
  * The demandado's own employment block, validated with the same employer rules.
- * Identity (nombre, cuil) is not checked here - it lives on the main ejecutado
- * form and is covered by validateEjecutadoFields.
+ * Identity (nombre, cuil, domicilio) is deliberately NOT checked here: the
+ * Demanda card edits only the employment half, and the main "Datos" form owns
+ * the rest. Applying the identity rules here would block saving the employer of
+ * a migrated case that predates the CUIL column.
  */
 export function validateDemandadoExtra(extra: DemandadoExtraFields): string | null {
-  return validateParty(
-    {
-      ...emptyParty(),
-      nombre: "-",
-      trabaja: extra.trabaja,
-      empleador_nombre: extra.empleador_nombre,
-      empleador_cuit: extra.empleador_cuit,
-    },
-    "El demandado",
-  );
+  return validateEmpleo(extra, "El demandado");
 }
 
 /**

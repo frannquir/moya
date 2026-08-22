@@ -41,6 +41,9 @@ type Draft = {
   cuenta_cliper: string;
   fecha_contrato: string;
   deuda_inicial: string;
+  // Load-bearing: generateLiquidacion skips a case without it, and the demanda
+  // prints it twice (OBJETO and ANTECEDENTES).
+  fecha_mora: string;
   numero_expediente: string;
   empresa: string;
 };
@@ -52,6 +55,7 @@ function emptyDraft(): Draft {
     cuenta_cliper: "",
     fecha_contrato: "",
     deuda_inicial: "",
+    fecha_mora: "",
     numero_expediente: "",
     empresa: NONE,
   };
@@ -65,6 +69,7 @@ function isBlank(d: Draft): boolean {
     d.codemandados.length === 0 &&
     d.cuenta_cliper === "" &&
     d.deuda_inicial === "" &&
+    d.fecha_mora === "" &&
     d.numero_expediente === ""
   );
 }
@@ -270,6 +275,21 @@ export function DemandaForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
+            {/*
+              TODO (Phase 4, UI touches): several labels in this app name things a
+              new user cannot guess — "Cuenta Cliper", "Tarjeta Cabal", "Fecha de
+              mora", "Cuenta de honorarios", "IBM". The plan is an info icon next
+              to those labels with the explanation on hover, instead of the
+              paragraph of helper text under the field: shorter forms, and the
+              explanation is there when it is wanted rather than always.
+              components/ui/tooltip.tsx already exists and the dashboard layout
+              already wraps everything in a TooltipProvider, so this is a small
+              shared <LabelConInfo> away.
+
+              Cuenta Cliper is the motivating example — its hover text should read
+              "Única por caso: la comparten el demandado y todos los codemandados.
+              La tarjeta Cabal, en cambio, es una por parte."
+            */}
             <div className="space-y-2">
               <Label htmlFor="cuenta_cliper">Cuenta Cliper</Label>
               <Input
@@ -282,9 +302,6 @@ export function DemandaForm({
                 inputMode="numeric"
                 placeholder="Solo números"
               />
-              <p className="text-xs text-muted-foreground">
-                Es del caso, no de cada parte.
-              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="fecha_contrato">Fecha del contrato</Label>
@@ -310,6 +327,25 @@ export function DemandaForm({
                 onChange={(e) => setDraft((d) => ({ ...d, deuda_inicial: e.target.value }))}
               />
             </div>
+            {/* Same label, type and name as the ejecutado form, so both go
+                through the same parseEjecutadoFormData path. */}
+            <div className="space-y-2">
+              <Label htmlFor="fecha_mora">Fecha de mora (desde)</Label>
+              <Input
+                id="fecha_mora"
+                name="fecha_mora"
+                type="date"
+                value={draft.fecha_mora}
+                onChange={(e) => setDraft((d) => ({ ...d, fecha_mora: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Vencimiento del último resumen impago. Sin esto no se genera la
+                liquidación.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="empresa">Empresa</Label>
               <Select

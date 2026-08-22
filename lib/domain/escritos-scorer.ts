@@ -94,10 +94,23 @@ export type RankedEscrito<T extends ScorerTemplate> = T & {
 // comes first, in its declared order and always flagged recomendado; everything
 // else follows, scored and sorted as before. A pinned template is removed from
 // the scored tail so it can't appear twice.
+/**
+ * Only 'escrito' rows are rankable. The queries that feed this already filter on
+ * tipo, so this is belt and braces — but it is the belt that makes "the demanda
+ * is never recommended" a property of the scorer rather than of every call site
+ * that might be added later. A row with no tipo predates the column and counts
+ * as an escrito.
+ */
+export function isRankable(t: ScorerTemplate): boolean {
+  return t.tipo == null || t.tipo === "escrito";
+}
+
 export function rankEscritos<T extends ScorerTemplate>(
-  templates: T[],
+  all: T[],
   state: EscritoSignalState,
 ): RankedEscrito<T>[] {
+  const templates = all.filter(isRankable);
+
   const byClave = new Map<string, T>();
   for (const t of templates) {
     if (t.clave) byClave.set(t.clave, t);

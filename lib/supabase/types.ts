@@ -623,6 +623,7 @@ export type Database = {
           sugerido_evento: string[]
           sugerido_medida_cautelar: string[]
           sugerido_movimiento: string[]
+          tipo: string
           titulo: string
           updated_at: string
         }
@@ -638,6 +639,7 @@ export type Database = {
           sugerido_evento?: string[]
           sugerido_medida_cautelar?: string[]
           sugerido_movimiento?: string[]
+          tipo?: string
           titulo: string
           updated_at?: string
         }
@@ -653,6 +655,7 @@ export type Database = {
           sugerido_evento?: string[]
           sugerido_medida_cautelar?: string[]
           sugerido_movimiento?: string[]
+          tipo?: string
           titulo?: string
           updated_at?: string
         }
@@ -1037,6 +1040,8 @@ export type Database = {
           created_at: string
           cuit: string
           domicilio_electronico: string
+          es_abogado: boolean
+          genero: string | null
           ibm: string
           iva_condicion: string
           legajo: string
@@ -1050,6 +1055,8 @@ export type Database = {
           created_at?: string
           cuit?: string
           domicilio_electronico?: string
+          es_abogado?: boolean
+          genero?: string | null
           ibm?: string
           iva_condicion?: string
           legajo?: string
@@ -1063,6 +1070,8 @@ export type Database = {
           created_at?: string
           cuit?: string
           domicilio_electronico?: string
+          es_abogado?: boolean
+          genero?: string | null
           ibm?: string
           iva_condicion?: string
           legajo?: string
@@ -1277,6 +1286,8 @@ export type Database = {
         Args: never
         Returns: {
           email: string
+          es_abogado: boolean
+          genero: string
           joined_at: string
           nombre: string
           role: string

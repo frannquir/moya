@@ -38,6 +38,12 @@ export type ScorerTemplate = {
   // Stable machine key. Only templates the pinned sets reference carry one;
   // everything else is NULL and is ranked purely by score.
   clave: string | null;
+  // 'escrito' | 'fragmento' | 'demanda'. Only 'escrito' rows belong in the
+  // library or in a recommendation: a fragmento is a piece of another document,
+  // and a demanda starts a case, so offering it against an existing ejecutado is
+  // nonsense. Optional so callers that predate the column keep type-checking;
+  // absent reads as 'escrito'.
+  tipo?: string | null;
   sugerido_movimiento: string[];
   sugerido_medida_cautelar: string[];
   sugerido_evento: string[];
