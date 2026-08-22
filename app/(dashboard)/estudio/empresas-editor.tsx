@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { CuilInput } from "@/components/cuil-input";
 
 type Row = {
   clave: string;
@@ -70,10 +71,12 @@ export function EmpresasEditor({ initial }: { initial: Row[] }) {
             </div>
             <div className="space-y-1">
               <Label>CUIT</Label>
-              <Input
+              {/* Same masked input the party forms use: a CUIT is the same mod-11
+                  construction as a CUIL, with a 30/33/34 juridical prefix. */}
+              <CuilInput
                 value={row.cuit}
-                onChange={(e) => update(i, "cuit", e.target.value)}
-                placeholder="00-00000000-0"
+                onValueChange={(next) => update(i, "cuit", next)}
+                placeholder="30-70918460-8"
               />
             </div>
           </div>

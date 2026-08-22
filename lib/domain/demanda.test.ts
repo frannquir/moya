@@ -16,7 +16,13 @@ const CUIL = "20-12345678-6";
 const CUIT = "30-70123456-8";
 
 function party(over: Partial<PartyFields> = {}): PartyFields {
-  return { ...emptyParty(), nombre: "Demandado de Prueba", ...over };
+  return {
+    ...emptyParty(),
+    nombre: "Demandado de Prueba",
+    cuil: CUIL,
+    domicilio: "Calle Sintética 1",
+    ...over,
+  };
 }
 
 function form(entries: Record<string, string>): FormData {
@@ -132,10 +138,28 @@ describe("validateParty", () => {
     expect(validateParty(party({ nombre: "" }), "El codemandado 1")).toMatch(/nombre/);
   });
 
-  it("accepts a blank CUIL but rejects a bad one", () => {
-    expect(validateParty(party({ cuil: "" }), "El demandado")).toBeNull();
+  // Tightened 2026-08-21 for Week 2B: every cautelar fragment prints the CUIL and
+  // the domicilio of every party, so a blank one renders a [CUIL] / [DOMICILIO]
+  // hole in a filed document.
+  it("requires a CUIL and rejects a bad one", () => {
     expect(validateParty(party({ cuil: CUIL }), "El demandado")).toBeNull();
-    expect(validateParty(party({ cuil: "20-12345678-1" }), "El demandado")).toMatch(/CUIL/);
+    expect(validateParty(party({ cuil: "" }), "El demandado")).toMatch(/CUIL es obligatorio/);
+    expect(validateParty(party({ cuil: "20-12345678-1" }), "El demandado")).toMatch(
+      /dígito verificador/,
+    );
+  });
+
+  it("requires a domicilio", () => {
+    expect(validateParty(party({ domicilio: "" }), "El codemandado 1")).toMatch(
+      /domicilio es obligatorio/,
+    );
+  });
+
+  it("reports the missing identity before the employer block", () => {
+    // Order matters for the form: the lawyer fixes the first thing named.
+    expect(validateParty(party({ cuil: "", trabaja: true }), "El demandado")).toMatch(
+      /CUIL/,
+    );
   });
 
   it("requires the employer block only when trabaja is true", () => {

@@ -38,9 +38,11 @@ export default async function EscritosPage() {
 
   const [{ data: templates }, { data: eventos }, { data: liqs }] =
     await Promise.all([
+      // Fragments and the demanda are never recommendations (see rankEscritos).
       supabase
         .from("escritos_templates")
         .select("*")
+        .eq("tipo", "escrito")
         .is("archived_at", null)
         .order("orden", { ascending: true }),
       ids.length

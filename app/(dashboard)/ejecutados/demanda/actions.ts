@@ -7,6 +7,7 @@ import { requireUser, getCurrentEstudioId } from "@/lib/data/auth";
 import { create } from "@/lib/data/ejecutados";
 import { createMany } from "@/lib/data/codemandados";
 import { generateLiquidacion } from "@/lib/data/liquidaciones";
+import { generarDemanda } from "@/lib/data/escrito-render";
 import { parseEjecutadoFormData, validateEjecutadoFields } from "@/lib/domain/ejecutado";
 import {
   labelForCodemandado,
@@ -71,14 +72,27 @@ export async function createDemanda(
     parties: codemandados,
   });
 
-  // Same generator the create/update actions and the migration use.
-  await generateLiquidacion(supabase, created.id);
+  // Same generator the create/update actions and the migration use. It runs
+  // before the demanda so {{CAPITAL}} / {{FECHA_MORA}} resolve from a real
+  // liquidación rather than falling back to the ejecutado's own columns.
+  //
+  // The result is NOT discarded: it returns "skipped" when fecha_mora or
+  // deuda_inicial is missing, and a demanda saved that way has no liquidación,
+  // never reaches /liquidaciones, and prints [FECHA_MORA] twice. fecha_mora is
+  // optional on purpose (Fran, 2026-08-22), so the user is told instead.
+  const liquidacion = await generateLiquidacion(supabase, created.id);
+
+  // The whole point of the flow: one submit produces the case AND the document.
+  const escrito = await generarDemanda(supabase, {
+    ejecutadoId: created.id,
+    userId: user.id,
+  });
 
   revalidatePath("/ejecutados");
   revalidatePath("/liquidaciones");
+  revalidatePath("/escritos");
 
-  // HANDOFF 2B: session 2B generates the demanda escrito here and redirects to
-  // it instead of to the detail page. Everything above (ejecutado + codemandados
-  // + liquidación) is the input that generation needs; nothing else changes.
-  redirect(`/ejecutados/${created.id}?toast=demanda_creada`);
+  // Land on the generated demanda, where "Copiar texto" already lives.
+  const toast = liquidacion === "generated" ? "demanda_creada" : "demanda_sin_liquidacion";
+  redirect(`/escritos/${escrito.id}?toast=${toast}`);
 }

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,12 +38,34 @@ function Dato({ label, value }: { label: string; value: string }) {
 export function DemandaCard({
   initial,
   updateAction,
+  regenerarAction,
+  ultimaDemanda,
+  avisos = [],
 }: {
   initial: DemandadoExtraFields;
   updateAction: Action;
+  /** "Generar de nuevo": recomposes section VII from the current party list. */
+  regenerarAction: Action;
+  /** The most recent generated demanda, if there is one. */
+  ultimaDemanda?: { id: string; contenido: string } | null;
+  /** Parties missing a CUIL or a domicilio — they render as holes in section VII. */
+  avisos?: string[];
 }) {
   const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [extra, setExtra] = useState<DemandadoExtraFields>(initial);
+
+  const handleCopy = async () => {
+    if (!ultimaDemanda) return;
+    try {
+      await navigator.clipboard.writeText(ultimaDemanda.contenido);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard is unavailable (insecure origin, permissions). The escrito
+      // page has a textarea the lawyer can select by hand.
+    }
+  };
 
   const set = <K extends keyof DemandadoExtraFields>(
     key: K,
@@ -95,8 +119,42 @@ export function DemandaCard({
           </div>
         )}
 
-        {/* HANDOFF 2B: "Copiar" and "Generar de nuevo" for the generated demanda
-            escrito land here. 2A deliberately does not build them. */}
+        {avisos.length > 0 && (
+          <Alert variant="destructive">
+            <AlertDescription>
+              <p className="font-medium">
+                La medida cautelar va a salir incompleta.
+              </p>
+              <p className="text-sm">
+                Falta{avisos.length > 1 ? "n" : ""} {avisos.join("; ")}. El escrito
+                imprime esos datos para cada parte y, sin ellos, queda un hueco
+                marcado en el apartado VII.
+              </p>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2">
+          <form action={regenerarAction}>
+            <Button type="submit" size="sm">
+              Generar de nuevo
+            </Button>
+          </form>
+          {ultimaDemanda ? (
+            <>
+              <Button type="button" size="sm" variant="outline" onClick={handleCopy}>
+                {copied ? "Copiado" : "Copiar"}
+              </Button>
+              <Button type="button" size="sm" variant="ghost" asChild>
+                <Link href={`/escritos/${ultimaDemanda.id}`}>Ver escrito</Link>
+              </Button>
+            </>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              Todavía no se generó el documento.
+            </span>
+          )}
+        </div>
 
         <Collapsible open={open} onOpenChange={setOpen}>
           <CollapsibleTrigger asChild>

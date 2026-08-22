@@ -54,13 +54,14 @@ export function PartyFieldsBlock({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor={id("cuil")}>CUIL</Label>
+          <Label htmlFor={id("cuil")}>CUIL *</Label>
           <CuilInput
             id={id("cuil")}
             name={name("cuil")}
             value={value.cuil}
             onValueChange={(next) => set("cuil", next)}
             showDni
+            required
           />
         </div>
         <div className="space-y-2">
@@ -75,12 +76,13 @@ export function PartyFieldsBlock({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={id("domicilio")}>Domicilio</Label>
+        <Label htmlFor={id("domicilio")}>Domicilio *</Label>
         <Input
           id={id("domicilio")}
           name={name("domicilio")}
           value={value.domicilio}
           onChange={(e) => set("domicilio", e.target.value)}
+          required
         />
       </div>
 

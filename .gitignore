@@ -44,6 +44,5 @@ scripts/**/*.csv
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-scripts/migrate-from-old.ts
 
 scripts/out/

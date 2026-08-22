@@ -25,6 +25,9 @@ import { EscritosSection } from "./escritos-section";
 import { CodemandadosCard } from "./codemandados-card";
 import { DemandaCard } from "./demanda-card";
 import { updateDemandaDatos } from "./demanda-actions";
+import { regenerarDemanda } from "./escritos-actions";
+import { getUltimaDemanda, loadPartes } from "@/lib/data/escrito-render";
+import { avisosDePartes } from "@/lib/domain/cautelar";
 import { Badge } from "@/components/ui/badge";
 import { activarBorrador, moverABorrador } from "../../borradores/actions";
 
@@ -67,6 +70,16 @@ export default async function EjecutadoDetailPage({
   const archiveAction = archiveEjecutado.bind(null, id);
   const delegateAction = delegateEjecutado.bind(null, id);
   const demandaAction = updateDemandaDatos.bind(null, id);
+  const regenerarAction = regenerarDemanda.bind(null, id);
+
+  // Only for the Demanda card, so only loaded when there is one to render.
+  const esDemanda = ejecutado.origen === "demanda";
+  const [ultimaDemanda, partesDemanda] = esDemanda
+    ? await Promise.all([
+        getUltimaDemanda(supabase, id),
+        loadPartes(supabase, ejecutado).then((r) => r.partes),
+      ])
+    : [null, []];
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -190,9 +203,12 @@ export default async function EjecutadoDetailPage({
 
       {/* Only for cases started from "Iniciar demanda" - a migrated or manually
           loaded case has none of these fields. */}
-      {ejecutado.origen === "demanda" && (
+      {esDemanda && (
         <DemandaCard
           updateAction={demandaAction}
+          regenerarAction={regenerarAction}
+          ultimaDemanda={ultimaDemanda}
+          avisos={avisosDePartes(partesDemanda)}
           initial={{
             trabaja: ejecutado.trabaja === true,
             empleador_nombre: ejecutado.empleador_nombre,

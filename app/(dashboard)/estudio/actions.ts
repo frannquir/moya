@@ -6,7 +6,11 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/data/auth";
 import { archiveGmailConnection } from "@/lib/data/mail";
 import { updateEscritosConfig } from "@/lib/data/estudio";
-import { type EstudioEscritosConfig } from "@/lib/domain/escritos-config";
+import {
+  type AbogadoConfig,
+  type EstudioEscritosConfig,
+} from "@/lib/domain/escritos-config";
+import { formatCuil, isValidCuil } from "@/lib/domain/cuil";
 
 export async function inviteMember(formData: FormData) {
   const supabase = await createClient();
@@ -152,15 +156,61 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
         empresas[clave] = {
           razonSocial: String(row?.razonSocial ?? "").trim(),
           domicilioLegal: String(row?.domicilioLegal ?? "").trim(),
-          cuit: String(row?.cuit ?? "").trim(),
+          cuit: formatCuil(String(row?.cuit ?? "").trim()),
         };
       }
     }
   } catch {
   }
 
+  // Validated OUTSIDE the parse, deliberately: the catch above exists to tolerate
+  // malformed JSON, and a rejection thrown inside it would be swallowed — the
+  // empresa would vanish from the config instead of reporting why.
+  //
+  // A CUIT is the same mod-11 construction as a CUIL with a 30/33/34 prefix, so
+  // this is the validator validateParty already applies to the empleador's CUIT —
+  // one implementation, not two. An empty CUIT stays allowed: an empresa may be
+  // configured before its CUIT is known.
+  for (const [clave, emp] of Object.entries(empresas)) {
+    if (emp.cuit !== "" && !isValidCuil(emp.cuit)) {
+      throw new Error(
+        `CUIT inválido en la empresa "${clave}": revisá el número, ` +
+          "el dígito verificador no coincide.",
+      );
+    }
+  }
+
+  // The apoderado every escrito is presented by. Stored verbatim; each field
+  // falls back to a visible placeholder at render time.
+  let encargado: Partial<AbogadoConfig> = {};
+  try {
+    const parsed = JSON.parse(String(formData.get("encargado_json") ?? "{}"));
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const pick = (k: keyof AbogadoConfig) => String(parsed[k] ?? "").trim();
+      encargado = {
+        nombre: pick("nombre"),
+        matricula: pick("matricula"),
+        legajo: pick("legajo"),
+        cuit: formatCuil(pick("cuit")),
+        ibm: pick("ibm"),
+        ivaCondicion: pick("ivaCondicion"),
+        domicilioElectronico: pick("domicilioElectronico"),
+        telefono: pick("telefono"),
+      };
+    }
+  } catch {
+  }
+
+  if (encargado.cuit && !isValidCuil(encargado.cuit)) {
+    throw new Error(
+      "CUIT inválido en el encargado del estudio: revisá el número, " +
+        "el dígito verificador no coincide.",
+    );
+  }
+
   const config: EstudioEscritosConfig = {
     cuenta_honorarios: String(formData.get("cuenta_honorarios") ?? "").trim(),
+    encargado,
     domicilios_procesales,
     empresas,
   };
