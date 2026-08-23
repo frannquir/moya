@@ -146,7 +146,10 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
   } catch {
   }
 
-  const empresas: Record<string, { razonSocial: string; domicilioLegal: string; cuit: string }> = {};
+  const empresas: Record<
+    string,
+    { razonSocial: string; domicilioLegal: string; cuit: string; cuentaBancaria: string }
+  > = {};
   try {
     const parsed = JSON.parse(String(formData.get("empresas_json") ?? "[]"));
     if (Array.isArray(parsed)) {
@@ -157,6 +160,7 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
           razonSocial: String(row?.razonSocial ?? "").trim(),
           domicilioLegal: String(row?.domicilioLegal ?? "").trim(),
           cuit: formatCuil(String(row?.cuit ?? "").trim()),
+          cuentaBancaria: String(row?.cuentaBancaria ?? "").trim(),
         };
       }
     }
@@ -196,6 +200,7 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
         ivaCondicion: pick("ivaCondicion"),
         domicilioElectronico: pick("domicilioElectronico"),
         telefono: pick("telefono"),
+        email: pick("email"),
       };
     }
   } catch {

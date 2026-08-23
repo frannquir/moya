@@ -51,6 +51,7 @@ export function ConfiguracionTab({
       razonSocial: emp?.razonSocial ?? "",
       domicilioLegal: emp?.domicilioLegal ?? "",
       cuit: emp?.cuit ?? "",
+      cuentaBancaria: emp?.cuentaBancaria ?? "",
     }),
   );
 

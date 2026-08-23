@@ -11,10 +11,17 @@ type Row = {
   razonSocial: string;
   domicilioLegal: string;
   cuit: string;
+  cuentaBancaria: string;
 };
 
 function emptyRow(): Row {
-  return { clave: "", razonSocial: "", domicilioLegal: "", cuit: "" };
+  return {
+    clave: "",
+    razonSocial: "",
+    domicilioLegal: "",
+    cuit: "",
+    cuentaBancaria: "",
+  };
 }
 
 export function EmpresasEditor({ initial }: { initial: Row[] }) {
@@ -79,6 +86,18 @@ export function EmpresasEditor({ initial }: { initial: Row[] }) {
                 placeholder="30-70918460-8"
               />
             </div>
+          </div>
+          <div className="space-y-1">
+            <Label>Cuenta bancaria (convenio)</Label>
+            <Input
+              value={row.cuentaBancaria}
+              onChange={(e) => update(i, "cuentaBancaria", e.target.value)}
+              placeholder="Cuenta 0000-00000/0, CBU 0000000000000000000000, Banco __________ Sucursal 000"
+            />
+            <p className="text-xs text-muted-foreground">
+              Donde el deudor deposita el capital del Reconocimiento de Deuda. Es por
+              empresa: la titular de la cuenta es la acreedora del convenio.
+            </p>
           </div>
         </div>
       ))}

@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { normalizeNumeroExpediente, validateEjecutadoFields } from "./ejecutado";
-import type { EjecutadoFormFields } from "./ejecutado";
+import {
+  CUOTAS_OPTIONS,
+  normalizeNumeroExpediente,
+  parseViaFormData,
+  validateEjecutadoFields,
+  validateViaFields,
+  viaOf,
+} from "./ejecutado";
+import type { EjecutadoFormFields, ViaFields } from "./ejecutado";
 
 // Only the fields the validator inspects matter here.
 function fields(over: Partial<EjecutadoFormFields> = {}): EjecutadoFormFields {
@@ -81,5 +88,134 @@ describe("validateEjecutadoFields", () => {
   });
   it("requires a nombre", () => {
     expect(validateEjecutadoFields(fields({ nombre: "" }))).toMatch(/nombre/i);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The extrajudicial axis (Phase 3)
+// ---------------------------------------------------------------------------
+
+function viaForm(entries: Record<string, string>): FormData {
+  const fd = new FormData();
+  for (const [k, v] of Object.entries(entries)) fd.set(k, v);
+  return fd;
+}
+
+describe("viaOf", () => {
+  it("reads a stored value", () => {
+    expect(viaOf("extrajudicial")).toBe("extrajudicial");
+    expect(viaOf("judicial")).toBe("judicial");
+  });
+
+  it("treats NULL and anything unrecognised as judicial", () => {
+    // Every case starts judicial, and a row written before the column existed
+    // must not read as a settlement.
+    expect(viaOf(null)).toBe("judicial");
+    expect(viaOf(undefined)).toBe("judicial");
+    expect(viaOf("")).toBe("judicial");
+    expect(viaOf("Extrajudicial")).toBe("judicial");
+  });
+});
+
+describe("parseViaFormData", () => {
+  it("reads the three settlement fields when going extrajudicial", () => {
+    expect(
+      parseViaFormData(
+        viaForm({
+          via: "extrajudicial",
+          monto_acuerdo: "270000",
+          cuotas: "3",
+          fecha_vencimiento: "2026-03-20",
+        }),
+      ),
+    ).toEqual({
+      via: "extrajudicial",
+      monto_acuerdo: 270000,
+      cuotas: 3,
+      fecha_vencimiento: "2026-03-20",
+    });
+  });
+
+  it("reverting to judicial clears all three", () => {
+    // They are only meaningful under an agreement; a stale monto left behind
+    // would let the convenio generate against numbers nobody agreed to.
+    expect(
+      parseViaFormData(
+        viaForm({
+          via: "judicial",
+          monto_acuerdo: "270000",
+          cuotas: "3",
+          fecha_vencimiento: "2026-03-20",
+        }),
+      ),
+    ).toEqual({
+      via: "judicial",
+      monto_acuerdo: null,
+      cuotas: null,
+      fecha_vencimiento: null,
+    });
+  });
+
+  it("an unknown via falls back to judicial rather than writing junk", () => {
+    expect(parseViaFormData(viaForm({ via: "mediacion" })).via).toBe("judicial");
+    expect(parseViaFormData(new FormData()).via).toBe("judicial");
+  });
+
+  it("a cuota count outside the offered set is dropped, not stored", () => {
+    // The DB CHECK is (1,3,6,12); a hand-posted 4 must be rejected by the
+    // validator, not blow up as a constraint violation.
+    const parsed = parseViaFormData(
+      viaForm({ via: "extrajudicial", monto_acuerdo: "1000", cuotas: "4" }),
+    );
+    expect(parsed.cuotas).toBeNull();
+  });
+
+  it("accepts every offered cuota count", () => {
+    for (const n of CUOTAS_OPTIONS) {
+      const parsed = parseViaFormData(
+        viaForm({ via: "extrajudicial", monto_acuerdo: "1200000", cuotas: String(n) }),
+      );
+      expect(parsed.cuotas).toBe(n);
+    }
+  });
+});
+
+describe("validateViaFields", () => {
+  const ok: ViaFields = {
+    via: "extrajudicial",
+    monto_acuerdo: 270000,
+    cuotas: 3,
+    fecha_vencimiento: "2026-03-20",
+  };
+
+  it("accepts a complete agreement", () => {
+    expect(validateViaFields(ok)).toBeNull();
+  });
+
+  it("judicial needs nothing", () => {
+    expect(
+      validateViaFields({
+        via: "judicial",
+        monto_acuerdo: null,
+        cuotas: null,
+        fecha_vencimiento: null,
+      }),
+    ).toBeNull();
+  });
+
+  it("rejects a missing or zero monto", () => {
+    expect(validateViaFields({ ...ok, monto_acuerdo: null })).toMatch(/monto/i);
+    expect(validateViaFields({ ...ok, monto_acuerdo: 0 })).toMatch(/monto/i);
+    expect(validateViaFields({ ...ok, monto_acuerdo: -1 })).toMatch(/monto/i);
+  });
+
+  it("rejects a missing cuota count", () => {
+    expect(validateViaFields({ ...ok, cuotas: null })).toMatch(/cuotas/i);
+  });
+
+  it("rejects a missing first vencimiento", () => {
+    // Without it there is no schedule at all, so the convenio would print a
+    // marker where every due date belongs.
+    expect(validateViaFields({ ...ok, fecha_vencimiento: null })).toMatch(/vencimiento/i);
   });
 });

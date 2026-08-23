@@ -11,6 +11,12 @@ export type AbogadoConfig = {
   ivaCondicion: string;
   domicilioElectronico: string;
   telefono: string;
+  /**
+   * A real inbox, unlike domicilioElectronico — which is the SCBA notification
+   * address and nobody reads. The convenio asks the debtor to send the deposit
+   * receipt here, so it has to be somewhere the estudio actually looks.
+   */
+  email: string;
 };
 
 // Placeholder defaults
@@ -23,6 +29,7 @@ export const ABOGADO_DEFAULT: AbogadoConfig = {
   ivaCondicion: "Responsable Inscripto",
   domicilioElectronico: "00000000000@notificaciones.scba.gov.ar",
   telefono: "000-0000000",
+  email: "CORREO DEL ESTUDIO",
 };
 
 export const CUENTA_HONORARIOS =
@@ -34,6 +41,14 @@ export type EmpresaConfig = {
   razonSocial: string;
   domicilioLegal: string;
   cuit: string;
+  /**
+   * Where the debtor deposits the capital under a convenio. One free-text line,
+   * the way the firm writes it: "Cuenta 1610-01079/3, CBU 2990…, del Banco
+   * Comafi Sucursal 161". Per empresa, because the acreedor is the account
+   * holder — the source convenio names Tartan's account on a Contar convenio,
+   * which is precisely the defect this removes.
+   */
+  cuentaBancaria: string;
 };
 
 export function getConfiguredDepartamentos(
@@ -168,6 +183,7 @@ export function resolveEmpresa(
     razonSocial: override.razonSocial ?? "",
     domicilioLegal: override.domicilioLegal ?? "",
     cuit: override.cuit ?? "",
+    cuentaBancaria: override.cuentaBancaria ?? "",
   };
 }
 
@@ -216,6 +232,7 @@ export function resolveAbogado(
     ivaCondicion: pick("ivaCondicion"),
     domicilioElectronico: pick("domicilioElectronico"),
     telefono: pick("telefono"),
+    email: pick("email"),
   };
 }
 

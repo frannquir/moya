@@ -285,6 +285,7 @@ export type Database = {
           created_by_user_id: string | null
           cuenta_cliper: string
           cuil: string
+          cuotas: number | null
           departamento: string
           deuda_inicial: number
           dinero_en_cuenta: number | null
@@ -300,6 +301,8 @@ export type Database = {
           fecha_deuda: string | null
           fecha_gastos: string | null
           fecha_mora: string | null
+          fecha_vencimiento: string | null
+          fojas_resumenes: number | null
           gastos: number
           id: string
           interes_gastos: number | null
@@ -310,6 +313,7 @@ export type Database = {
           medida_cautelar_diligenciada: boolean
           medida_cautelar_estado: string | null
           medida_cautelar_nota: string
+          monto_acuerdo: number | null
           movimiento: string | null
           movimiento_diligenciada: boolean | null
           nombre: string
@@ -321,6 +325,7 @@ export type Database = {
           telefono: string
           trabaja: boolean | null
           updated_at: string
+          via: string
         }
         Insert: {
           archived_at?: string | null
@@ -329,6 +334,7 @@ export type Database = {
           created_by_user_id?: string | null
           cuenta_cliper?: string
           cuil?: string
+          cuotas?: number | null
           departamento?: string
           deuda_inicial?: number
           dinero_en_cuenta?: number | null
@@ -344,6 +350,8 @@ export type Database = {
           fecha_deuda?: string | null
           fecha_gastos?: string | null
           fecha_mora?: string | null
+          fecha_vencimiento?: string | null
+          fojas_resumenes?: number | null
           gastos?: number
           id?: string
           interes_gastos?: number | null
@@ -354,6 +362,7 @@ export type Database = {
           medida_cautelar_diligenciada?: boolean
           medida_cautelar_estado?: string | null
           medida_cautelar_nota?: string
+          monto_acuerdo?: number | null
           movimiento?: string | null
           movimiento_diligenciada?: boolean | null
           nombre: string
@@ -365,6 +374,7 @@ export type Database = {
           telefono?: string
           trabaja?: boolean | null
           updated_at?: string
+          via?: string
         }
         Update: {
           archived_at?: string | null
@@ -373,6 +383,7 @@ export type Database = {
           created_by_user_id?: string | null
           cuenta_cliper?: string
           cuil?: string
+          cuotas?: number | null
           departamento?: string
           deuda_inicial?: number
           dinero_en_cuenta?: number | null
@@ -388,6 +399,8 @@ export type Database = {
           fecha_deuda?: string | null
           fecha_gastos?: string | null
           fecha_mora?: string | null
+          fecha_vencimiento?: string | null
+          fojas_resumenes?: number | null
           gastos?: number
           id?: string
           interes_gastos?: number | null
@@ -398,6 +411,7 @@ export type Database = {
           medida_cautelar_diligenciada?: boolean
           medida_cautelar_estado?: string | null
           medida_cautelar_nota?: string
+          monto_acuerdo?: number | null
           movimiento?: string | null
           movimiento_diligenciada?: boolean | null
           nombre?: string
@@ -409,6 +423,7 @@ export type Database = {
           telefono?: string
           trabaja?: boolean | null
           updated_at?: string
+          via?: string
         }
         Relationships: [
           {

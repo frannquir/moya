@@ -1,7 +1,7 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { type Database } from "@/lib/supabase/types";
 import { type Tables } from "@/lib/supabase/db-helpers";
-import { type EjecutadoFormFields } from "@/lib/domain/ejecutado";
+import { type EjecutadoFormFields, type Via, type ViaFields } from "@/lib/domain/ejecutado";
 import { type DemandadoExtraFields } from "@/lib/domain/demanda";
 
 type Client = SupabaseClient<Database>;
@@ -21,7 +21,14 @@ export async function listActive(
     page = 1,
     pageSize = PAGE_SIZE_DEFAULT,
     assignedTo,
-  }: { q?: string; page?: number; pageSize?: number; assignedTo?: string } = {},
+    via,
+  }: {
+    q?: string;
+    page?: number;
+    pageSize?: number;
+    assignedTo?: string;
+    via?: Via;
+  } = {},
 ): Promise<{ items: Ejecutado[]; totalCount: number }> {
   const term = q.trim().slice(0, 100);
   const from = (Math.max(1, page) - 1) * pageSize;
@@ -38,6 +45,11 @@ export async function listActive(
   // UI scope (e.g. the head's "Miembro" view), not a security boundary — RLS still applies.
   if (assignedTo) {
     query = query.eq("assigned_to_user_id", assignedTo);
+  }
+
+  // Also a UI scope, not a boundary: the via filter on /ejecutados.
+  if (via) {
+    query = query.eq("via", via);
   }
 
   if (term) {
@@ -127,6 +139,20 @@ export async function update(
     .from("ejecutados")
     .update(fields)
     .eq("id", id);
+  if (error) throw error;
+}
+
+/**
+ * The extrajudicial switch. Its own update path rather than a field on
+ * EjecutadoFormFields: the main "Datos" form does not post these columns, so
+ * folding them into that spread would blank the settlement on every save.
+ */
+export async function updateVia(
+  supabase: Client,
+  id: string,
+  fields: ViaFields,
+): Promise<void> {
+  const { error } = await supabase.from("ejecutados").update(fields).eq("id", id);
   if (error) throw error;
 }
 

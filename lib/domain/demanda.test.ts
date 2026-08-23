@@ -7,6 +7,7 @@ import {
   parsePartiesJson,
   parsePartyFormData,
   validateDemandadoExtra,
+  validateFojasResumenes,
   validateParty,
   type PartyFields,
 } from "./demanda";
@@ -211,5 +212,59 @@ describe("validateDemandadoExtra", () => {
     // The Demanda card edits only the employment block; nombre/cuil are the main
     // form's business and must not block a save here.
     expect(validateDemandadoExtra(parseDemandadoExtraFormData(form({})))).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Fojas de resúmenes de cuenta
+// ---------------------------------------------------------------------------
+//
+// The only DOCUMENTAL count that varies between cases. Contrato (14 fs.) and
+// acuse de recibo (2 fs.) are literals in the template body since
+// 20260823140000_fojas — the two source demandas were diffed word for word and
+// only the resúmenes differed.
+
+describe("validateFojasResumenes", () => {
+  it("allows NULL — every case created before the column genuinely does not know", () => {
+    expect(validateFojasResumenes(null)).toBeNull();
+  });
+
+  it("accepts the range the DB CHECK accepts", () => {
+    for (const n of [1, 10, 12, 30]) {
+      expect(validateFojasResumenes(n)).toBeNull();
+    }
+  });
+
+  it("rejects out of range, so it is a Spanish message and not a constraint violation", () => {
+    expect(validateFojasResumenes(0)).toMatch(/entre 1 y 30/);
+    expect(validateFojasResumenes(31)).toMatch(/entre 1 y 30/);
+    expect(validateFojasResumenes(-3)).toMatch(/entre 1 y 30/);
+  });
+
+  it("rejects a non-integer count of pages", () => {
+    expect(validateFojasResumenes(10.5)).toMatch(/entero/);
+  });
+});
+
+describe("parseDemandadoExtraFormData — fojas_resumenes", () => {
+  function fd(entries: Record<string, string>): FormData {
+    const f = new FormData();
+    for (const [k, v] of Object.entries(entries)) f.set(k, v);
+    return f;
+  }
+
+  it("reads the number", () => {
+    expect(parseDemandadoExtraFormData(fd({ fojas_resumenes: "12" })).fojas_resumenes).toBe(12);
+  });
+
+  it("blank stays NULL rather than becoming zero", () => {
+    // A case whose count nobody entered must print the [FOJAS_RESUMENES] marker,
+    // not claim the demanda attaches zero pages of statements.
+    expect(parseDemandadoExtraFormData(fd({})).fojas_resumenes).toBeNull();
+    expect(parseDemandadoExtraFormData(fd({ fojas_resumenes: "" })).fojas_resumenes).toBeNull();
+  });
+
+  it("garbage is NULL, and the validator is what reports it", () => {
+    expect(parseDemandadoExtraFormData(fd({ fojas_resumenes: "doce" })).fojas_resumenes).toBeNull();
   });
 });

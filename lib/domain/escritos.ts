@@ -1,6 +1,6 @@
 
 
-import { type Movimiento } from "./ejecutado";
+import { type Movimiento, type Via } from "./ejecutado";
 
 export const MEDIDA_CAUTELAR_OPTIONS = ["embargo", "igb"] as const;
 export type MedidaCautelar = (typeof MEDIDA_CAUTELAR_OPTIONS)[number];
@@ -26,6 +26,10 @@ export type EventoTipo = (typeof EVENTO_OPTIONS)[number];
 // The signal vector — the single contract escritos score against.
 export type EscritoSignalState = {
   movimiento: Movimiento | null;
+  // An axis parallel to movimiento, not a movimiento value (locked decision
+  // #15). Optional so every existing caller and test keeps type-checking; absent
+  // reads as judicial, which is what a case is until the debtor makes contact.
+  via?: Via | null;
   medida_cautelar: MedidaCautelar | null;
   diligenciada: boolean | null;
   ultimo_evento: EventoTipo | string | null;

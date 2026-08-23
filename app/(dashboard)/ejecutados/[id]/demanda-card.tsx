@@ -96,6 +96,15 @@ export function DemandaCard({
           <Dato label="Tarjeta Cabal" value={initial.tarjeta_cabal} />
         </div>
 
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Dato
+            label="Fojas de resúmenes de cuenta"
+            value={
+              initial.fojas_resumenes !== null ? `${initial.fojas_resumenes} fs.` : ""
+            }
+          />
+        </div>
+
         <Separator />
 
         <div className="flex items-center gap-2">
@@ -193,6 +202,26 @@ export function DemandaCard({
                     value={extra.tarjeta_cabal}
                     onChange={(e) => set("tarjeta_cabal", onlyDigits(e.target.value))}
                     inputMode="numeric"
+                  />
+                </div>
+                {/* Editable here as well as on the create form: "Generar de
+                    nuevo" recomposes the DOCUMENTAL block from current data, so
+                    the count has to be correctable after the case exists. */}
+                <div className="space-y-2">
+                  <Label htmlFor="dc-fojas_resumenes">Fojas de resúmenes de cuenta</Label>
+                  <Input
+                    id="dc-fojas_resumenes"
+                    name="fojas_resumenes"
+                    type="number"
+                    min={1}
+                    max={30}
+                    value={extra.fojas_resumenes ?? ""}
+                    onChange={(e) =>
+                      set(
+                        "fojas_resumenes",
+                        e.target.value === "" ? null : Number(e.target.value),
+                      )
+                    }
                   />
                 </div>
               </div>

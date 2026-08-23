@@ -14,6 +14,7 @@ import {
   parseDemandadoExtraFormData,
   parsePartiesJson,
   parsePartyFormData,
+  validateFojasResumenes,
   validateParty,
 } from "@/lib/domain/demanda";
 
@@ -47,6 +48,9 @@ export async function createDemanda(
 
   const demandadoError = validateParty(demandado, "El demandado");
   if (demandadoError) return { error: demandadoError };
+
+  const fojasError = validateFojasResumenes(extra.fojas_resumenes);
+  if (fojasError) return { error: fojasError };
 
   for (let i = 0; i < codemandados.length; i++) {
     const error = validateParty(codemandados[i], labelForCodemandado(i));

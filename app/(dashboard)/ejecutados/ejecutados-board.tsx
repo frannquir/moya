@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient as createBrowserClient } from "@/lib/supabase/browser";
 import { listActive, type Ejecutado } from "@/lib/data/ejecutados";
+import { VIA_OPTIONS, viaOf, type Via } from "@/lib/domain/ejecutado";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,19 @@ export type BoardMember = {
 // below this; if it ever grows past it, the folder view would need paging.
 const FOLDER_FETCH_SIZE = 1000;
 const NO_ASSIGNEE = "__none__";
+
+// The via filter, URL-driven like ?vista=. "" is "Todos" and stays out of the URL.
+const VIA_FILTERS: { value: "" | Via; label: string }[] = [
+  { value: "", label: "Todos" },
+  ...VIA_OPTIONS.map((v) => ({
+    value: v,
+    label: v === "judicial" ? "Judicial" : "Extrajudicial",
+  })),
+];
+
+function viaFilterFrom(raw: string | null): "" | Via {
+  return (VIA_OPTIONS as readonly string[]).includes(raw ?? "") ? (raw as Via) : "";
+}
 
 export function EjecutadosBoard({
   initialQ,
@@ -59,6 +73,11 @@ export function EjecutadosBoard({
   const vista = isHead && urlVista === "estudio" ? "estudio" : "miembro";
   const showFolders = vista === "estudio";
 
+  // The via filter rides the same URL-as-source-of-truth pattern as ?vista=.
+  // Not head-gated: an extrajudicial case means a channel to the debtor exists,
+  // which is what the firm most wants to see grouped, member or head.
+  const viaFilter = viaFilterFrom(params.get("via"));
+
   // URL is the source of truth for the page. When the term changes, reset to
   // page 1 — otherwise a stale ?page= could land on an empty page after the set
   // narrows. This keeps query, URL, and pager hrefs consistent.
@@ -70,19 +89,36 @@ export function EjecutadosBoard({
   const { data } = useQuery({
     queryKey: [
       "ejecutados",
-      { q: deferredQ, page: pageNum, view: "miembro", assignedTo: currentUserId },
+      {
+        q: deferredQ,
+        page: pageNum,
+        view: "miembro",
+        assignedTo: currentUserId,
+        via: viaFilter,
+      },
     ],
     queryFn: () =>
-      listActive(supabase, { q: deferredQ, page: pageNum, pageSize, assignedTo: currentUserId }),
+      listActive(supabase, {
+        q: deferredQ,
+        page: pageNum,
+        pageSize,
+        assignedTo: currentUserId,
+        ...(viaFilter ? { via: viaFilter } : {}),
+      }),
     placeholderData: (prev) => prev, // keep the old page visible while the next loads
     enabled: !showFolders,
   });
 
   // Folder view fetches the full active set once and groups it client-side.
   const { data: folderData } = useQuery({
-    queryKey: ["ejecutados", "folders", { q: deferredQ }],
+    queryKey: ["ejecutados", "folders", { q: deferredQ, via: viaFilter }],
     queryFn: () =>
-      listActive(supabase, { q: deferredQ, page: 1, pageSize: FOLDER_FETCH_SIZE }),
+      listActive(supabase, {
+        q: deferredQ,
+        page: 1,
+        pageSize: FOLDER_FETCH_SIZE,
+        ...(viaFilter ? { via: viaFilter } : {}),
+      }),
     placeholderData: (prev) => prev,
     enabled: showFolders,
   });
@@ -99,11 +135,12 @@ export function EjecutadosBoard({
       if (deferredQ) next.set("q", deferredQ);
       if (pageNum > 1) next.set("page", String(pageNum));
       if (vista === "estudio") next.set("vista", "estudio");
+      if (viaFilter) next.set("via", viaFilter);
       const qs = next.toString();
       router.replace(qs ? `?${qs}` : "?", { scroll: false });
     }, 300);
     return () => clearTimeout(t);
-  }, [deferredQ, pageNum, vista, router]);
+  }, [deferredQ, pageNum, vista, viaFilter, router]);
 
   // Realtime: any row change invalidates all ejecutados queries (both views).
   useEffect(() => {
@@ -122,7 +159,12 @@ export function EjecutadosBoard({
   }, []);
 
   const hrefFor = (target: number) =>
-    `?${new URLSearchParams({ ...(deferredQ ? { q: deferredQ } : {}), page: String(target) })}`;
+    `?${new URLSearchParams({
+      ...(deferredQ ? { q: deferredQ } : {}),
+      ...(vista === "estudio" ? { vista: "estudio" } : {}),
+      ...(viaFilter ? { via: viaFilter } : {}),
+      page: String(target),
+    })}`;
 
   // Switching view drops ?page= so each view starts at page 1.
   function setVista(next: "miembro" | "estudio") {
@@ -130,6 +172,19 @@ export function EjecutadosBoard({
     const p = new URLSearchParams();
     if (deferredQ) p.set("q", deferredQ);
     if (next === "estudio") p.set("vista", "estudio");
+    if (viaFilter) p.set("via", viaFilter);
+    const qs = p.toString();
+    router.replace(qs ? `?${qs}` : "?", { scroll: false });
+  }
+
+  // Narrowing the set can strand a stale ?page=, so the filter resets to page 1
+  // exactly as switching view does.
+  function setViaFilter(next: "" | Via) {
+    if (next === viaFilter) return;
+    const p = new URLSearchParams();
+    if (deferredQ) p.set("q", deferredQ);
+    if (vista === "estudio") p.set("vista", "estudio");
+    if (next) p.set("via", next);
     const qs = p.toString();
     router.replace(qs ? `?${qs}` : "?", { scroll: false });
   }
@@ -147,6 +202,7 @@ export function EjecutadosBoard({
           <p className="text-sm text-muted-foreground">
             {headerCount} ejecutados activos
             {showFolders ? " en el estudio" : isHead ? " asignados a mí" : ""}
+            {viaFilter ? ` · ${viaFilter === "judicial" ? "judiciales" : "extrajudiciales"}` : ""}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -180,12 +236,29 @@ export function EjecutadosBoard({
         </div>
       </div>
 
-      <div className="relative max-w-sm">
-        <Input
-          placeholder="Buscar por nombre…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative max-w-sm flex-1 min-w-[12rem]">
+          <Input
+            placeholder="Buscar por nombre…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Vía:</span>
+          <div className="flex rounded-md border p-0.5">
+            {VIA_FILTERS.map((f) => (
+              <Button
+                key={f.value || "todos"}
+                variant={viaFilter === f.value ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViaFilter(f.value)}
+              >
+                {f.label}
+              </Button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {showFolders ? (
@@ -283,9 +356,14 @@ function EjecutadoRow({ e }: { e: Ejecutado }) {
   return (
     <TableRow className="cursor-pointer">
       <TableCell className="font-medium">
-        <Link href={`/ejecutados/${e.id}`} className="hover:underline">
-          {e.nombre}
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/ejecutados/${e.id}`} className="hover:underline">
+            {e.nombre}
+          </Link>
+          {viaOf(e.via) === "extrajudicial" && (
+            <Badge className="text-[10px]">Extrajudicial</Badge>
+          )}
+        </div>
       </TableCell>
       <TableCell>{e.numero_expediente || "—"}</TableCell>
       <TableCell>{e.juzgado || "—"}</TableCell>

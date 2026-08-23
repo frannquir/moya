@@ -15,7 +15,7 @@ import {
   type EscritoSignalState,
   type MedidaCautelar,
 } from "@/lib/domain/escritos";
-import { type Movimiento } from "@/lib/domain/ejecutado";
+import { viaOf, type Movimiento } from "@/lib/domain/ejecutado";
 import { generarEscrito } from "../ejecutados/[id]/escritos-actions";
 
 const FEED_LIMIT = 12;
@@ -26,7 +26,7 @@ export default async function EscritosPage() {
 
   const { data: ejecutados, error } = await supabase
     .from("ejecutados")
-    .select("id, nombre, numero_expediente, movimiento, medida_cautelar, movimiento_diligenciada")
+    .select("id, nombre, numero_expediente, movimiento, medida_cautelar, movimiento_diligenciada, via")
     .is("archived_at", null)
     .eq("is_draft", false)
     .order("updated_at", { ascending: false })
@@ -85,6 +85,7 @@ export default async function EscritosPage() {
           {ejecutados.map((ej) => {
             const state: EscritoSignalState = {
               movimiento: (ej.movimiento ?? null) as Movimiento | null,
+              via: viaOf(ej.via),
               medida_cautelar: (ej.medida_cautelar ?? null) as MedidaCautelar | null,
               diligenciada: ej.movimiento_diligenciada ?? null,
               ultimo_evento: ultimoEvento.get(ej.id) ?? null,
@@ -106,6 +107,7 @@ export default async function EscritosPage() {
                   <CardDescription>
                     {[
                       ej.movimiento ?? null,
+                      viaOf(ej.via) === "extrajudicial" ? "Extrajudicial" : null,
                       ej.numero_expediente ? `Expte. ${ej.numero_expediente}` : null,
                     ]
                       .filter(Boolean)

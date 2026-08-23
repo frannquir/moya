@@ -203,11 +203,9 @@ describe("detectManualPlaceholders", () => {
     expect(detectManualPlaceholders("{{#if X}}{{CBU}}{{/if}}")).toEqual(["CBU"]);
   });
 
-  it("carries the demanda fojas tokens", () => {
-    for (const t of ["FOJAS_RESUMENES", "FOJAS_CONTRATO", "FOJAS_ACUSE"]) {
-      expect(MANUAL_INPUT_TOKENS.has(t)).toBe(true);
-    }
-  });
+  // The three fojas tokens used to be asserted here as manual inputs. They are
+  // not any more; see the "MANUAL_INPUT_TOKENS — the fojas" block at the end of
+  // this file for what replaced that expectation and why.
 });
 
 // --- backward compatibility -------------------------------------------------
@@ -284,5 +282,28 @@ describe("backward compatibility with the pre-block engine", () => {
     for (const body of legacy) {
       expect(renderTemplate(body, {})).toBe(renderLegacy(body, {}));
     }
+  });
+});
+
+describe("MANUAL_INPUT_TOKENS — the fojas", () => {
+  it("no longer prompts for any of the three fojas counts", () => {
+    // FOJAS_CONTRATO (14) and FOJAS_ACUSE (2) are literals in the demanda body
+    // since 20260823140000_fojas; FOJAS_RESUMENES became a stored column on
+    // ejecutados, because "Generar de nuevo" recomposes from current data and a
+    // generate-time-only value would blank itself on every regeneration.
+    expect(MANUAL_INPUT_TOKENS.has("FOJAS_CONTRATO")).toBe(false);
+    expect(MANUAL_INPUT_TOKENS.has("FOJAS_ACUSE")).toBe(false);
+    expect(MANUAL_INPUT_TOKENS.has("FOJAS_RESUMENES")).toBe(false);
+  });
+
+  it("still prompts for the tokens that really are generate-time facts", () => {
+    expect(MANUAL_INPUT_TOKENS.has("TIMBRADO_18_DIGITOS")).toBe(true);
+    expect(MANUAL_INPUT_TOKENS.has("FECHA_PROVIDENCIA")).toBe(true);
+  });
+
+  it("detectManualPlaceholders leaves a fojas body alone", () => {
+    expect(
+      detectManualPlaceholders("Resúmenes en número de {{FOJAS_RESUMENES}} fs."),
+    ).toEqual([]);
   });
 });

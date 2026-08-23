@@ -503,3 +503,132 @@ describe("rankEscritos — tipo discriminator", () => {
     ]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// The via layer (Phase 3)
+// ---------------------------------------------------------------------------
+//
+// `via` is an axis parallel to movimiento (locked decision #15), so it pins from
+// a SECOND layer that merges above the movimiento-keyed one. The requirement is
+// ordering, not presence: the Reconocimiento de Deuda must be the FIRST
+// recommendation on an extrajudicial case (Fran, 2026-08-19), including when a
+// movimiento-pinned set matches at the same time.
+describe("rankEscritos — via layer", () => {
+  const LIBRARY: ScorerTemplate[] = [
+    tmpl({ clave: "convenio.reconocimiento-deuda" }),
+    tmpl({
+      clave: "cedula-habilitacion",
+      sugerido_movimiento: ["Enviar Cédula"],
+      sugerido_diligenciada: false,
+    }),
+    tmpl({
+      clave: "cedula-bajo-responsabilidad",
+      sugerido_movimiento: ["Enviar Cédula"],
+      sugerido_diligenciada: false,
+    }),
+    tmpl({ clave: "oficio-renaper", sugerido_movimiento: ["Enviar Cédula"] }),
+    tmpl({
+      clave: "preparar-via-cautelar",
+      sugerido_movimiento: ["Inicio Causa"],
+      sugerido_diligenciada: true,
+    }),
+    // Noise: scores 100 against En Cobro and must never displace the convenio.
+    tmpl({ clave: "solicita-saldo", sugerido_movimiento: ["En Cobro"] }),
+  ];
+
+  function pinnedOf(s: EscritoSignalState): (string | null)[] {
+    return rankEscritos(LIBRARY, s)
+      .filter((t) => t.reasons.includes("fijado"))
+      .map((t) => t.clave);
+  }
+
+  it("an extrajudicial case pins the convenio", () => {
+    expect(pinnedOf(state({ via: "extrajudicial" }))).toEqual([
+      "convenio.reconocimiento-deuda",
+    ]);
+  });
+
+  it("the convenio is the FIRST recommendation, ahead of a higher scorer", () => {
+    const ranked = rankEscritos(
+      LIBRARY,
+      state({ via: "extrajudicial", movimiento: "En Cobro" }),
+    );
+    expect(ranked[0].clave).toBe("convenio.reconocimiento-deuda");
+    expect(ranked[0].recomendado).toBe(true);
+    // solicita-saldo scores stagePrimary here and still comes second.
+    expect(ranked[1].clave).toBe("solicita-saldo");
+    expect(ranked[1].score).toBeGreaterThan(ranked[0].score);
+  });
+
+  it("the convenio still comes first when a movimiento set is pinned too", () => {
+    // This is the case a single merged rule table could not express.
+    expect(
+      pinnedOf(
+        state({ via: "extrajudicial", movimiento: "Enviar Cédula", diligenciada: false }),
+      ),
+    ).toEqual([
+      "convenio.reconocimiento-deuda",
+      "cedula-habilitacion",
+      "cedula-bajo-responsabilidad",
+      "oficio-renaper",
+    ]);
+  });
+
+  it("is first in the /escritos feed's top-3 slice as well", () => {
+    const top3 = rankEscritos(
+      LIBRARY,
+      state({ via: "extrajudicial", movimiento: "Enviar Cédula", diligenciada: false }),
+    )
+      .filter((t) => t.recomendado)
+      .slice(0, 3)
+      .map((t) => t.clave);
+    expect(top3[0]).toBe("convenio.reconocimiento-deuda");
+  });
+
+  it("a judicial case pins exactly what it pinned before the via layer existed", () => {
+    expect(
+      pinnedOf(
+        state({ via: "judicial", movimiento: "Enviar Cédula", diligenciada: false }),
+      ),
+    ).toEqual([
+      "cedula-habilitacion",
+      "cedula-bajo-responsabilidad",
+      "oficio-renaper",
+    ]);
+  });
+
+  it("an absent via reads as judicial and pins nothing extra", () => {
+    expect(pinnedOf(state({ movimiento: "Enviar Cédula", diligenciada: false }))).toEqual([
+      "cedula-habilitacion",
+      "cedula-bajo-responsabilidad",
+      "oficio-renaper",
+    ]);
+    expect(pinnedOf(state())).toEqual([]);
+  });
+
+  it("never lists the convenio twice, even when it would also be pinned by movimiento", () => {
+    const ranked = rankEscritos(LIBRARY, state({ via: "extrajudicial" }));
+    const claves = ranked.map((t) => t.clave);
+    expect(new Set(claves).size).toBe(claves.length);
+    expect(ranked).toHaveLength(LIBRARY.length);
+  });
+
+  it("the convenio is never recommended on a judicial case", () => {
+    for (const movimiento of [
+      null,
+      "Inicio Causa",
+      "Enviar Cédula",
+      "Enviar Mandamiento",
+      "Pedir Sentencia",
+      "En Cobro",
+    ] as const) {
+      for (const diligenciada of [null, true, false]) {
+        const convenio = rankEscritos(
+          LIBRARY,
+          state({ via: "judicial", movimiento, diligenciada }),
+        ).find((t) => t.clave === "convenio.reconocimiento-deuda")!;
+        expect(convenio.recomendado).toBe(false);
+      }
+    }
+  });
+});

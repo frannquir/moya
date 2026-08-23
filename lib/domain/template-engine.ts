@@ -303,13 +303,16 @@ export const MANUAL_INPUT_TOKENS = new Set<string>([
   "SUCURSAL",
   "NUMERO_CUENTA",
   "CBU",
-  // Demanda (2B): the page counts of the attached exhibits are physical facts
-  // about the paperwork, not data the app holds — the two source demandas carry
-  // 10 vs 12 fojas of resúmenes for otherwise identical documentation.
-  "FOJAS_RESUMENES",
-  "FOJAS_CONTRATO",
-  "FOJAS_ACUSE",
 ]);
+
+// FOJAS_RESUMENES, FOJAS_CONTRATO and FOJAS_ACUSE used to live in the set above.
+// The two source demandas were diffed word for word (2026-08-22) and their
+// DOCUMENTAL blocks are identical except for the resúmenes count, so contrato
+// (14 fs.) and acuse (2 fs.) became literals in the template body and left the
+// set entirely. FOJAS_RESUMENES left it too, but for the opposite reason: it is
+// now a stored column on ejecutados, filled in the demanda form, because
+// "Generar de nuevo" recomposes from current data and a generate-time-only value
+// would blank itself on every regeneration.
 
 // The manual-input placeholders present in a template body.
 export function detectManualPlaceholders(contenido: string): string[] {

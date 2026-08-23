@@ -5,15 +5,16 @@ import { listActive } from "@/lib/data/ejecutados";
 import { requireUser } from "@/lib/data/auth";
 import { getMembership, listMembers } from "@/lib/data/estudio";
 import { EjecutadosBoard, type BoardMember } from "./ejecutados-board";
+import { VIA_OPTIONS, type Via } from "@/lib/domain/ejecutado";
 
 const PAGE_SIZE = 25;
 
 export default async function EjecutadosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string; vista?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; vista?: string; via?: string }>;
 }) {
-  const { q, page, vista } = await searchParams;
+  const { q, page, vista, via } = await searchParams;
   const pageNum = Math.max(1, parseInt(page ?? "1", 10) || 1);
   const term = (q ?? "").trim().slice(0, 100);
 
@@ -24,6 +25,11 @@ export default async function EjecutadosPage({
 
   // Default to the user's own cases; "Estudio" (firm-wide, grouped) is a head-only opt-in.
   const view = isHead && vista === "estudio" ? "estudio" : "miembro";
+
+  // Anything not in VIA_OPTIONS is "Todos" — a hand-typed ?via= must not 500.
+  const viaFilter: "" | Via = (VIA_OPTIONS as readonly string[]).includes(via ?? "")
+    ? (via as Via)
+    : "";
 
   // Head-only firm-wide folder view needs the member directory.
   const members: BoardMember[] = isHead
@@ -45,19 +51,31 @@ export default async function EjecutadosPage({
       page: pageNum,
       pageSize: PAGE_SIZE,
       assignedTo: user.id,
+      ...(viaFilter ? { via: viaFilter } : {}),
     });
 
     const totalPages = Math.max(1, Math.ceil(result.totalCount / PAGE_SIZE));
     if (pageNum > totalPages) {
       const params = new URLSearchParams({
         ...(term ? { q: term } : {}),
+        ...(viaFilter ? { via: viaFilter } : {}),
         page: String(totalPages),
       });
       redirect(`?${params}`);
     }
 
+    // Key must match the board's exactly, or the prefetch is a cache miss.
     qc.setQueryData(
-      ["ejecutados", { q: term, page: pageNum, view: "miembro", assignedTo: user.id }],
+      [
+        "ejecutados",
+        {
+          q: term,
+          page: pageNum,
+          view: "miembro",
+          assignedTo: user.id,
+          via: viaFilter,
+        },
+      ],
       result,
     );
   }

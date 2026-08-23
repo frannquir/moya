@@ -15,6 +15,15 @@ const TOASTS: Record<string, { type: "success" | "error"; text: string }> = {
     type: "error",
     text: "Demanda creada, pero sin liquidación: falta la fecha de mora.",
   },
+  paso_a_extrajudicial: {
+    type: "success",
+    text: "El caso pasó a extrajudicial. El Reconocimiento de Deuda ya está primero en los recomendados.",
+  },
+  acuerdo_guardado: { type: "success", text: "Acuerdo actualizado." },
+  volvio_a_judicial: {
+    type: "success",
+    text: "El caso volvió a judicial. Se borraron el monto, las cuotas y el vencimiento.",
+  },
   codemandado_agregado: { type: "success", text: "Codemandado agregado." },
   codemandado_guardado: { type: "success", text: "Codemandado actualizado." },
   codemandado_archivado: { type: "success", text: "Codemandado eliminado." },

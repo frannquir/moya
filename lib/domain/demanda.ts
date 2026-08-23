@@ -31,6 +31,13 @@ export type DemandadoExtraFields = {
   // Case-level, shared across every party, never repeated per codemandado.
   cuenta_cliper: string;
   fecha_contrato: string | null;
+  /**
+   * The one DOCUMENTAL count that varies between cases — contrato (14 fs.) and
+   * acuse (2 fs.) are literals in the template body. Stored rather than asked at
+   * generate time: "Generar de nuevo" recomposes from current data, so an
+   * unstored value would blank itself on every regeneration.
+   */
+  fojas_resumenes: number | null;
 };
 
 export function emptyParty(): PartyFields {
@@ -66,6 +73,14 @@ function bool(fd: FormData, key: string): boolean {
   return str(fd, key) === "true";
 }
 
+// Blank stays NULL rather than becoming 0: a case whose foja count nobody has
+// entered must print the [FOJAS_RESUMENES] marker, not claim zero pages.
+function intOrNull(raw: string): number | null {
+  if (raw === "") return null;
+  const n = Number(raw);
+  return Number.isInteger(n) ? n : null;
+}
+
 /** One party out of a form. `prefix` lets a sub-form namespace its inputs. */
 export function parsePartyFormData(fd: FormData, prefix = ""): PartyFields {
   const p = (k: string) => `${prefix}${k}`;
@@ -93,6 +108,7 @@ export function parseDemandadoExtraFormData(fd: FormData): DemandadoExtraFields 
     tarjeta_cabal: onlyDigits(str(fd, "tarjeta_cabal")),
     cuenta_cliper: onlyDigits(str(fd, "cuenta_cliper")),
     fecha_contrato: str(fd, "fecha_contrato") || null,
+    fojas_resumenes: intOrNull(str(fd, "fojas_resumenes")),
   };
 }
 
@@ -189,7 +205,22 @@ export function validateParty(p: PartyFields, label: string): string | null {
  * a migrated case that predates the CUIL column.
  */
 export function validateDemandadoExtra(extra: DemandadoExtraFields): string | null {
+  const fojasError = validateFojasResumenes(extra.fojas_resumenes);
+  if (fojasError) return fojasError;
   return validateEmpleo(extra, "El demandado");
+}
+
+/**
+ * Mirrors the CHECK on ejecutados.fojas_resumenes so a bad value is a Spanish
+ * message rather than a Postgres constraint violation. NULL is allowed — the
+ * count is genuinely unknown on every case that predates the column.
+ */
+export function validateFojasResumenes(value: number | null): string | null {
+  if (value === null) return null;
+  if (!Number.isInteger(value) || value < 1 || value > 30) {
+    return "Las fojas de resúmenes de cuenta deben ser un número entero entre 1 y 30.";
+  }
+  return null;
 }
 
 /**

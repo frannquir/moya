@@ -22,6 +22,15 @@ import {
   type ParteCautelar,
 } from "@/lib/domain/cautelar";
 import { montoALetras, numeroALetras, formatMontoNumerico } from "@/lib/domain/numero-a-letras";
+import {
+  CONVENIO_CLAVE,
+  cuotasTexto,
+  fechaEnLetras,
+  planDePagos,
+} from "@/lib/domain/convenio";
+import { grossCapJus, jusToArs } from "@/lib/domain/honorarios";
+import { getJusValue } from "@/lib/data/honorarios";
+import { cuilToDni, formatDni, isValidCuil } from "@/lib/domain/cuil";
 import { getById as getJuzgadoById } from "@/lib/data/juzgados";
 import { listByEjecutado } from "@/lib/data/codemandados";
 import { listMembers } from "@/lib/data/estudio";
@@ -30,6 +39,9 @@ type Client = SupabaseClient<Database>;
 
 // The demanda template's clave. Matched on clave, never on título (gotcha #31).
 export const DEMANDA_CLAVE = "demanda.cobro-ejecutivo";
+
+// Re-exported so callers reach one place for both document claves.
+export { CONVENIO_CLAVE };
 
 function money(value: number | null | undefined): string {
   return `$${formatCurrency(Number(value ?? 0))}`;
@@ -135,7 +147,7 @@ export async function buildEscritoScope(
   supabase: Client,
   // No userId: the encabezado comes from the estudio's Encargado and the
   // autorizados from its members, so nothing here depends on who is generating.
-  opts: { ejecutadoId: string; esDemanda: boolean },
+  opts: { ejecutadoId: string; esDemanda: boolean; esConvenio?: boolean },
 ): Promise<EscritoScope> {
   const { data: ej } = await supabase
     .from("ejecutados")
@@ -247,6 +259,10 @@ export async function buildEscritoScope(
     scope.TARJETA_CABAL = ej.tarjeta_cabal ?? "";
     scope.CUENTA_CLIPER = ej.cuenta_cliper ?? "";
     scope.FECHA_CONTRATO = fmtDate(ej.fecha_contrato);
+    // The only DOCUMENTAL count still variable: contrato (14) and acuse (2) are
+    // literals in the body since 20260823140000_fojas. Left unset when NULL so
+    // the [FOJAS_RESUMENES] marker shows rather than a made-up number.
+    if (ej.fojas_resumenes !== null) scope.FOJAS_RESUMENES = String(ej.fojas_resumenes);
     scope.MONTO = formatMontoNumerico(monto);
     scope.MONTO_LETRAS = montoALetras(monto);
     // Section IX lists the estudio's own members, head first, the presenting
@@ -265,7 +281,103 @@ export async function buildEscritoScope(
     if (!scope.FECHA_MORA) scope.FECHA_MORA = fmtDate(ej.fecha_mora);
   }
 
+  if (opts.esConvenio) {
+    Object.assign(scope, await convenioScope(supabase, ej, config, abogado, empresa));
+  }
+
   return { scope, ejecutado: ej };
+}
+
+/**
+ * The convenio-only half of the scope.
+ *
+ * Kept behind its own flag and its own function for the same reason `esDemanda`
+ * is: these tokens cost an extra round trip (the honorario and the JUS value),
+ * and every other escrito in the library must keep generating byte-identically.
+ * Nothing here leaks into the shared scope.
+ *
+ * Anything the case or the estudio has not filled in comes through as an empty
+ * string on purpose — the engine turns that into a visible [TOKEN] marker, which
+ * is how the lawyer notices the gap before the debtor signs rather than after.
+ */
+async function convenioScope(
+  supabase: Client,
+  ej: Tables<"ejecutados">,
+  config: EstudioEscritosConfig,
+  abogado: ReturnType<typeof resolveEncargado>,
+  empresa: ReturnType<typeof resolveEmpresa>,
+): Promise<TemplateScope> {
+  const monto = Number(ej.monto_acuerdo ?? 0);
+  const cuotas = Number(ej.cuotas ?? 1);
+  const fechaVencimiento = ej.fecha_vencimiento ?? "";
+
+  const [honorario, jusValue] = await Promise.all([
+    supabase
+      .from("honorarios")
+      .select("monto_total_jus")
+      .eq("ejecutado_id", ej.id)
+      .is("archived_at", null)
+      .maybeSingle()
+      .then((r) => r.data),
+    getJusValue(supabase),
+  ]);
+
+  const scope: TemplateScope = {
+    // The apoderado, from the estudio's Encargado (decision #18) — the convenio's
+    // first line is "Entre el Dr. … en su carácter de letrado apoderado de …",
+    // so it must name the estudio's apoderado and not whoever clicked generate.
+    ABOGADO_NOMBRE: abogado.nombre,
+    ABOGADO_TELEFONO: abogado.telefono,
+    ABOGADO_EMAIL: abogado.email,
+    // The estudio's physical address for this departamento. The source convenio
+    // gives the apoderado's domicilio as the estudio's street address, which is
+    // exactly what domicilios_procesales already holds.
+    DOMICILIO_PROCESAL: resolveDomicilioProcesal(config, ej.departamento),
+
+    DEMANDADO: ej.nombre ?? "",
+    DEMANDADO_MAYUSCULA: (ej.nombre ?? "").toUpperCase(),
+    DOMICILIO: ej.domicilio ?? "",
+    DNI_DEMANDADO: ej.cuil ? formatDni(cuilToDni(ej.cuil)) : formatDni(ej.documento ?? ""),
+    EXPEDIENTE: ej.numero_expediente ?? "",
+    FECHA_MORA: fmtDate(ej.fecha_mora),
+    CUENTA_ACREEDOR: empresa?.cuentaBancaria ?? "",
+
+    // The settlement. MONTO_LETRAS is the DEUDA RECONOCIDA here, not the
+    // deuda_inicial the demanda prints — the two documents never render together.
+    MONTO: formatMontoNumerico(monto),
+    MONTO_LETRAS: montoALetras(monto),
+    CUOTAS_TEXTO: cuotasTexto(monto, cuotas),
+    FECHA_VENCIMIENTO: fmtDate(fechaVencimiento),
+    // A single payment is fully described by "en UN PAGO. Con vencimiento la
+    // primera el …", so the schedule block is suppressed rather than printing a
+    // one-row table restating the sentence above it.
+    HAY_CUOTAS: cuotas > 1,
+    PLAN_PAGOS:
+      cuotas > 1 && fechaVencimiento !== ""
+        ? planDePagos(monto, cuotas, fechaVencimiento)
+        : [],
+
+    FECHA_FIRMA_LETRAS: fechaEnLetras(new Date()),
+  };
+
+  // The DNI comes off the encargado's own CUIT (gotcha #36: strip the prefix,
+  // the check digit AND the zero pad). Only when one is actually configured —
+  // ABOGADO_DEFAULT's placeholder CUIT would otherwise print "D.N.I. N° 0".
+  const encargadoCuit = config?.encargado?.cuit ?? "";
+  if (isValidCuil(encargadoCuit)) {
+    scope.ABOGADO_DNI = formatDni(cuilToDni(encargadoCuit));
+  }
+
+  // Honorarios: the regulated base from the case's own honorario row, and the
+  // gross from lib/domain/honorarios.ts. The tax math is NOT recomputed here —
+  // grossCapJus is the ×1.31 the client signed off and the DB trigger enforces.
+  const baseJus = Number(honorario?.monto_total_jus ?? 0);
+  if (baseJus > 0) {
+    scope.HONORARIOS_JUS = baseJus.toLocaleString("es-AR", { maximumFractionDigits: 2 });
+    scope.HONORARIOS_TOTAL_LETRAS = montoALetras(jusToArs(grossCapJus(baseJus), jusValue));
+  }
+
+  return scope;
 }
 
 /**

@@ -4,7 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { renderTemplate } from "@/lib/domain/template-engine";
-import { buildEscritoScope, generarDemanda, insertEscrito } from "@/lib/data/escrito-render";
+import {
+  buildEscritoScope,
+  generarDemanda,
+  insertEscrito,
+  CONVENIO_CLAVE,
+} from "@/lib/data/escrito-render";
 
 export async function generarEscrito(ejecutadoId: string, formData: FormData) {
   const templateId = String(formData.get("template_id") ?? "");
@@ -33,6 +38,9 @@ export async function generarEscrito(ejecutadoId: string, formData: FormData) {
   const { scope, ejecutado } = await buildEscritoScope(supabase, {
     ejecutadoId,
     esDemanda: false,
+    // The convenio needs the settlement, the honorario and the JUS value on top
+    // of the shared scope. Keyed on clave, never on título (gotcha #31).
+    esConvenio: template.clave === CONVENIO_CLAVE,
   });
 
   const created = await insertEscrito(supabase, {

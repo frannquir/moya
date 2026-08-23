@@ -129,6 +129,24 @@ export function EncargadoEditor({ initial }: { initial: Partial<AbogadoConfig> }
           />
         </div>
       </div>
+
+      {/* A real inbox, unlike the domicilio electrónico above — that one is the
+          SCBA notification address and nobody reads it. The convenio asks the
+          debtor to send the deposit receipt here. */}
+      <div className="space-y-1">
+        <Label htmlFor="enc-email">Correo del estudio</Label>
+        <Input
+          id="enc-email"
+          type="email"
+          value={v.email ?? ""}
+          onChange={(e) => set("email", e.target.value)}
+          placeholder="estudio@ejemplo.com"
+        />
+        <p className="text-xs text-muted-foreground">
+          Adonde el deudor manda el comprobante de pago del convenio. Junto con el
+          teléfono de contacto, es la vía que imprime el Reconocimiento de Deuda.
+        </p>
+      </div>
     </div>
   );
 }

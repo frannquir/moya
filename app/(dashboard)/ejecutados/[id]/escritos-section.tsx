@@ -15,7 +15,7 @@ import {
   type EscritoSignalState,
   type MedidaCautelar,
 } from "@/lib/domain/escritos";
-import { type Movimiento } from "@/lib/domain/ejecutado";
+import { viaOf, type Movimiento } from "@/lib/domain/ejecutado";
 import { generarEscrito } from "./escritos-actions";
 
 export async function EscritosSection({ ejecutadoId }: { ejecutadoId: string }) {
@@ -23,7 +23,7 @@ export async function EscritosSection({ ejecutadoId }: { ejecutadoId: string }) 
 
   const { data: ej } = await supabase
     .from("ejecutados")
-    .select("movimiento, medida_cautelar, movimiento_diligenciada")
+    .select("movimiento, medida_cautelar, movimiento_diligenciada, via")
     .eq("id", ejecutadoId)
     .single();
 
@@ -56,6 +56,7 @@ export async function EscritosSection({ ejecutadoId }: { ejecutadoId: string }) 
 
   const state: EscritoSignalState = {
     movimiento: (ej?.movimiento ?? null) as Movimiento | null,
+    via: viaOf(ej?.via),
     medida_cautelar: (ej?.medida_cautelar ?? null) as MedidaCautelar | null,
     diligenciada: ej?.movimiento_diligenciada ?? null,
     ultimo_evento: ultEvento?.tipo_evento ?? null,
@@ -99,6 +100,10 @@ export async function EscritosSection({ ejecutadoId }: { ejecutadoId: string }) 
             }
           />
           <SignalChip label="Último evento" value={state.ultimo_evento ?? "—"} />
+          <SignalChip
+            label="Vía"
+            value={state.via === "extrajudicial" ? "Extrajudicial" : "Judicial"}
+          />
         </div>
 
         {recomendados.length > 0 ? (

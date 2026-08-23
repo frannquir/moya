@@ -23,6 +23,53 @@ export const MEDIDA_ESTADO_OPTIONS = ["Solicitada", "Proveída"] as const;
 
 export type MedidaEstado = (typeof MEDIDA_ESTADO_OPTIONS)[number];
 
+// Judicial vs extrajudicial is an axis PARALLEL to movimiento (locked decision
+// #15), never a movimiento value: the debtor can call and agree to settle at any
+// procedural stage, so the case keeps whatever movimiento it already had.
+export const VIA_OPTIONS = ["judicial", "extrajudicial"] as const;
+
+export type Via = (typeof VIA_OPTIONS)[number];
+
+export const VIA_LABELS: Record<Via, string> = {
+  judicial: "Judicial",
+  extrajudicial: "Extrajudicial",
+};
+
+// The instalment counts the firm offers. A closed set, so the UI is a dropdown
+// and the DB carries the same list as a CHECK - change one, change both.
+export const CUOTAS_OPTIONS = [1, 3, 6, 12] as const;
+
+export type Cuotas = (typeof CUOTAS_OPTIONS)[number];
+
+/**
+ * The extrajudicial half of an ejecutado, written only by the "Pasar a
+ * extrajudicial" action.
+ *
+ * Deliberately NOT part of EjecutadoFormFields: that type is spread straight
+ * into an UPDATE and the main "Datos" form does not post these fields, so
+ * folding them in would blank the settlement every time anyone saved the case -
+ * exactly the bug `empresa` had.
+ */
+export type ViaFields = {
+  via: Via;
+  monto_acuerdo: number | null;
+  cuotas: Cuotas | null;
+  fecha_vencimiento: string | null;
+};
+
+export function isVia(value: string): value is Via {
+  return (VIA_OPTIONS as readonly string[]).includes(value);
+}
+
+export function isCuotas(value: number): value is Cuotas {
+  return (CUOTAS_OPTIONS as readonly number[]).includes(value);
+}
+
+/** The via a row carries; anything unrecognised (or NULL) reads as judicial. */
+export function viaOf(value: string | null | undefined): Via {
+  return value === "extrajudicial" ? "extrajudicial" : "judicial";
+}
+
 // Shared set of writable ejecutado columns parsed from a create/edit form.
 // Both createEjecutado and updateEjecutado go through this so the field mapping
 // stays in one place.
@@ -161,4 +208,46 @@ export function parseEjecutadoFormData(fd: FormData): EjecutadoFormFields {
     medida_cautelar_nota: str(fd, "medida_cautelar_nota"),
     observaciones: str(fd, "observaciones"),
   };
+}
+
+/**
+ * The "Pasar a extrajudicial" form. Reverting posts via=judicial and nothing
+ * else, and the settlement columns come back NULL: they are only meaningful
+ * under an agreement, and a stale monto left behind would let the convenio
+ * generate against numbers nobody agreed to.
+ */
+export function parseViaFormData(fd: FormData): ViaFields {
+  const via = isVia(str(fd, "via")) ? (str(fd, "via") as Via) : "judicial";
+  if (via === "judicial") {
+    return { via, monto_acuerdo: null, cuotas: null, fecha_vencimiento: null };
+  }
+
+  const cuotasRaw = numOrNull(fd, "cuotas");
+  return {
+    via,
+    monto_acuerdo: numOrNull(fd, "monto_acuerdo"),
+    cuotas: cuotasRaw !== null && isCuotas(cuotasRaw) ? cuotasRaw : null,
+    fecha_vencimiento: str(fd, "fecha_vencimiento") || null,
+  };
+}
+
+/**
+ * All three settlement fields are required to go extrajudicial. The state exists
+ * because a settlement was agreed, and the convenio cannot be written without
+ * the amount, the instalment count and the first due date - a half-filled switch
+ * would produce a Reconocimiento de Deuda pinned to the top of the feed that
+ * prints markers where the numbers belong.
+ */
+export function validateViaFields(f: ViaFields): string | null {
+  if (f.via === "judicial") return null;
+  if (f.monto_acuerdo === null || !(f.monto_acuerdo > 0)) {
+    return "El monto del acuerdo es obligatorio y debe ser mayor a cero.";
+  }
+  if (f.cuotas === null) {
+    return "Elegí la cantidad de cuotas (1, 3, 6 o 12).";
+  }
+  if (!f.fecha_vencimiento) {
+    return "La fecha de vencimiento de la primera cuota es obligatoria.";
+  }
+  return null;
 }

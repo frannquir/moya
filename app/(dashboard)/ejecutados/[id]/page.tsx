@@ -24,12 +24,15 @@ import { LiquidacionesSection } from "./liquidaciones-section";
 import { EscritosSection } from "./escritos-section";
 import { CodemandadosCard } from "./codemandados-card";
 import { DemandaCard } from "./demanda-card";
+import { ViaCard } from "./via-card";
+import { actualizarVia } from "./via-actions";
 import { updateDemandaDatos } from "./demanda-actions";
 import { regenerarDemanda } from "./escritos-actions";
 import { getUltimaDemanda, loadPartes } from "@/lib/data/escrito-render";
 import { avisosDePartes } from "@/lib/domain/cautelar";
 import { Badge } from "@/components/ui/badge";
 import { activarBorrador, moverABorrador } from "../../borradores/actions";
+import { viaOf } from "@/lib/domain/ejecutado";
 
 export default async function EjecutadoDetailPage({
   params,
@@ -71,6 +74,7 @@ export default async function EjecutadoDetailPage({
   const delegateAction = delegateEjecutado.bind(null, id);
   const demandaAction = updateDemandaDatos.bind(null, id);
   const regenerarAction = regenerarDemanda.bind(null, id);
+  const viaAction = actualizarVia.bind(null, id);
 
   // Only for the Demanda card, so only loaded when there is one to render.
   const esDemanda = ejecutado.origen === "demanda";
@@ -94,6 +98,7 @@ export default async function EjecutadoDetailPage({
           <div className="flex items-center gap-2 mt-1">
             <h1 className="text-2xl font-semibold">{ejecutado.nombre}</h1>
             {ejecutado.is_draft && <Badge variant="secondary">Borrador</Badge>}
+            {viaOf(ejecutado.via) === "extrajudicial" && <Badge>Extrajudicial</Badge>}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -199,6 +204,14 @@ export default async function EjecutadoDetailPage({
         </Card>
       )}
 
+      <ViaCard
+        via={viaOf(ejecutado.via)}
+        montoAcuerdo={ejecutado.monto_acuerdo}
+        cuotas={ejecutado.cuotas}
+        fechaVencimiento={ejecutado.fecha_vencimiento}
+        action={viaAction}
+      />
+
       <CodemandadosCard ejecutadoId={id} />
 
       {/* Only for cases started from "Iniciar demanda" - a migrated or manually
@@ -218,6 +231,7 @@ export default async function EjecutadoDetailPage({
             tarjeta_cabal: ejecutado.tarjeta_cabal,
             cuenta_cliper: ejecutado.cuenta_cliper,
             fecha_contrato: ejecutado.fecha_contrato,
+            fojas_resumenes: ejecutado.fojas_resumenes,
           }}
         />
       )}

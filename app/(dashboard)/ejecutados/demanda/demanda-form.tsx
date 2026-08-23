@@ -46,6 +46,9 @@ type Draft = {
   fecha_mora: string;
   numero_expediente: string;
   empresa: string;
+  // Stored on the ejecutado, not asked at generate time: "Generar de nuevo"
+  // recomposes the DOCUMENTAL block from current data.
+  fojas_resumenes: string;
 };
 
 function emptyDraft(): Draft {
@@ -58,6 +61,7 @@ function emptyDraft(): Draft {
     fecha_mora: "",
     numero_expediente: "",
     empresa: NONE,
+    fojas_resumenes: "",
   };
 }
 
@@ -312,6 +316,32 @@ export function DemandaForm({
                 value={draft.fecha_contrato}
                 onChange={(e) => setDraft((d) => ({ ...d, fecha_contrato: e.target.value }))}
               />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* A number input, not a dropdown (Fran, 2026-08-22): the firm has no
+                fixed set of values, the count follows how many months of
+                statements are attached. Contrato (14 fs.) and acuse de recibo
+                (2 fs.) do not appear here — they are invariant and now literals
+                in the template body. */}
+            <div className="space-y-2">
+              <Label htmlFor="fojas_resumenes">Fojas de resúmenes de cuenta</Label>
+              <Input
+                id="fojas_resumenes"
+                name="fojas_resumenes"
+                type="number"
+                min={1}
+                max={30}
+                value={draft.fojas_resumenes}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, fojas_resumenes: e.target.value }))
+                }
+              />
+              <p className="text-xs text-muted-foreground">
+                Cuántas fojas de resúmenes se adjuntan. Sin esto la demanda imprime
+                un marcador en el bloque DOCUMENTAL.
+              </p>
             </div>
           </div>
 
