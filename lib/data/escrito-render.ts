@@ -47,9 +47,26 @@ function money(value: number | null | undefined): string {
   return `$${formatCurrency(Number(value ?? 0))}`;
 }
 
+/**
+ * Dates as the firm's own documents write them: zero-padded dd/mm/yyyy.
+ *
+ * A bare toLocaleDateString("es-AR") does NOT pad - it yields "22/9/2026" - and
+ * that shipped into the convenio next to a schedule built with formatArDate,
+ * so clause SEGUNDA read "vencimiento la primera el 22/9/2026" above rows
+ * saying "22/09/2026". Same date, two formats, one clause.
+ *
+ * Not formatArDate itself, only its options: that helper returns an em dash for
+ * a missing value, and here an empty string is load-bearing - it is what makes
+ * the engine print the visible [FECHA_MORA] marker instead of a dash that looks
+ * like real content.
+ */
 function fmtDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "";
-  return parseLocalDate(dateStr).toLocaleDateString("es-AR");
+  return parseLocalDate(dateStr).toLocaleDateString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 

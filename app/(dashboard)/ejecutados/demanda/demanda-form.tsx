@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -23,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { PartyFieldsBlock } from "@/components/party-fields";
 import { JuzgadoPicker } from "../juzgado-picker";
+import { DateField } from "@/components/date-field";
 import {
   emptyParty,
   labelForCodemandado,
@@ -213,6 +213,18 @@ export function DemandaForm({
         </Alert>
       )}
 
+      {/*
+        Same 2/3 + 1/3 distribution as the detail page. The parties are the bulk
+        of the typing and each block is wide, so they take the left column; the
+        case data is compact enough for the rail, and the actions sit at its top
+        and stick - the codemandados list grows without bound, so a footer
+        button would end up arbitrarily far down the page.
+
+        Still one <form>: the grid is inside it, so every field posts together.
+      */}
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="space-y-4 xl:col-span-2">
+
       <Card>
         <CardHeader>
           <CardTitle>Demandado</CardTitle>
@@ -273,12 +285,24 @@ export function DemandaForm({
         </CardContent>
       </Card>
 
+        </div>
+
+        <div className="space-y-4">
+          <Card className="sticky top-6 z-10">
+            <CardContent className="flex flex-col gap-2 pt-6">
+              <Button type="submit">Crear demanda</Button>
+              <Button variant="ghost" asChild type="button">
+                <Link href="/ejecutados">Cancelar</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Datos del caso</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <CardContent className="@container space-y-4">
+          <div className="grid gap-4 @md:grid-cols-2">
             {/*
               TODO (Phase 4, UI touches): several labels in this app name things a
               new user cannot guess — "Cuenta Cliper", "Tarjeta Cabal", "Fecha de
@@ -309,17 +333,16 @@ export function DemandaForm({
             </div>
             <div className="space-y-2">
               <Label htmlFor="fecha_contrato">Fecha del contrato</Label>
-              <Input
+              <DateField
                 id="fecha_contrato"
                 name="fecha_contrato"
-                type="date"
                 value={draft.fecha_contrato}
-                onChange={(e) => setDraft((d) => ({ ...d, fecha_contrato: e.target.value }))}
+                onValueChange={(iso) => setDraft((d) => ({ ...d, fecha_contrato: iso }))}
               />
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 @md:grid-cols-2">
             {/* A number input, not a dropdown (Fran, 2026-08-22): the firm has no
                 fixed set of values, the count follows how many months of
                 statements are attached. Contrato (14 fs.) and acuse de recibo
@@ -345,7 +368,7 @@ export function DemandaForm({
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 @md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="deuda_inicial">Monto reclamado</Label>
               <Input
@@ -361,12 +384,11 @@ export function DemandaForm({
                 through the same parseEjecutadoFormData path. */}
             <div className="space-y-2">
               <Label htmlFor="fecha_mora">Fecha de mora (desde)</Label>
-              <Input
+              <DateField
                 id="fecha_mora"
                 name="fecha_mora"
-                type="date"
                 value={draft.fecha_mora}
-                onChange={(e) => setDraft((d) => ({ ...d, fecha_mora: e.target.value }))}
+                onValueChange={(iso) => setDraft((d) => ({ ...d, fecha_mora: iso }))}
               />
               <p className="text-xs text-muted-foreground">
                 Vencimiento del último resumen impago. Sin esto no se genera la
@@ -375,7 +397,7 @@ export function DemandaForm({
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 @md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="empresa">Empresa</Label>
               <Select
@@ -417,13 +439,9 @@ export function DemandaForm({
 
           <JuzgadoPicker index={courtIndex} />
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button variant="outline" asChild type="button">
-            <Link href="/ejecutados">Cancelar</Link>
-          </Button>
-          <Button type="submit">Crear demanda</Button>
-        </CardFooter>
       </Card>
+        </div>
+      </div>
     </form>
   );
 }

@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DateField } from "@/components/date-field";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -176,12 +177,11 @@ export function DemandaCard({
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="dc-fecha_contrato">Fecha del contrato</Label>
-                  <Input
+                  <DateField
                     id="dc-fecha_contrato"
                     name="fecha_contrato"
-                    type="date"
                     value={extra.fecha_contrato ?? ""}
-                    onChange={(e) => set("fecha_contrato", e.target.value || null)}
+                    onValueChange={(iso) => set("fecha_contrato", iso || null)}
                   />
                 </div>
                 <div className="space-y-2">

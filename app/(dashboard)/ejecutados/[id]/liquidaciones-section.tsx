@@ -53,7 +53,10 @@ export async function LiquidacionesSection({
           </p>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 rounded-md border p-4 bg-muted/30">
+            {/* Container-relative for the same reason as the honorarios grid:
+                the card lives in the secondary rail, so the column count has to
+                follow the card's width and not the viewport's. */}
+            <div className="@container grid grid-cols-2 @lg:grid-cols-3 gap-3 rounded-md border p-4 bg-muted/30">
               <Money label="Capital" value={liq.capital} />
               <Money label="Intereses" value={liq.total_intereses} />
               <Money label="IVA (21%)" value={liq.iva} />
