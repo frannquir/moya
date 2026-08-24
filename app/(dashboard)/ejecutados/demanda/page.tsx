@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/data/auth";
 import { getCourtIndex } from "@/lib/data/juzgados";
@@ -6,6 +7,8 @@ import {
   type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
 import { DemandaForm } from "./demanda-form";
+
+export const metadata: Metadata = { title: "Iniciar demanda" };
 
 export default async function IniciarDemandaPage() {
   const supabase = await createClient();

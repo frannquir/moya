@@ -74,11 +74,11 @@ export function DemandaCard({
   ) => setExtra((x) => ({ ...x, [key]: value }));
 
   return (
-    <Card className="border-blue-500/40 bg-blue-500/5">
+    <Card className="border-primary/40 bg-primary/5">
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-4">
           <span>Demanda</span>
-          <Badge variant="outline" className="border-blue-500/50">
+          <Badge variant="outline" className="border-primary/50">
             Iniciada desde Moya
           </Badge>
         </CardTitle>

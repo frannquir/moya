@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import {
 import { unarchiveEjecutado } from "../[id]/actions";
 import { listArchived } from "@/lib/data/ejecutados";
 import { formatArDate } from "@/lib/domain/dates";
+
+export const metadata: Metadata = { title: "Archivados" };
 
 export default async function ArchivadosPage() {
   const supabase = await createClient();

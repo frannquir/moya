@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -9,6 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { activarBorrador } from "./actions";
+
+export const metadata: Metadata = { title: "Borradores" };
 
 export default async function BorradoresPage() {
   const supabase = await createClient();

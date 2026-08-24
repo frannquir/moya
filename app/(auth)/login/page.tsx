@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { login, signInWithGoogle } from "@/app/auth/actions";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,8 @@ import {
   LockIcon,
   MailIcon,
 } from "../parts";
+
+export const metadata: Metadata = { title: "Ingresar" };
 
 export default async function LoginPage({
   searchParams,

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { cache } from "react";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/server";
@@ -5,6 +6,8 @@ import { listEmailsInWindow, getGmailConnection } from "@/lib/data/mail";
 import { requireUser } from "@/lib/data/auth";
 import { getMembership } from "@/lib/data/estudio";
 import { MailBoard } from "./mail-board";
+
+export const metadata: Metadata = { title: "Mail" };
 
 // Wrapping Date.now() with cache() makes it pure for a given request — the
 // React purity rule otherwise flags impure calls during render.

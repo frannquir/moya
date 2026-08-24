@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -17,6 +18,8 @@ import {
 } from "@/lib/domain/escritos";
 import { viaOf, type Movimiento } from "@/lib/domain/ejecutado";
 import { generarEscrito } from "../ejecutados/[id]/escritos-actions";
+
+export const metadata: Metadata = { title: "Escritos" };
 
 const FEED_LIMIT = 12;
 const PER_CARD = 3;

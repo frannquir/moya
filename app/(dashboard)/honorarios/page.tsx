@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -16,6 +17,8 @@ import {
   formatArs,
   jusToArs,
 } from "@/lib/domain/honorarios";
+
+export const metadata: Metadata = { title: "Honorarios" };
 
 export default async function HonorariosPage() {
   const supabase = await createClient();
@@ -87,7 +90,7 @@ export default async function HonorariosPage() {
                     </TableCell>
                     <TableCell>
                       {isPaid ? (
-                        <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                        <Badge variant="success">
                           Pagado
                         </Badge>
                       ) : baseCubierto ? (
@@ -114,7 +117,7 @@ export default async function HonorariosPage() {
                     <TableCell
                       className={`text-right tabular-nums ${
                         (h.pendiente_gross_jus ?? 0) > 0
-                          ? "text-orange-600 font-medium"
+                          ? "text-warning font-medium"
                           : ""
                       }`}
                     >

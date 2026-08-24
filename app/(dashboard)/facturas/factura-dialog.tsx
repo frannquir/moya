@@ -88,8 +88,8 @@ export function FacturaDialog({
               <Badge
                 className={
                   factura.confirmada
-                    ? "bg-emerald-600 text-white hover:bg-emerald-600"
-                    : "bg-amber-500 text-white hover:bg-amber-500"
+                    ? "bg-success/10 text-success"
+                    : "bg-warning/10 text-warning"
                 }
               >
                 {factura.confirmada ? "Confirmada" : "Generada"}

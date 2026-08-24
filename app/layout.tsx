@@ -25,7 +25,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Moya",
+  // Per-route pages override `title` through the %s template, so a tab reads
+  // "Ejecutados · Moya" instead of every tab saying the same thing.
+  title: {
+    default: "Moya",
+    template: "%s · Moya",
+  },
   description: "Gestión de expedientes para estudios jurídicos.",
 };
 
@@ -35,8 +40,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // suppressHydrationWarning: next-themes sets the theme class on <html>
+    // before React hydrates, so server and client markup differ by design.
     <html
       lang="es"
+      suppressHydrationWarning
       className={`${inter.variable} ${sourceSerif.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">

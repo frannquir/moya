@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateLawyerProfile } from "./actions";
+
+export const metadata: Metadata = { title: "Mi perfil" };
 
 const IVA_OPTIONS = [
   "Responsable Inscripto",

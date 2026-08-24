@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +23,8 @@ import {
   NotasFields,
 } from "../ejecutado-form-fields";
 import { createEjecutado } from "./actions";
+
+export const metadata: Metadata = { title: "Nuevo ejecutado" };
 
 // Prefill params arrive from the /mail/sin-asignar "Crear ejecutado" link.
 // cluster_causa / cluster_localidad are passed through hidden inputs so the create
