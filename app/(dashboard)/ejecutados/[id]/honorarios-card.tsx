@@ -106,8 +106,11 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
 
         {honorario && (
           <div className="space-y-4">
-            {/* What the maximum is made of. */}
-            <div className="grid grid-cols-2 gap-3 rounded-md border p-4 bg-muted/30 sm:grid-cols-4">
+            {/* What the maximum is made of. Container-relative, not viewport:
+                this card sits in the detail page's secondary rail now, and a
+                `sm:` breakpoint would read the (wide) viewport and cram four
+                cells into a ~480px column. */}
+            <div className="@container grid grid-cols-2 gap-3 rounded-md border p-4 bg-muted/30 @lg:grid-cols-4">
               <Summary label="Honorario" valueJus={capSplit.base} jusValue={jusValue} />
               <Summary
                 label={`IVA ${Math.round(IVA_RATE * 100)}%`}

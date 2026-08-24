@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DateField } from "@/components/date-field";
 import {
   Card,
   CardContent,
@@ -145,12 +146,11 @@ export function ViaCard({
 
               <div className="space-y-2">
                 <Label htmlFor="via-vencimiento">Vencimiento de la primera</Label>
-                <Input
+                <DateField
                   id="via-vencimiento"
                   name="fecha_vencimiento"
-                  type="date"
                   value={vencimiento}
-                  onChange={(e) => setVencimiento(e.target.value)}
+                  onValueChange={setVencimiento}
                   required
                 />
               </div>

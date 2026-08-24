@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/date-field";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -124,10 +125,10 @@ export function LiquidacionCalculator({ tasas }: { tasas: TasaRow[] }) {
               <Input value={apynom} onChange={(e) => setApynom(e.target.value)} />
             </Field>
             <Field label="Fecha desde (vto.)">
-              <Input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
+              <DateField name="fecha_desde" value={fechaDesde} onValueChange={setFechaDesde} />
             </Field>
             <Field label="Fecha hasta">
-              <Input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
+              <DateField name="fecha_hasta" value={fechaHasta} onValueChange={setFechaHasta} />
             </Field>
             <Field label="Capital">
               <Input value={capital} onChange={(e) => setCapital(e.target.value)} placeholder="10.000,00" className="font-mono" />

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DateField } from "@/components/date-field";
 import {
   IVA_RATE,
   APORTES_RATE,
@@ -115,10 +116,9 @@ export function HonorariosAddPagoForm({
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="fecha">Fecha</Label>
-          <Input
+          <DateField
             id="fecha"
             name="fecha"
-            type="date"
             defaultValue={new Date().toISOString().slice(0, 10)}
           />
         </div>

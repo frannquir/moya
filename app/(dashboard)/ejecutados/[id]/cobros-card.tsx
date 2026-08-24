@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DateField } from "@/components/date-field";
 import { Badge } from "@/components/ui/badge";
 import { formatArs } from "@/lib/domain/cobros";
 import { formatArDate } from "@/lib/domain/dates";
@@ -58,10 +59,9 @@ export async function CobrosCard({ ejecutadoId }: { ejecutadoId: string }) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="fecha">Fecha</Label>
-              <Input
+              <DateField
                 id="fecha"
                 name="fecha"
-                type="date"
                 defaultValue={new Date().toISOString().slice(0, 10)}
               />
             </div>
