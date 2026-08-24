@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/server";
@@ -6,6 +7,8 @@ import { requireUser } from "@/lib/data/auth";
 import { getMembership, listMembers } from "@/lib/data/estudio";
 import { EjecutadosBoard, type BoardMember } from "./ejecutados-board";
 import { VIA_OPTIONS, type Via } from "@/lib/domain/ejecutado";
+
+export const metadata: Metadata = { title: "Ejecutados" };
 
 const PAGE_SIZE = 25;
 

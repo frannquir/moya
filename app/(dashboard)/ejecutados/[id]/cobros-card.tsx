@@ -90,7 +90,7 @@ export async function CobrosCard({ ejecutadoId }: { ejecutadoId: string }) {
                         {formatArs(Number(c.monto))}
                       </span>
                       {c.estado === "Proveído" ? (
-                        <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                        <Badge variant="success">
                           Proveído
                         </Badge>
                       ) : (
@@ -135,7 +135,7 @@ function Summary({
   value: number;
   tone?: "ok";
 }) {
-  const toneClass = tone === "ok" ? "text-emerald-600" : "";
+  const toneClass = tone === "ok" ? "text-success" : "";
   return (
     <div className={toneClass}>
       <div className="text-xs uppercase text-muted-foreground">{label}</div>

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -15,6 +16,8 @@ import {
   listAllCobrosWithEjecutado,
   listAllCobrosTotals,
 } from "@/lib/data/cobros";
+
+export const metadata: Metadata = { title: "Cobros" };
 
 export default async function CobrosPage() {
   const supabase = await createClient();
@@ -54,7 +57,7 @@ export default async function CobrosPage() {
         </div>
         <div className="rounded-md border p-4">
           <div className="text-xs uppercase text-muted-foreground">Cobrado</div>
-          <div className="text-2xl font-semibold tabular-nums text-emerald-600">
+          <div className="text-2xl font-semibold tabular-nums text-success">
             {formatArs(totalProveido)}
           </div>
         </div>
@@ -85,7 +88,7 @@ export default async function CobrosPage() {
                   </TableCell>
                   <TableCell>
                     {c.estado === "Proveído" ? (
-                      <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                      <Badge variant="success">
                         Proveído
                       </Badge>
                     ) : (

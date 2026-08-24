@@ -71,7 +71,7 @@ export function ViaCard({
 
   return (
     <Card
-      className={esExtrajudicial ? "border-emerald-600/40 bg-emerald-600/5" : undefined}
+      className={esExtrajudicial ? "border-success/40 bg-success/5" : undefined}
     >
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-4">

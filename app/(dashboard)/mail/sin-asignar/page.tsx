@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -19,6 +20,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatArDate } from "@/lib/domain/dates";
+
+export const metadata: Metadata = { title: "Mail sin asignar" };
 
 // Resolve the concrete juzgado for a cluster (Civil y Comercial only — Paz courts
 // have no number to match on), reusing the matcher's mojibake-tolerant locality

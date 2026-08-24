@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,6 +18,8 @@ import { MiembrosTab, type EstudioMember } from "./miembros-tab";
 import { GmailTab } from "./gmail-tab";
 import { ConfiguracionTab } from "./configuracion-tab";
 import { leaveEstudio } from "./actions";
+
+export const metadata: Metadata = { title: "Mi estudio" };
 
 const MESSAGES: Record<string, { tone: "ok" | "error"; text: string }> = {
   invite_ok: { tone: "ok", text: "Miembro agregado." },

@@ -69,7 +69,7 @@ export function GmailTab({
         </dl>
 
         {connection.last_sync_error && (
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-destructive">
             Error de sincronización: {connection.last_sync_error}
           </p>
         )}

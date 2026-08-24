@@ -63,7 +63,7 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
         <CardTitle className="flex items-center gap-2">
           Honorarios
           {isPaid ? (
-            <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+            <Badge variant="success">
               Pagado
             </Badge>
           ) : (
@@ -139,7 +139,7 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
                 />
                 <div
                   className={`absolute inset-y-0 left-0 ${
-                    isPaid ? "bg-emerald-600" : "bg-primary"
+                    isPaid ? "bg-success" : "bg-primary"
                   }`}
                   style={{ width: PCT(gross > 0 ? (pagado / gross) * 100 : 0) }}
                 />
@@ -243,7 +243,7 @@ function Summary({
   strong?: boolean;
 }) {
   const toneClass =
-    tone === "warn" ? "text-orange-600" : tone === "ok" ? "text-emerald-600" : "";
+    tone === "warn" ? "text-warning" : tone === "ok" ? "text-success" : "";
   return (
     <div className={toneClass}>
       <div className="text-xs uppercase text-muted-foreground">{label}</div>

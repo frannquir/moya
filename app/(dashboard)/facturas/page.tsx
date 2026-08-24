@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import {
   Table,
@@ -11,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { calcFactura, formatArs } from "@/lib/domain/facturas";
 import { formatArDate } from "@/lib/domain/dates";
 import { FacturaDialog } from "./factura-dialog";
+
+export const metadata: Metadata = { title: "Facturas" };
 
 export default async function FacturasPage() {
   const supabase = await createClient();
@@ -88,11 +91,11 @@ export default async function FacturasPage() {
                     </TableCell>
                     <TableCell>
                       {status.variant === "ok" ? (
-                        <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">
+                        <Badge variant="success">
                           {status.label}
                         </Badge>
                       ) : status.variant === "warn" ? (
-                        <Badge className="bg-amber-500 text-white hover:bg-amber-500">
+                        <Badge variant="warning">
                           {status.label}
                         </Badge>
                       ) : (

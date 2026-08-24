@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -16,6 +17,8 @@ import {
 import { formatArDate } from "@/lib/domain/dates";
 import { LiquidacionCalculator } from "./calculator";
 import { LiquidacionDownloadButton } from "@/components/liquidacion-download-button";
+
+export const metadata: Metadata = { title: "Liquidaciones" };
 
 export default async function LiquidacionesPage() {
   const supabase = await createClient();

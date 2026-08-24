@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { signup, signInWithGoogle } from "@/app/auth/actions";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,8 @@ import {
   MailIcon,
   UserIcon,
 } from "../parts";
+
+export const metadata: Metadata = { title: "Crear cuenta" };
 
 export default async function SignupPage({
   searchParams,

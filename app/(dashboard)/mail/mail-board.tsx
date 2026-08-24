@@ -163,15 +163,15 @@ export function MailBoard({
       </div>
 
       {gmail === "connected" && (
-        <p className="text-sm text-green-600">Casilla conectada.</p>
+        <p className="text-sm text-success">Casilla conectada.</p>
       )}
       {gmail === "error" && (
-        <p className="text-sm text-red-600">
+        <p className="text-sm text-destructive">
           No se pudo conectar{reason ? ` (${reason})` : ""}.
         </p>
       )}
       {connected && connection.last_sync_error && (
-        <p className="text-sm text-red-600">
+        <p className="text-sm text-destructive">
           Error de sincronización: {connection.last_sync_error}
         </p>
       )}

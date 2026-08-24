@@ -8,23 +8,17 @@ import {
   Briefcase,
   FileEdit,
   ScrollText,
-  CalendarClock,
   Calculator,
   Wallet,
   CreditCard,
   Receipt,
   Mail,
   Building2,
-  Settings,
-  LogOut,
-  ChevronUp,
-  User,
 } from "lucide-react";
 
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -33,15 +27,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { signOut } from "@/app/auth/actions";
 
 type NavItem = {
   title: string;
@@ -89,7 +74,7 @@ const NAV: NavGroup[] = [
   },
 ];
 
-export function AppSidebar({ userEmail }: { userEmail: string }) {
+export function AppSidebar() {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
@@ -99,8 +84,12 @@ export function AppSidebar({ userEmail }: { userEmail: string }) {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1.5">
+      {/* h-14 + border-b mirrors AppHeader exactly. Left to its defaults this
+          block is 60px (p-2 + py-1.5 + h-8) against the header's 56px, which put
+          the logo 4px out of line with the page title and left the header's
+          bottom border stopping dead at the sidebar edge. */}
+      <SidebarHeader className="h-14 shrink-0 justify-center border-b px-2 py-0">
+        <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <Briefcase className="h-4 w-4" />
           </div>
@@ -137,55 +126,6 @@ export function AppSidebar({ userEmail }: { userEmail: string }) {
         ))}
       </SidebarContent>
 
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton size="lg" tooltip={userEmail}>
-                  <Avatar className="h-7 w-7">
-                    <AvatarFallback className="text-xs">
-                      {userEmail.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="truncate text-sm">{userEmail}</span>
-                  <ChevronUp className="ml-auto h-4 w-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                side="top"
-                align="end"
-                className="w-[--radix-popper-anchor-width]"
-              >
-                <DropdownMenuItem asChild>
-                  <Link href="/settings/profile">
-                    <User className="mr-2 h-4 w-4" />
-                    Perfil
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/estudio">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Estudio
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <form action={signOut} className="w-full">
-                    <button
-                      type="submit"
-                      className="flex w-full items-center text-sm"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign out
-                    </button>
-                  </form>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
 }
