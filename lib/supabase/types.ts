@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   graphql_public: {
     Tables: {
@@ -317,6 +317,7 @@ export type Database = {
           movimiento: string | null
           movimiento_diligenciada: boolean | null
           nombre: string
+          nombre_orden: string | null
           numero_expediente: string
           observaciones: string
           origen: string
@@ -366,6 +367,7 @@ export type Database = {
           movimiento?: string | null
           movimiento_diligenciada?: boolean | null
           nombre: string
+          nombre_orden?: string | null
           numero_expediente?: string
           observaciones?: string
           origen?: string
@@ -415,6 +417,7 @@ export type Database = {
           movimiento?: string | null
           movimiento_diligenciada?: boolean | null
           nombre?: string
+          nombre_orden?: string | null
           numero_expediente?: string
           observaciones?: string
           origen?: string
@@ -1179,6 +1182,58 @@ export type Database = {
           },
           {
             foreignKeyName: "liquidaciones_estudio_id_fkey"
+            columns: ["estudio_id"]
+            isOneToOne: false
+            referencedRelation: "estudios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      movimiento_historial: {
+        Row: {
+          a: string | null
+          changed_by_user_id: string | null
+          created_at: string
+          de: string | null
+          ejecutado_id: string
+          estudio_id: string
+          id: string
+        }
+        Insert: {
+          a?: string | null
+          changed_by_user_id?: string | null
+          created_at?: string
+          de?: string | null
+          ejecutado_id: string
+          estudio_id: string
+          id?: string
+        }
+        Update: {
+          a?: string | null
+          changed_by_user_id?: string | null
+          created_at?: string
+          de?: string | null
+          ejecutado_id?: string
+          estudio_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimiento_historial_ejecutado_id_fkey"
+            columns: ["ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "cobros_totals"
+            referencedColumns: ["ejecutado_id"]
+          },
+          {
+            foreignKeyName: "movimiento_historial_ejecutado_id_fkey"
+            columns: ["ejecutado_id"]
+            isOneToOne: false
+            referencedRelation: "ejecutados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimiento_historial_estudio_id_fkey"
             columns: ["estudio_id"]
             isOneToOne: false
             referencedRelation: "estudios"

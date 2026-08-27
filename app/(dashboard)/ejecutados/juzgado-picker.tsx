@@ -126,7 +126,7 @@ export function JuzgadoPicker({
     !juzgadoKey && !!defaultJuzgadoLabel && defaultJuzgadoLabel.trim() !== "";
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="@container grid grid-cols-1 gap-4 @sm:grid-cols-2">
       <input type="hidden" name="departamento" value={departamento} />
       <input type="hidden" name="juzgado" value={juzgadoValue} />
       <input type="hidden" name="juzgado_id" value={juzgadoIdValue} />

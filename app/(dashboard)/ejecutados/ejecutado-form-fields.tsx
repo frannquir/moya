@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LabelConInfo } from "@/components/label-info";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -15,11 +16,11 @@ import {
   MEDIDA_ESTADO_OPTIONS,
 } from "@/lib/domain/ejecutado";
 import { CuilInput } from "@/components/cuil-input";
-import { formatArDate } from "@/lib/domain/dates";
 import { type Tables } from "@/lib/supabase/db-helpers";
 import { type CourtEntry } from "@/lib/data/juzgados";
 import { JuzgadoPicker } from "./juzgado-picker";
 import { DateField } from "@/components/date-field";
+import { ArsInput } from "@/components/ars-input";
 
 
 /*
@@ -39,36 +40,36 @@ import { DateField } from "@/components/date-field";
 
 type SectionProps = {
   ejecutado?: Tables<"ejecutados"> | null;
+  /**
+   * Drop the section's own heading. The detail page stacks several sections in
+   * ONE card, so the headings are what separate them; /ejecutados/new gives some
+   * of them a card each, where the heading just repeats the card title.
+   */
+  sinTitulo?: boolean;
 };
 
-export function IdentidadFields({ ejecutado }: SectionProps) {
+export function IdentidadFields({ ejecutado, sinTitulo }: SectionProps) {
   return (
     <div className="@container space-y-4">
     {/* Identidad */}
-    <SectionTitle>Identidad</SectionTitle>
+    {!sinTitulo && <SectionTitle>Identidad</SectionTitle>}
     <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4">
       <div className="space-y-2 col-span-2 @3xl:col-span-4">
         <Label htmlFor="nombre">Demandado *</Label>
         <Input id="nombre" name="nombre" defaultValue={ejecutado?.nombre ?? ""} required />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="cuil">CUIL</Label>
+        <LabelConInfo htmlFor="cuil" campo="cuil">CUIL</LabelConInfo>
         <CuilInput id="cuil" name="cuil" defaultValue={ejecutado?.cuil ?? ""} showDni />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="documento">Documento</Label>
+        <LabelConInfo htmlFor="documento" campo="documento">Documento</LabelConInfo>
         <Input
           id="documento"
           name="documento"
           placeholder="DNI"
           defaultValue={ejecutado?.documento ?? ""}
         />
-        {/* Kept editable for legacy rows that carry a DNI and no CUIL. Once a
-            CUIL is present the save derives documento from it and this is
-            ignored - mail-match and the escritos tokens still read it. */}
-        <p className="text-xs text-muted-foreground">
-          Se completa solo desde el CUIL.
-        </p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="domicilio">Domicilio</Label>
@@ -79,15 +80,13 @@ export function IdentidadFields({ ejecutado }: SectionProps) {
         <Input id="telefono" name="telefono" defaultValue={ejecutado?.telefono ?? ""} />
       </div>
     </div>
-    <p className="text-xs text-muted-foreground">
-      Los codemandados se administran desde la ficha del ejecutado.
-    </p>
     </div>
   );
 }
 
 export function ExpedienteFields({
   ejecutado,
+  sinTitulo,
   courtIndex,
   empresas,
 }: SectionProps & { courtIndex: CourtEntry[]; empresas: string[] }) {
@@ -101,7 +100,7 @@ export function ExpedienteFields({
   return (
     <div className="@container space-y-4">
     {/* Expediente */}
-    <SectionTitle>Expediente</SectionTitle>
+    {!sinTitulo && <SectionTitle>Expediente</SectionTitle>}
     <JuzgadoPicker
       index={courtIndex}
       defaultDepartamento={ejecutado?.departamento}
@@ -110,7 +109,7 @@ export function ExpedienteFields({
     />
     <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4">
       <div className="space-y-2">
-        <Label htmlFor="numero_expediente">N° de expediente</Label>
+        <LabelConInfo htmlFor="numero_expediente" campo="numero_expediente">N° de expediente</LabelConInfo>
         <Input
           id="numero_expediente"
           name="numero_expediente"
@@ -119,9 +118,6 @@ export function ExpedienteFields({
           title="Debe contener el número de causa (1 a 7 dígitos)."
           defaultValue={ejecutado?.numero_expediente ?? ""}
         />
-        <p className="text-xs text-muted-foreground">
-          Se guarda el número de causa; el juzgado lo identifica el selector de arriba.
-        </p>
       </div>
       <div className="space-y-2">
         <Label htmlFor="empresa">Empresa</Label>
@@ -138,7 +134,7 @@ export function ExpedienteFields({
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="movimiento">Movimiento</Label>
+        <LabelConInfo htmlFor="movimiento" campo="movimiento">Movimiento</LabelConInfo>
         <Select name="movimiento" defaultValue={ejecutado?.movimiento ?? "__none__"}>
           <SelectTrigger id="movimiento">
             <SelectValue placeholder="Sin movimiento" />
@@ -152,9 +148,7 @@ export function ExpedienteFields({
         </Select>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="movimiento_diligenciada">
-          Movimiento diligenciado
-        </Label>
+        <LabelConInfo htmlFor="movimiento_diligenciada" campo="movimiento_diligenciada">Diligenciado</LabelConInfo>
         <Select
           name="movimiento_diligenciada"
           defaultValue={triDefault(ejecutado?.movimiento_diligenciada)}
@@ -174,31 +168,32 @@ export function ExpedienteFields({
   );
 }
 
-export function FinancieroFields({ ejecutado }: SectionProps) {
+/**
+ * The RIGHT column's form: only the columns the liquidación is computed from.
+ * Matches EjecutadoMontosFields exactly — a field added here must be added there
+ * too, or the save silently drops it.
+ */
+export function MontosFields({ ejecutado, sinTitulo }: SectionProps) {
   return (
     <div className="@container space-y-4">
     {/* Financiero */}
-    <SectionTitle>Financiero</SectionTitle>
+    {!sinTitulo && <SectionTitle>Financiero</SectionTitle>}
     <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4">
       <div className="space-y-2">
-        <Label htmlFor="deuda_inicial">Deuda inicial (ARS)</Label>
-        <Input
+        <Label htmlFor="deuda_inicial">Deuda inicial</Label>
+        <ArsInput
           id="deuda_inicial"
           name="deuda_inicial"
-          type="number"
-          step="0.01"
-          min="0"
+          min={0}
           defaultValue={ejecutado?.deuda_inicial ?? 0}
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="gastos">Gastos (ARS)</Label>
-        <Input
+        <Label htmlFor="gastos">Gastos</Label>
+        <ArsInput
           id="gastos"
           name="gastos"
-          type="number"
-          step="0.01"
-          min="0"
+          min={0}
           defaultValue={ejecutado?.gastos ?? 0}
         />
       </div>
@@ -213,22 +208,17 @@ export function FinancieroFields({ ejecutado }: SectionProps) {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="interes_gastos">Interés (ARS)</Label>
-        <Input
+        <LabelConInfo htmlFor="interes_gastos" campo="interes_gastos">Interés s/ gastos</LabelConInfo>
+        <ArsInput
           id="interes_gastos"
           name="interes_gastos"
-          type="number"
-          step="0.01"
-          min="0"
+          min={0}
           placeholder="Sin definir"
           defaultValue={ejecutado?.interes_gastos ?? ""}
         />
-        <p className="text-xs text-muted-foreground">
-          Interés sobre gastos. Se suma al total de la liquidación.
-        </p>
       </div>
       <div className="space-y-2">
-        <Label htmlFor="fecha_mora">Fecha de mora (desde)</Label>
+        <LabelConInfo htmlFor="fecha_mora" campo="fecha_mora">Fecha de mora</LabelConInfo>
         <DateField
           id="fecha_mora"
           name="fecha_mora"
@@ -236,39 +226,23 @@ export function FinancieroFields({ ejecutado }: SectionProps) {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="fecha_deuda">Fecha de deuda (hasta)</Label>
+        <LabelConInfo htmlFor="fecha_deuda" campo="fecha_deuda">Fecha de deuda</LabelConInfo>
         <DateField
           id="fecha_deuda"
           name="fecha_deuda"
           defaultValue={ejecutado?.fecha_deuda ?? ""}
         />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="dinero_en_cuenta">Dinero en cuenta (ARS)</Label>
-        <Input
-          id="dinero_en_cuenta"
-          name="dinero_en_cuenta"
-          type="number"
-          step="0.01"
-          defaultValue={ejecutado?.dinero_en_cuenta ?? ""}
-        />
-      </div>
     </div>
-    {ejecutado?.practica_liquidacion && (
-      <div className="space-y-1">
-        <Label className="text-muted-foreground">Práctica de liquidación</Label>
-        <p className="text-sm">{formatArDate(ejecutado.practica_liquidacion)}</p>
-      </div>
-    )}
     </div>
   );
 }
 
-export function MedidaCautelarFields({ ejecutado }: SectionProps) {
+export function MedidaCautelarFields({ ejecutado, sinTitulo }: SectionProps) {
   return (
     <div className="@container space-y-4">
     {/* Medida cautelar */}
-    <SectionTitle>Medida cautelar</SectionTitle>
+    {!sinTitulo && <SectionTitle>Medida cautelar</SectionTitle>}
     <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-3">
       <div className="space-y-2">
         <Label htmlFor="medida_cautelar">Tipo</Label>
@@ -317,6 +291,16 @@ export function MedidaCautelarFields({ ejecutado }: SectionProps) {
         </Select>
       </div>
     </div>
+    {/* dinero_en_cuenta only exists because an embargo was granted, so it reads
+        beside the medida rather than with the liquidación's inputs. */}
+    <div className="space-y-2">
+      <LabelConInfo htmlFor="dinero_en_cuenta" campo="dinero_en_cuenta">Dinero en cuenta</LabelConInfo>
+      <ArsInput
+        id="dinero_en_cuenta"
+        name="dinero_en_cuenta"
+        defaultValue={ejecutado?.dinero_en_cuenta ?? ""}
+      />
+    </div>
     <div className="space-y-2">
       <Label htmlFor="medida_cautelar_nota">Nota de la medida cautelar</Label>
       <Textarea
@@ -333,11 +317,11 @@ export function MedidaCautelarFields({ ejecutado }: SectionProps) {
   );
 }
 
-export function NotasFields({ ejecutado }: SectionProps) {
+export function NotasFields({ ejecutado, sinTitulo }: SectionProps) {
   return (
     <div className="@container space-y-4">
     {/* Notas */}
-    <SectionTitle>Notas</SectionTitle>
+    {!sinTitulo && <SectionTitle>Notas</SectionTitle>}
     <div className="space-y-2">
       <Label htmlFor="observaciones">Observaciones</Label>
       <Textarea
@@ -369,7 +353,7 @@ export function EjecutadoFormFields({
     <div className="space-y-4">
       <IdentidadFields ejecutado={ejecutado} />
       <ExpedienteFields ejecutado={ejecutado} courtIndex={courtIndex} empresas={empresas} />
-      <FinancieroFields ejecutado={ejecutado} />
+      <MontosFields ejecutado={ejecutado} />
       <MedidaCautelarFields ejecutado={ejecutado} />
       <NotasFields ejecutado={ejecutado} />
     </div>

@@ -48,7 +48,7 @@ export default async function CobrosPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="@container grid grid-cols-1 gap-3 @sm:grid-cols-2">
         <div className="rounded-md border p-4">
           <div className="text-xs uppercase text-muted-foreground">Solicitado</div>
           <div className="text-2xl font-semibold tabular-nums">

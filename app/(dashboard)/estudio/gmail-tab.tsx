@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { formatArDateTime } from "@/lib/domain/dates";
 import { disconnectGmail } from "./actions";
 import { type EstudioMember } from "./miembros-tab";
+import { SoloDueno } from "./solo-dueno";
 
 export type GmailConnection = {
   google_email: string;
@@ -38,13 +39,17 @@ export function GmailTab({
             La casilla del estudio no está conectada.
           </CardDescription>
         </CardHeader>
-        {isHead && (
-          <CardContent>
+        <CardContent>
+          {isHead ? (
             <Button asChild>
               <a href="/api/gmail/connect">Conectar Gmail</a>
             </Button>
-          </CardContent>
-        )}
+          ) : (
+            <SoloDueno>
+              Solo el dueño del estudio puede conectar la casilla de Gmail.
+            </SoloDueno>
+          )}
+        </CardContent>
       </Card>
     );
   }
@@ -74,6 +79,11 @@ export function GmailTab({
           </p>
         )}
 
+        {!isHead && (
+          <SoloDueno>
+            Solo el dueño del estudio puede reconectar o desconectar la casilla.
+          </SoloDueno>
+        )}
         {isHead && (
           <div className="flex gap-2 pt-1">
             <Button asChild variant="outline">

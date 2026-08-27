@@ -18,7 +18,7 @@ import { type Tables } from "@/lib/supabase/db-helpers";
 import {
   IdentidadFields,
   ExpedienteFields,
-  FinancieroFields,
+  MontosFields,
   MedidaCautelarFields,
   NotasFields,
 } from "../ejecutado-form-fields";
@@ -103,11 +103,23 @@ export default async function NewEjecutadoPage({
           />
         )}
 
-        <div className="grid gap-4 xl:grid-cols-3">
-          <div className="space-y-4 xl:col-span-2">
+        {/*
+          Same case/money split as the detail page, 3/2, so the halves are not
+          swapped between creating a case and editing one.
+
+          One <form>: creation posts every column at once through
+          parseEjecutadoFormData, unlike the detail page's three disjoint forms.
+          The grid is inside it, so the split is layout only.
+        */}
+        <div className="grid gap-4 xl:grid-cols-5 xl:items-start">
+          {/* ---------------- EL CASO ---------------- */}
+          <div className="min-w-0 space-y-4 xl:col-span-3">
             <Card>
               <CardHeader>
-                <CardTitle>Datos del ejecutado</CardTitle>
+                <CardTitle>Datos del demandado</CardTitle>
+                <CardDescription>
+                  Identidad, contacto y expediente.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <IdentidadFields ejecutado={prefill} />
@@ -116,12 +128,33 @@ export default async function NewEjecutadoPage({
                   courtIndex={courtIndex}
                   empresas={empresas}
                 />
-                <FinancieroFields ejecutado={prefill} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Medida cautelar</CardTitle>
+                <CardDescription>
+                  Se puede dejar sin definir y completar cuando el juzgado la provea.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <MedidaCautelarFields ejecutado={prefill} sinTitulo />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Notas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <NotasFields ejecutado={prefill} sinTitulo />
               </CardContent>
             </Card>
           </div>
 
-          <div className="space-y-4">
+          {/* ---------------- EL DINERO ---------------- */}
+          <div className="min-w-0 space-y-4 xl:col-span-2">
             {/* sticky needs a scroll range to work in, which the stretched grid
                 item gives it: the column is as tall as the left one. */}
             <Card className="sticky top-6 z-10">
@@ -140,22 +173,13 @@ export default async function NewEjecutadoPage({
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Medida cautelar</CardTitle>
+                <CardTitle className="text-base">Montos</CardTitle>
                 <CardDescription>
-                  Se puede dejar sin definir y completar cuando el juzgado la provea.
+                  De acá sale la liquidación cuando guardes.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <MedidaCautelarFields ejecutado={prefill} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Notas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <NotasFields ejecutado={prefill} />
+                <MontosFields ejecutado={prefill} sinTitulo />
               </CardContent>
             </Card>
           </div>

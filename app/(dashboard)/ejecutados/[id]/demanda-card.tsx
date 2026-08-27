@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LabelConInfo } from "@/components/label-info";
 import { DateField } from "@/components/date-field";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
@@ -32,9 +33,8 @@ function Dato({ label, value }: { label: string; value: string }) {
 }
 
 /**
- * The "Demanda" card - Fran's blue Demanda sign. Shown only when
- * origen = 'demanda', and it surfaces exactly the fields the rest of the detail
- * page does not display.
+ * Shown only when origen = 'demanda'. Surfaces exactly the fields the rest of the
+ * detail page does not.
  */
 export function DemandaCard({
   initial,
@@ -185,7 +185,7 @@ export function DemandaCard({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dc-cuenta_cliper">Cuenta Cliper</Label>
+                  <LabelConInfo htmlFor="dc-cuenta_cliper" campo="cuenta_cliper">Cuenta Cliper</LabelConInfo>
                   <Input
                     id="dc-cuenta_cliper"
                     name="cuenta_cliper"
@@ -195,7 +195,7 @@ export function DemandaCard({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dc-tarjeta_cabal">Tarjeta Cabal</Label>
+                  <LabelConInfo htmlFor="dc-tarjeta_cabal" campo="tarjeta_cabal">Tarjeta Cabal</LabelConInfo>
                   <Input
                     id="dc-tarjeta_cabal"
                     name="tarjeta_cabal"
@@ -208,7 +208,7 @@ export function DemandaCard({
                     nuevo" recomposes the DOCUMENTAL block from current data, so
                     the count has to be correctable after the case exists. */}
                 <div className="space-y-2">
-                  <Label htmlFor="dc-fojas_resumenes">Fojas de resúmenes de cuenta</Label>
+                  <LabelConInfo htmlFor="dc-fojas_resumenes" campo="fojas_resumenes">Fojas de resúmenes</LabelConInfo>
                   <Input
                     id="dc-fojas_resumenes"
                     name="fojas_resumenes"

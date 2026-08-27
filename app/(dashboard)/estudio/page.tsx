@@ -27,8 +27,8 @@ const MESSAGES: Record<string, { tone: "ok" | "error"; text: string }> = {
   invite_exists: { tone: "error", text: "Ese usuario ya pertenece a un estudio." },
   invite_empty: { tone: "error", text: "Ingresá un email." },
   remove_ok: { tone: "ok", text: "Miembro quitado." },
-  remove_head: { tone: "error", text: "No se puede quitar al head del estudio." },
-  leave_head: { tone: "error", text: "Sos head del estudio, no podés salir." },
+  remove_head: { tone: "error", text: "No se puede quitar al dueño del estudio." },
+  leave_head: { tone: "error", text: "Sos el dueño del estudio, no podés salir." },
 };
 
 export default async function EstudioPage({
@@ -55,7 +55,8 @@ export default async function EstudioPage({
   const connection = await getGmailConnection(supabase);
 
   return (
-    <div className="max-w-2xl space-y-4">
+    // Full width, like /ejecutados. The dashboard <main> owns the padding.
+    <div className="space-y-4">
       <h1 className="text-2xl font-semibold">{estudio?.nombre ?? "Estudio"}</h1>
 
       {feedback && (
@@ -80,7 +81,7 @@ export default async function EstudioPage({
           {isHead ? (
             <Alert>
               <AlertDescription>
-                Sos head del estudio, no podés salir. (La transferencia de estudio y
+                Sos el dueño del estudio, no podés salir. (La transferencia de estudio y
                 las invitaciones por token llegan más adelante.)
               </AlertDescription>
             </Alert>

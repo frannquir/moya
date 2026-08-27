@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DateField } from "@/components/date-field";
+import { ArsInput } from "@/components/ars-input";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -22,7 +23,6 @@ import {
 } from "@/components/ui/table";
 import {
   calcularLiquidacion,
-  parseSpanishNumber,
   formatCurrency,
   formatPeriodo,
   isClampedEnd,
@@ -50,9 +50,13 @@ export function LiquidacionCalculator({ tasas }: { tasas: TasaRow[] }) {
   const [apynom, setApynom] = useState("");
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState(today);
-  const [capital, setCapital] = useState("");
-  const [gastos, setGastos] = useState("0");
-  const [interesGastos, setInteresGastos] = useState("0");
+  // Numbers, not strings. These used to be free text run through
+  // parseSpanishNumber, which reads a grouped amount with no decimals wrongly:
+  // "10.000" came back as 10 and "1.234.567" as 1.234, because parseFloat stops
+  // at the second dot. ArsInput parses through lib/domain/moneda-ar instead.
+  const [capital, setCapital] = useState<number | null>(null);
+  const [gastos, setGastos] = useState<number | null>(0);
+  const [interesGastos, setInteresGastos] = useState<number | null>(0);
 
   const [result, setResult] = useState<LiquidacionResult | null>(null);
   const [computed, setComputed] = useState<ComputedInput | null>(null);
@@ -62,14 +66,11 @@ export function LiquidacionCalculator({ tasas }: { tasas: TasaRow[] }) {
     e.preventDefault();
     setError(null);
 
-    const cap = parseSpanishNumber(capital);
-    const gas = parseSpanishNumber(gastos || "0");
-    const intGas = parseSpanishNumber(interesGastos || "0");
+    const cap = capital;
+    const gas = gastos ?? 0;
+    const intGas = interesGastos ?? 0;
     if (!fechaDesde) return setError("Ingresá la fecha desde.");
-    if (isNaN(cap)) return setError("El capital debe ser un número válido.");
-    if (isNaN(gas)) return setError("Los gastos deben ser un número válido.");
-    if (isNaN(intGas))
-      return setError("El interés sobre gastos debe ser un número válido.");
+    if (cap === null) return setError("Ingresá el capital.");
 
     const end = fechaHasta || today;
     try {
@@ -131,17 +132,17 @@ export function LiquidacionCalculator({ tasas }: { tasas: TasaRow[] }) {
               <DateField name="fecha_hasta" value={fechaHasta} onValueChange={setFechaHasta} />
             </Field>
             <Field label="Capital">
-              <Input value={capital} onChange={(e) => setCapital(e.target.value)} placeholder="10.000,00" className="font-mono" />
+              <ArsInput name="capital" value={capital} onValueChange={setCapital} min={0} placeholder="10.000,00" />
             </Field>
             <Field label="Gastos">
-              <Input value={gastos} onChange={(e) => setGastos(e.target.value)} placeholder="0,00" className="font-mono" />
+              <ArsInput name="gastos" value={gastos} onValueChange={setGastos} min={0} />
             </Field>
             <Field label="Interés s/ gastos">
-              <Input
+              <ArsInput
+                name="interes_gastos"
                 value={interesGastos}
-                onChange={(e) => setInteresGastos(e.target.value)}
-                placeholder="0,00"
-                className="font-mono"
+                onValueChange={setInteresGastos}
+                min={0}
               />
             </Field>
           </div>

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { formatArDate } from "@/lib/domain/dates";
 import { inviteMember, removeMember } from "./actions";
+import { SoloDueno } from "./solo-dueno";
 
 export type EstudioMember = {
   user_id: string;
@@ -31,6 +32,11 @@ export function MiembrosTab({
 }) {
   return (
     <div className="space-y-4">
+      {!isHead && (
+        <SoloDueno>
+          Solo el dueño del estudio puede invitar o quitar miembros.
+        </SoloDueno>
+      )}
       {isHead && (
         <Card>
           <CardHeader>
@@ -75,7 +81,7 @@ export function MiembrosTab({
                       {m.nombre || m.email}
                     </span>
                     <Badge variant={m.role === "head" ? "default" : "secondary"}>
-                      {m.role === "head" ? "Head" : "Miembro"}
+                      {m.role === "head" ? "Dueño" : "Miembro"}
                     </Badge>
                   </div>
                   <div className="truncate text-sm text-muted-foreground">
