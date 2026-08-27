@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ArsInput } from "@/components/ars-input";
 import { DateField } from "@/components/date-field";
 import {
   IVA_RATE,
@@ -67,18 +68,32 @@ export function HonorariosAddPagoForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="@container grid grid-cols-1 gap-3 @xs:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="monto">Monto ({unidad.toUpperCase()})</Label>
-          <Input
-            id="monto"
-            name="monto"
-            type="number"
-            step={unidad === "jus" ? "0.01" : "1"}
-            min="0"
-            value={monto}
-            onChange={(e) => setMonto(e.target.value)}
-          />
+          {/* Dual-unit field, so the peso mask applies only in ARS mode: a JUS
+              figure is a small decimal like 4,59 and thousands grouping plus a
+              "$" would misread it as pesos. Both branches write the same state
+              and only one is mounted, so `name="monto"` posts once either way. */}
+          {unidad === "ars" ? (
+            <ArsInput
+              id="monto"
+              name="monto"
+              min={0}
+              value={monto === "" ? null : Number(monto)}
+              onValueChange={(v) => setMonto(v === null ? "" : String(v))}
+            />
+          ) : (
+            <Input
+              id="monto"
+              name="monto"
+              type="number"
+              step="0.01"
+              min="0"
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+            />
+          )}
         </div>
         <div className="space-y-2">
           <Label>Equivalente</Label>
@@ -92,7 +107,7 @@ export function HonorariosAddPagoForm({
       {montoJus > 0 && (
         <div className="rounded-md border bg-muted/30 p-3 text-xs">
           <div className="mb-1 text-muted-foreground">De este pago:</div>
-          <div className="grid grid-cols-3 gap-2 tabular-nums">
+          <div className="@container grid grid-cols-1 gap-2 tabular-nums @xs:grid-cols-3">
             <SplitCell label="Honorario" jus={split.base} jusValue={jusValue} />
             <SplitCell
               label={`IVA ${Math.round(IVA_RATE * 100)}%`}
@@ -113,7 +128,7 @@ export function HonorariosAddPagoForm({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="@container grid grid-cols-1 gap-3 @xs:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="fecha">Fecha</Label>
           <DateField

@@ -155,7 +155,7 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
             </div>
 
             {/* Where the case stands. */}
-            <div className="grid grid-cols-3 gap-3 rounded-md border p-4">
+            <div className="@container grid grid-cols-1 gap-3 rounded-md border p-4 @xs:grid-cols-3">
               <Summary label="Cobrado" valueJus={pagado} jusValue={jusValue} />
               <Summary
                 label="Restante honorario"

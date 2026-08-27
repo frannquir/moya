@@ -11,6 +11,11 @@ const alertVariants = cva(
         default: "bg-card text-card-foreground",
         destructive:
           "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
+        // Same shape as destructive, on the semantic tokens globals.css defines.
+        // A permissions notice is not an error — nothing went wrong — so it reads
+        // amber rather than red.
+        warning:
+          "border-warning/40 bg-warning/10 text-warning *:data-[slot=alert-description]:text-warning/90 *:[svg]:text-current",
       },
     },
     defaultVariants: {

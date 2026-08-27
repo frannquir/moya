@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LabelConInfo } from "@/components/label-info";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -23,6 +24,7 @@ import {
 import { PartyFieldsBlock } from "@/components/party-fields";
 import { JuzgadoPicker } from "../juzgado-picker";
 import { DateField } from "@/components/date-field";
+import { ArsInput } from "@/components/ars-input";
 import {
   emptyParty,
   labelForCodemandado,
@@ -303,23 +305,8 @@ export function DemandaForm({
         </CardHeader>
         <CardContent className="@container space-y-4">
           <div className="grid gap-4 @md:grid-cols-2">
-            {/*
-              TODO (Phase 4, UI touches): several labels in this app name things a
-              new user cannot guess — "Cuenta Cliper", "Tarjeta Cabal", "Fecha de
-              mora", "Cuenta de honorarios", "IBM". The plan is an info icon next
-              to those labels with the explanation on hover, instead of the
-              paragraph of helper text under the field: shorter forms, and the
-              explanation is there when it is wanted rather than always.
-              components/ui/tooltip.tsx already exists and the dashboard layout
-              already wraps everything in a TooltipProvider, so this is a small
-              shared <LabelConInfo> away.
-
-              Cuenta Cliper is the motivating example — its hover text should read
-              "Única por caso: la comparten el demandado y todos los codemandados.
-              La tarjeta Cabal, en cambio, es una por parte."
-            */}
             <div className="space-y-2">
-              <Label htmlFor="cuenta_cliper">Cuenta Cliper</Label>
+              <LabelConInfo htmlFor="cuenta_cliper" campo="cuenta_cliper">Cuenta Cliper</LabelConInfo>
               <Input
                 id="cuenta_cliper"
                 name="cuenta_cliper"
@@ -343,13 +330,11 @@ export function DemandaForm({
           </div>
 
           <div className="grid gap-4 @md:grid-cols-2">
-            {/* A number input, not a dropdown (Fran, 2026-08-22): the firm has no
-                fixed set of values, the count follows how many months of
-                statements are attached. Contrato (14 fs.) and acuse de recibo
-                (2 fs.) do not appear here — they are invariant and now literals
-                in the template body. */}
+            {/* A number, not a dropdown: there is no fixed set, the count follows
+                how many months of statements are attached. Contrato (14 fs.) and
+                acuse de recibo (2 fs.) are invariant and live in the template. */}
             <div className="space-y-2">
-              <Label htmlFor="fojas_resumenes">Fojas de resúmenes de cuenta</Label>
+              <LabelConInfo htmlFor="fojas_resumenes" campo="fojas_resumenes">Fojas de resúmenes</LabelConInfo>
               <Input
                 id="fojas_resumenes"
                 name="fojas_resumenes"
@@ -361,39 +346,35 @@ export function DemandaForm({
                   setDraft((d) => ({ ...d, fojas_resumenes: e.target.value }))
                 }
               />
-              <p className="text-xs text-muted-foreground">
-                Cuántas fojas de resúmenes se adjuntan. Sin esto la demanda imprime
-                un marcador en el bloque DOCUMENTAL.
-              </p>
             </div>
           </div>
 
           <div className="grid gap-4 @md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="deuda_inicial">Monto reclamado</Label>
-              <Input
+              {/* The draft keeps deuda_inicial as a STRING: it is persisted to
+                  localStorage and changing its shape would strand every saved
+                  draft. Converted at this boundary only. */}
+              <ArsInput
                 id="deuda_inicial"
                 name="deuda_inicial"
-                type="number"
-                step="0.01"
-                value={draft.deuda_inicial}
-                onChange={(e) => setDraft((d) => ({ ...d, deuda_inicial: e.target.value }))}
+                min={0}
+                value={draft.deuda_inicial === "" ? null : Number(draft.deuda_inicial)}
+                onValueChange={(n) =>
+                  setDraft((d) => ({ ...d, deuda_inicial: n === null ? "" : String(n) }))
+                }
               />
             </div>
             {/* Same label, type and name as the ejecutado form, so both go
                 through the same parseEjecutadoFormData path. */}
             <div className="space-y-2">
-              <Label htmlFor="fecha_mora">Fecha de mora (desde)</Label>
+              <LabelConInfo htmlFor="fecha_mora" campo="fecha_mora">Fecha de mora</LabelConInfo>
               <DateField
                 id="fecha_mora"
                 name="fecha_mora"
                 value={draft.fecha_mora}
                 onValueChange={(iso) => setDraft((d) => ({ ...d, fecha_mora: iso }))}
               />
-              <p className="text-xs text-muted-foreground">
-                Vencimiento del último resumen impago. Sin esto no se genera la
-                liquidación.
-              </p>
             </div>
           </div>
 
@@ -425,7 +406,7 @@ export function DemandaForm({
           {/* A demanda that has not been filed yet has no expediente number; the
               field is here because a case loaded after filing usually does. */}
           <div className="space-y-2">
-            <Label htmlFor="numero_expediente">N° de expediente</Label>
+            <LabelConInfo htmlFor="numero_expediente" campo="numero_expediente">N° de expediente</LabelConInfo>
             <Input
               id="numero_expediente"
               name="numero_expediente"

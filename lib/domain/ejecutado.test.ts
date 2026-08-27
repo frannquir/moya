@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import {
   CUOTAS_OPTIONS,
+  parseCasoFormData,
+  parseCautelarFormData,
+  parseEjecutadoFormData,
+  parseMontosFormData,
   normalizeNumeroExpediente,
   parseViaFormData,
   validateEjecutadoFields,
@@ -217,5 +221,122 @@ describe("validateViaFields", () => {
     // Without it there is no schedule at all, so the convenio would print a
     // marker where every due date belongs.
     expect(validateViaFields({ ...ok, fecha_vencimiento: null })).toMatch(/vencimiento/i);
+  });
+});
+
+// The three-way form split.
+//
+// The guard against gotcha #41 that the type system cannot give: EjecutadoCaso-
+// Fields is derived by Omit, so TypeScript cannot tell a dropped column from an
+// excluded one. If a parser reaches outside its set, or a column falls between
+// all three, a save silently blanks data.
+
+describe("the caso / cautelar / montos split", () => {
+  // Every field the three forms can post, with values distinguishable from the
+  // "absent" default.
+  function fullForm(): FormData {
+    const fd = new FormData();
+    const entries: Record<string, string> = {
+      nombre: "Demandado de Prueba",
+      juzgado: "Juzgado Sintético",
+      juzgado_id: "11111111-1111-1111-1111-111111111111",
+      departamento: "Mar del Plata",
+      numero_expediente: "1513/2019",
+      documento: "12345678",
+      cuil: "20-12345678-6",
+      domicilio: "Calle Sintética 1",
+      telefono: "223-1234567",
+      deuda_inicial: "270000",
+      gastos: "5000",
+      fecha_gastos: "2026-01-10",
+      interes_gastos: "1200",
+      fecha_mora: "2021-12-09",
+      fecha_deuda: "2026-03-01",
+      dinero_en_cuenta: "9000",
+      movimiento: "Enviar Cédula",
+      movimiento_diligenciada: "si",
+      empresa: "Tartan",
+      medida_cautelar: "embargo",
+      medida_cautelar_estado: "Solicitada",
+      medida_cautelar_diligenciada: "si",
+      medida_cautelar_nota: "Nota de prueba",
+      observaciones: "Observación de prueba",
+    };
+    for (const [k, v] of Object.entries(entries)) fd.set(k, v);
+    return fd;
+  }
+
+  const MONTOS = [
+    "deuda_inicial",
+    "gastos",
+    "fecha_gastos",
+    "interes_gastos",
+    "fecha_mora",
+    "fecha_deuda",
+  ];
+  const CAUTELAR = [
+    "medida_cautelar",
+    "medida_cautelar_estado",
+    "medida_cautelar_diligenciada",
+    "medida_cautelar_nota",
+    "dinero_en_cuenta",
+  ];
+
+  it("the three sets are disjoint — no column is written by two forms", () => {
+    const fd = fullForm();
+    const caso = Object.keys(parseCasoFormData(fd));
+    const cautelar = Object.keys(parseCautelarFormData(fd));
+    const montos = Object.keys(parseMontosFormData(fd));
+
+    expect(caso.filter((k) => montos.includes(k))).toEqual([]);
+    expect(caso.filter((k) => cautelar.includes(k))).toEqual([]);
+    expect(cautelar.filter((k) => montos.includes(k))).toEqual([]);
+  });
+
+  it("together they cover every column of EjecutadoFormFields — none falls through", () => {
+    const fd = fullForm();
+    const all = Object.keys(parseEjecutadoFormData(fd)).sort();
+    const split = [
+      ...Object.keys(parseCasoFormData(fd)),
+      ...Object.keys(parseCautelarFormData(fd)),
+      ...Object.keys(parseMontosFormData(fd)),
+    ].sort();
+    expect(split).toEqual(all);
+  });
+
+  it("each parser claims exactly the columns it is supposed to", () => {
+    const fd = fullForm();
+    expect(Object.keys(parseMontosFormData(fd)).sort()).toEqual([...MONTOS].sort());
+    expect(Object.keys(parseCautelarFormData(fd)).sort()).toEqual([...CAUTELAR].sort());
+  });
+
+  it("the caso parser never reaches into money or cautelar columns", () => {
+    // Catches updateCaso spreading a montos key as undefined, which Postgres
+    // writes as NULL over a real liquidación input.
+    const caso = parseCasoFormData(fullForm()) as Record<string, unknown>;
+    for (const k of [...MONTOS, ...CAUTELAR]) {
+      expect(Object.prototype.hasOwnProperty.call(caso, k)).toBe(false);
+    }
+  });
+
+  it("each parser reads its own values correctly out of a shared form", () => {
+    const fd = fullForm();
+    expect(parseMontosFormData(fd)).toEqual({
+      deuda_inicial: 270000,
+      gastos: 5000,
+      fecha_gastos: "2026-01-10",
+      interes_gastos: 1200,
+      fecha_mora: "2021-12-09",
+      fecha_deuda: "2026-03-01",
+    });
+    expect(parseCautelarFormData(fd)).toEqual({
+      medida_cautelar: "embargo",
+      medida_cautelar_estado: "Solicitada",
+      medida_cautelar_diligenciada: true,
+      medida_cautelar_nota: "Nota de prueba",
+      dinero_en_cuenta: 9000,
+    });
+    expect(parseCasoFormData(fd).nombre).toBe("Demandado de Prueba");
+    expect(parseCasoFormData(fd).observaciones).toBe("Observación de prueba");
   });
 });

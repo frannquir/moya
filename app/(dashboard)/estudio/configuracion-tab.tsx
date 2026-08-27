@@ -9,13 +9,13 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   CUENTA_HONORARIOS,
   type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
 import { DomiciliosEditor } from "./domicilios-editor";
 import { EmpresasEditor } from "./empresas-editor";
+import { SoloDueno } from "./solo-dueno";
 import { EncargadoEditor } from "./encargado-editor";
 import { updateEstudio, updateEstudioEscritosConfig } from "./actions";
 
@@ -29,13 +29,7 @@ export function ConfiguracionTab({
   isHead: boolean;
 }) {
   if (!isHead) {
-    return (
-      <Alert>
-        <AlertDescription>
-          Solo el head del estudio puede editar la configuración.
-        </AlertDescription>
-      </Alert>
-    );
+    return <SoloDueno />;
   }
 
   const initialDomicilios = Object.entries(config.domicilios_procesales ?? {}).map(
@@ -63,7 +57,9 @@ export function ConfiguracionTab({
         </CardHeader>
         <CardContent>
           <form action={updateEstudio} className="space-y-4">
-            <div className="space-y-2">
+            {/* Capped: a single short text field stretched across a
+                full-width page reads as a mistake, not as generosity. */}
+            <div className="max-w-md space-y-2">
               <Label htmlFor="nombre">Nombre del estudio</Label>
               <Input id="nombre" name="nombre" defaultValue={nombre} required />
             </div>
@@ -82,6 +78,11 @@ export function ConfiguracionTab({
         </CardHeader>
         <CardContent>
           <form action={updateEstudioEscritosConfig} className="space-y-6">
+            {/* Two columns from xl up: who signs and where the firm gets paid on
+                the left, the two catalogues on the right. Still one form and one
+                Guardar — the split is layout, not scope. */}
+            <div className="grid gap-6 xl:grid-cols-2 xl:items-start">
+            <div className="space-y-6">
             <div className="space-y-3">
               <div>
                 <div className="text-sm font-medium">Encargado del estudio</div>
@@ -103,8 +104,9 @@ export function ConfiguracionTab({
                 placeholder={CUENTA_HONORARIOS}
               />
             </div>
+            </div>
 
-
+            <div className="space-y-6">
             <div className="space-y-3">
               <div>
                 <div className="text-sm font-medium">Empresas</div>
@@ -128,6 +130,8 @@ export function ConfiguracionTab({
                 </p>
               </div>
               <DomiciliosEditor initial={initialDomicilios} />
+            </div>
+            </div>
             </div>
 
             <Button type="submit">Guardar configuración</Button>

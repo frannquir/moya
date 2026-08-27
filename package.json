@@ -44,6 +44,7 @@
     "dotenv": "^17.4.2",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.2.6",
+    "playwright": "^1.62.1",
     "supabase": "^2.101.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.12",

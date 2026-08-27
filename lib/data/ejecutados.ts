@@ -1,7 +1,17 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { type Database } from "@/lib/supabase/types";
 import { type Tables } from "@/lib/supabase/db-helpers";
-import { type EjecutadoFormFields, type Via, type ViaFields } from "@/lib/domain/ejecutado";
+import {
+  ORDEN_OPTIONS,
+  ORDEN_DEFAULT,
+  type EjecutadoCasoFields,
+  type EjecutadoCautelarFields,
+  type EjecutadoFormFields,
+  type EjecutadoMontosFields,
+  type Orden,
+  type Via,
+  type ViaFields,
+} from "@/lib/domain/ejecutado";
 import { type DemandadoExtraFields } from "@/lib/domain/demanda";
 
 type Client = SupabaseClient<Database>;
@@ -22,24 +32,34 @@ export async function listActive(
     pageSize = PAGE_SIZE_DEFAULT,
     assignedTo,
     via,
+    orden = ORDEN_DEFAULT,
   }: {
     q?: string;
     page?: number;
     pageSize?: number;
     assignedTo?: string;
     via?: Via;
+    orden?: Orden;
   } = {},
 ): Promise<{ items: Ejecutado[]; totalCount: number }> {
   const term = q.trim().slice(0, 100);
   const from = (Math.max(1, page) - 1) * pageSize;
   const to = from + pageSize - 1;
 
+  // The sort column comes from a closed table, never from the query string —
+  // .order() interpolates its argument, so an arbitrary value would be injected.
+  const sort = ORDEN_OPTIONS.find((o) => o.value === orden) ?? ORDEN_OPTIONS[0];
+
   let query = supabase
     .from("ejecutados")
     .select("*", { count: "exact" })
     .is("archived_at", null)
     .eq("is_draft", false)
-    .order("created_at", { ascending: false })
+    .order(sort.column, { ascending: sort.asc, nullsFirst: false })
+    // Tiebreaker, so paging is stable when the sort column repeats — juzgado and
+    // deuda both have plenty of ties, and without this a row can appear on two
+    // pages or on neither.
+    .order("id", { ascending: true })
     .range(from, to);
 
   // UI scope (e.g. the head's "Miembro" view), not a security boundary — RLS still applies.
@@ -59,6 +79,55 @@ export async function listActive(
   const { data, count, error } = await query;
   if (error) throw error;
   return { items: data ?? [], totalCount: count ?? 0 };
+}
+
+export type EjecutadosStats = {
+  total: number;
+  actualizadosHoy: number;
+  extrajudiciales: number;
+  deudaTotal: number;
+};
+
+/**
+ * The figures above the list. Scoped exactly like the list itself — same
+ * assignedTo, same via filter — so the header always describes the rows you are
+ * looking at rather than the whole estudio.
+ *
+ * `deuda_inicial` is summed client-side over the id/deuda pair rather than in
+ * Postgres: there is no aggregate RPC and adding one is a migration, while the
+ * estudio is a few hundred rows. Revisit past a few thousand.
+ */
+export async function getStats(
+  supabase: Client,
+  { assignedTo, via }: { assignedTo?: string; via?: Via } = {},
+): Promise<EjecutadosStats> {
+  let query = supabase
+    .from("ejecutados")
+    .select("deuda_inicial, updated_at, via")
+    .is("archived_at", null)
+    .eq("is_draft", false);
+
+  if (assignedTo) query = query.eq("assigned_to_user_id", assignedTo);
+  if (via) query = query.eq("via", via);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  const rows = data ?? [];
+
+  // "Hoy" in the reader's own day, not UTC: a case touched at 21:00 in Buenos
+  // Aires is today's work, and comparing against a UTC date boundary would drop
+  // it after 21:00 local.
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  return {
+    total: rows.length,
+    actualizadosHoy: rows.filter(
+      (r) => r.updated_at && new Date(r.updated_at) >= startOfDay,
+    ).length,
+    extrajudiciales: rows.filter((r) => r.via === "extrajudicial").length,
+    deudaTotal: rows.reduce((sum, r) => sum + Number(r.deuda_inicial ?? 0), 0),
+  };
 }
 
 export async function getById(
@@ -139,6 +208,40 @@ export async function update(
     .from("ejecutados")
     .update(fields)
     .eq("id", id);
+  if (error) throw error;
+}
+
+/**
+ * The detail page's LEFT column. Its own update path over a disjoint column set:
+ * routing it through `update()` would spread the full EjecutadoFormFields shape
+ * and blank the money columns the right column owns (gotcha #41).
+ */
+export async function updateCaso(
+  supabase: Client,
+  id: string,
+  fields: EjecutadoCasoFields,
+): Promise<void> {
+  const { error } = await supabase.from("ejecutados").update(fields).eq("id", id);
+  if (error) throw error;
+}
+
+/** The medida cautelar card, its own disjoint column set. */
+export async function updateCautelar(
+  supabase: Client,
+  id: string,
+  fields: EjecutadoCautelarFields,
+): Promise<void> {
+  const { error } = await supabase.from("ejecutados").update(fields).eq("id", id);
+  if (error) throw error;
+}
+
+/** The detail page's RIGHT column: the liquidación's inputs, beside its result. */
+export async function updateMontos(
+  supabase: Client,
+  id: string,
+  fields: EjecutadoMontosFields,
+): Promise<void> {
+  const { error } = await supabase.from("ejecutados").update(fields).eq("id", id);
   if (error) throw error;
 }
 

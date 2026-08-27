@@ -5,8 +5,23 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient as createBrowserClient } from "@/lib/supabase/browser";
-import { listActive, type Ejecutado } from "@/lib/data/ejecutados";
-import { VIA_OPTIONS, viaOf, type Via } from "@/lib/domain/ejecutado";
+import { listActive, getStats, type Ejecutado } from "@/lib/data/ejecutados";
+import {
+  ORDEN_OPTIONS,
+  ordenOf,
+  VIA_OPTIONS,
+  viaOf,
+  type Orden,
+  type Via,
+} from "@/lib/domain/ejecutado";
+import { formatMonedaAr } from "@/lib/domain/moneda-ar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -77,6 +92,7 @@ export function EjecutadosBoard({
   // Not head-gated: an extrajudicial case means a channel to the debtor exists,
   // which is what the firm most wants to see grouped, member or head.
   const viaFilter = viaFilterFrom(params.get("via"));
+  const orden = ordenOf(params.get("orden"));
 
   // URL is the source of truth for the page. When the term changes, reset to
   // page 1 — otherwise a stale ?page= could land on an empty page after the set
@@ -95,6 +111,7 @@ export function EjecutadosBoard({
         view: "miembro",
         assignedTo: currentUserId,
         via: viaFilter,
+        orden,
       },
     ],
     queryFn: () =>
@@ -103,6 +120,7 @@ export function EjecutadosBoard({
         page: pageNum,
         pageSize,
         assignedTo: currentUserId,
+        orden,
         ...(viaFilter ? { via: viaFilter } : {}),
       }),
     placeholderData: (prev) => prev, // keep the old page visible while the next loads
@@ -111,12 +129,13 @@ export function EjecutadosBoard({
 
   // Folder view fetches the full active set once and groups it client-side.
   const { data: folderData } = useQuery({
-    queryKey: ["ejecutados", "folders", { q: deferredQ, via: viaFilter }],
+    queryKey: ["ejecutados", "folders", { q: deferredQ, via: viaFilter, orden }],
     queryFn: () =>
       listActive(supabase, {
         q: deferredQ,
         page: 1,
         pageSize: FOLDER_FETCH_SIZE,
+        orden,
         ...(viaFilter ? { via: viaFilter } : {}),
       }),
     placeholderData: (prev) => prev,
@@ -136,11 +155,22 @@ export function EjecutadosBoard({
       if (pageNum > 1) next.set("page", String(pageNum));
       if (vista === "estudio") next.set("vista", "estudio");
       if (viaFilter) next.set("via", viaFilter);
+      if (orden !== "recientes") next.set("orden", orden);
       const qs = next.toString();
       router.replace(qs ? `?${qs}` : "?", { scroll: false });
     }, 300);
     return () => clearTimeout(t);
-  }, [deferredQ, pageNum, vista, viaFilter, router]);
+  }, [deferredQ, pageNum, vista, viaFilter, orden, router]);
+
+  const { data: stats } = useQuery({
+    queryKey: ["ejecutados", "stats", { assignedTo: showFolders ? null : currentUserId, via: viaFilter }],
+    queryFn: () =>
+      getStats(supabase, {
+        ...(showFolders ? {} : { assignedTo: currentUserId }),
+        ...(viaFilter ? { via: viaFilter } : {}),
+      }),
+    placeholderData: (prev) => prev,
+  });
 
   // Realtime: any row change invalidates all ejecutados queries (both views).
   useEffect(() => {
@@ -163,6 +193,7 @@ export function EjecutadosBoard({
       ...(deferredQ ? { q: deferredQ } : {}),
       ...(vista === "estudio" ? { vista: "estudio" } : {}),
       ...(viaFilter ? { via: viaFilter } : {}),
+      ...(orden !== "recientes" ? { orden } : {}),
       page: String(target),
     })}`;
 
@@ -173,6 +204,7 @@ export function EjecutadosBoard({
     if (deferredQ) p.set("q", deferredQ);
     if (next === "estudio") p.set("vista", "estudio");
     if (viaFilter) p.set("via", viaFilter);
+    if (orden !== "recientes") p.set("orden", orden);
     const qs = p.toString();
     router.replace(qs ? `?${qs}` : "?", { scroll: false });
   }
@@ -185,6 +217,20 @@ export function EjecutadosBoard({
     if (deferredQ) p.set("q", deferredQ);
     if (vista === "estudio") p.set("vista", "estudio");
     if (next) p.set("via", next);
+    if (orden !== "recientes") p.set("orden", orden);
+    const qs = p.toString();
+    router.replace(qs ? `?${qs}` : "?", { scroll: false });
+  }
+
+  // Re-sorting reshuffles every page, so a stale ?page= would land somewhere
+  // arbitrary. Same reset as the via filter.
+  function setOrden(next: Orden) {
+    if (next === orden) return;
+    const p = new URLSearchParams();
+    if (deferredQ) p.set("q", deferredQ);
+    if (vista === "estudio") p.set("vista", "estudio");
+    if (viaFilter) p.set("via", viaFilter);
+    if (next !== "recientes") p.set("orden", next);
     const qs = p.toString();
     router.replace(qs ? `?${qs}` : "?", { scroll: false });
   }
@@ -196,7 +242,9 @@ export function EjecutadosBoard({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      {/* flex-wrap, or the five action buttons hold the page open: measured at a
+          375px viewport the document was 688px wide and scrolled sideways. */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Ejecutados</h1>
           <p className="text-sm text-muted-foreground">
@@ -205,7 +253,7 @@ export function EjecutadosBoard({
             {viaFilter ? ` · ${viaFilter === "judicial" ? "judiciales" : "extrajudiciales"}` : ""}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isHead && (
             <div className="flex rounded-md border p-0.5">
               <Button
@@ -236,6 +284,26 @@ export function EjecutadosBoard({
         </div>
       </div>
 
+      {/* The figures describe the rows below, not the whole estudio: same
+          assignedTo and same via filter as the list query. */}
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Ejecutados" value={stats ? String(stats.total) : "—"} />
+        <StatCard
+          label="Actualizados hoy"
+          value={stats ? String(stats.actualizadosHoy) : "—"}
+          muted={stats?.actualizadosHoy === 0}
+        />
+        <StatCard
+          label="Extrajudiciales"
+          value={stats ? String(stats.extrajudiciales) : "—"}
+          muted={stats?.extrajudiciales === 0}
+        />
+        <StatCard
+          label="Deuda inicial total"
+          value={stats ? `$${formatMonedaAr(stats.deudaTotal)}` : "—"}
+        />
+      </div>
+
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative max-w-sm flex-1 min-w-[12rem]">
           <Input
@@ -258,6 +326,22 @@ export function EjecutadosBoard({
               </Button>
             ))}
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Ordenar:</span>
+          <Select value={orden} onValueChange={(v) => setOrden(v as Orden)}>
+            <SelectTrigger size="sm" className="w-[15rem]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ORDEN_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -348,6 +432,29 @@ export function EjecutadosBoard({
           )}
         </>
       )}
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  muted = false,
+}: {
+  label: string;
+  value: string;
+  muted?: boolean;
+}) {
+  return (
+    <div className="rounded-lg border bg-card p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p
+        className={`font-heading text-xl font-semibold tabular-nums ${
+          muted ? "text-muted-foreground" : ""
+        }`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

@@ -11,13 +11,25 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { getConfiguredEmpresas } from "@/lib/domain/escritos-config";
-import { EjecutadoFormFields } from "../ejecutado-form-fields";
+import {
+  IdentidadFields,
+  ExpedienteFields,
+  MedidaCautelarFields,
+  MontosFields,
+  NotasFields,
+} from "../ejecutado-form-fields";
 import { JuzgadoInfoCard } from "../juzgado-info-card";
 import { getById } from "@/lib/data/ejecutados";
 import { getCourtIndex, getById as getJuzgadoById } from "@/lib/data/juzgados";
 import { getEscritosConfig, getMembership, listMembers } from "@/lib/data/estudio";
 import { requireUser } from "@/lib/data/auth";
-import { updateEjecutado, archiveEjecutado, delegateEjecutado } from "./actions";
+import {
+  updateEjecutadoCaso,
+  updateEjecutadoCautelar,
+  updateEjecutadoMontos,
+  archiveEjecutado,
+  delegateEjecutado,
+} from "./actions";
 import { CobrosCard } from "./cobros-card";
 import { HonorariosCard } from "./honorarios-card";
 import { LiquidacionesSection } from "./liquidaciones-section";
@@ -30,9 +42,10 @@ import { updateDemandaDatos } from "./demanda-actions";
 import { regenerarDemanda } from "./escritos-actions";
 import { getUltimaDemanda, loadPartes } from "@/lib/data/escrito-render";
 import { avisosDePartes } from "@/lib/domain/cautelar";
-import { Badge } from "@/components/ui/badge";
 import { activarBorrador, moverABorrador } from "../../borradores/actions";
 import { viaOf } from "@/lib/domain/ejecutado";
+import { EjecutadoHeader } from "./ejecutado-header";
+import { ResumenCard } from "./resumen-card";
 
 export default async function EjecutadoDetailPage({
   params,
@@ -69,7 +82,9 @@ export default async function EjecutadoDetailPage({
     (m) => m.user_id !== ejecutado.assigned_to_user_id,
   );
 
-  const updateAction = updateEjecutado.bind(null, id);
+  const casoAction = updateEjecutadoCaso.bind(null, id);
+  const cautelarAction = updateEjecutadoCautelar.bind(null, id);
+  const montosAction = updateEjecutadoMontos.bind(null, id);
   const archiveAction = archiveEjecutado.bind(null, id);
   const delegateAction = delegateEjecutado.bind(null, id);
   const demandaAction = updateDemandaDatos.bind(null, id);
@@ -87,147 +102,84 @@ export default async function EjecutadoDetailPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Link
-            href="/ejecutados"
-            className="text-sm text-muted-foreground hover:underline"
-          >
-            ← Ejecutados
-          </Link>
-          <div className="flex items-center gap-2 mt-1">
-            <h1 className="text-2xl font-semibold">{ejecutado.nombre}</h1>
-            {ejecutado.is_draft && <Badge variant="secondary">Borrador</Badge>}
-            {viaOf(ejecutado.via) === "extrajudicial" && <Badge>Extrajudicial</Badge>}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {ejecutado.is_draft ? (
-            <form action={activarBorrador.bind(null, id)}>
-              <Button type="submit">Activar</Button>
-            </form>
-          ) : (
-            <form action={moverABorrador.bind(null, id)}>
-              <Button type="submit" variant="outline">Mover a borrador</Button>
-            </form>
-          )}
-          <form action={archiveAction}>
-            <Button type="submit" variant="outline">Archivar</Button>
+      <EjecutadoHeader
+        ejecutado={ejecutado}
+        juzgado={juzgado}
+        ownerName={currentOwner?.nombre?.trim() || currentOwner?.email || null}
+      />
+
+      <div className="flex flex-wrap items-center gap-2">
+        {ejecutado.is_draft ? (
+          <form action={activarBorrador.bind(null, id)}>
+            <Button type="submit" size="sm">Activar</Button>
           </form>
-        </div>
+        ) : (
+          <form action={moverABorrador.bind(null, id)}>
+            <Button type="submit" size="sm" variant="outline">Mover a borrador</Button>
+          </form>
+        )}
+        <form action={archiveAction}>
+          <Button type="submit" size="sm" variant="outline">Archivar</Button>
+        </form>
       </div>
 
       {/*
-        Two thirds / one third from xl up. The left column is the case and the
-        work on it - identity, parties, the demanda, what to file next - and it
-        gets the width because that is where the reading and the typing happen.
-        The right column is reference and money: the court's contact details and
-        the three running totals, all things you glance at rather than edit.
-        Below xl it collapses to one column and reads in that same order.
-        The page has no max-width - the dashboard <main> owns the padding, and
-        /ejecutados and /escritos already fill the width the same way.
+        60/40: the case on the left, the money on the right, so the liquidación's
+        inputs sit beside the liquidación itself.
+
+        Each card that saves is its own form over a disjoint column set. They
+        cannot share one enclosing form — Codemandados, Demanda and Escritos carry
+        forms of their own, and nested forms are invalid HTML — and a partial post
+        through the full EjecutadoFormFields shape would blank every column the
+        form does not render (gotcha #41).
       */}
-      <div className="grid gap-4 xl:grid-cols-3 xl:items-start">
-        <div className="space-y-4 xl:col-span-2">
+      <div className="grid gap-4 xl:grid-cols-5 xl:items-start">
+        {/* ---------------- EL CASO ---------------- */}
+        <div className="min-w-0 space-y-4 xl:col-span-3">
           <Card>
             <CardHeader>
-              <CardTitle>Datos</CardTitle>
+              <CardTitle>Datos del demandado</CardTitle>
               <CardDescription>
-                Editá los datos del ejecutado. Los cambios se guardan al hacer clic en «Guardar».
+                Identidad, contacto y expediente. Los montos se editan en la
+                columna de la derecha, junto a la liquidación.
               </CardDescription>
             </CardHeader>
-            <form action={updateAction}>
+            <form action={casoAction} className="flex flex-col gap-4">
               <CardContent className="space-y-4">
-                <EjecutadoFormFields
+                <IdentidadFields ejecutado={ejecutado} />
+                <ExpedienteFields
                   ejecutado={ejecutado}
                   courtIndex={courtIndex}
                   empresas={empresas}
                 />
+                <NotasFields ejecutado={ejecutado} />
               </CardContent>
-
               <CardFooter>
-                <Button type="submit">Guardar cambios</Button>
+                <Button type="submit">Guardar datos</Button>
               </CardFooter>
             </form>
           </Card>
 
-          {isHead && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Delegar</CardTitle>
-                <CardDescription>
-                  Transferí este ejecutado a otro miembro del estudio. Solo el head y el
-                  miembro asignado pueden verlo.
-                </CardDescription>
-              </CardHeader>
-              {transferTargets.length === 0 ? (
-                <CardContent className="space-y-1 text-sm">
-                  <p className="text-muted-foreground">
-                    {currentOwner
-                      ? `Asignado a ${currentOwner.nombre?.trim() ? currentOwner.nombre : currentOwner.email}.`
-                      : "Sin delegar (solo head)."}
-                  </p>
-                  <p>
-                    No hay otros miembros para asignar.{" "}
-                    <Link href="/estudio" className="font-medium hover:underline">
-                      ¡Agregá más miembros!
-                    </Link>
-                  </p>
-                </CardContent>
-              ) : (
-                <form action={delegateAction}>
-                  <CardContent className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      {currentOwner
-                        ? `Asignado actualmente a ${currentOwner.nombre?.trim() ? currentOwner.nombre : currentOwner.email}.`
-                        : "Sin delegar (solo head)."}
-                    </p>
-                    <select
-                      name="assigned_to"
-                      defaultValue={transferTargets[0]?.user_id ?? ""}
-                      className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                    >
-                      {transferTargets.map((m) => (
-                        <option key={m.user_id} value={m.user_id}>
-                          {m.nombre?.trim() ? m.nombre : m.email}
-                          {m.user_id === user.id
-                            ? " (vos)"
-                            : m.role === "head"
-                              ? " (head)"
-                              : ""}
-                        </option>
-                      ))}
-                      {/* Pull the case back to head-only, but only if it's currently
-                          delegated — when it's already head-only this is a no-op. */}
-                      {currentOwner && (
-                        <option value="">Sin delegar (solo head)</option>
-                      )}
-                    </select>
-                  </CardContent>
-                  <CardFooter>
-                    <Button type="submit" variant="outline">
-                      Reasignar
-                    </Button>
-                  </CardFooter>
-                </form>
-              )}
-            </Card>
-          )}
-
-          {/* Vía is primary, not reference: it is the state that decides which
-              escrito the recommendation feed puts first. */}
-          <ViaCard
-            via={viaOf(ejecutado.via)}
-            montoAcuerdo={ejecutado.monto_acuerdo}
-            cuotas={ejecutado.cuotas}
-            fechaVencimiento={ejecutado.fecha_vencimiento}
-            action={viaAction}
-          />
-
           <CodemandadosCard ejecutadoId={id} />
 
-          {/* Only for cases started from "Iniciar demanda" - a migrated or manually
-              loaded case has none of these fields. */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Medida cautelar</CardTitle>
+            </CardHeader>
+            <form action={cautelarAction} className="flex flex-col gap-4">
+              <CardContent>
+                <MedidaCautelarFields ejecutado={ejecutado} sinTitulo />
+              </CardContent>
+              <CardFooter>
+                <Button type="submit">Guardar medida</Button>
+              </CardFooter>
+            </form>
+          </Card>
+
+          <EscritosSection ejecutadoId={id} />
+
+          {/* Only for cases started from "Iniciar demanda" - a migrated or
+              manually loaded case has none of these fields. */}
           {esDemanda && (
             <DemandaCard
               updateAction={demandaAction}
@@ -248,14 +200,107 @@ export default async function EjecutadoDetailPage({
             />
           )}
 
-          <EscritosSection ejecutadoId={id} />
+          <JuzgadoInfoCard juzgado={juzgado} />
+
+        {isHead && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Delegar</CardTitle>
+              <CardDescription>
+                Transferí este ejecutado a otro miembro del estudio. Solo el dueño del
+                estudio y el miembro asignado pueden verlo.
+              </CardDescription>
+            </CardHeader>
+            {transferTargets.length === 0 ? (
+              <CardContent className="space-y-1 text-sm">
+                <p className="text-muted-foreground">
+                  {currentOwner
+                    ? `Asignado a ${currentOwner.nombre?.trim() ? currentOwner.nombre : currentOwner.email}.`
+                    : "Sin delegar (solo el dueño)."}
+                </p>
+                <p>
+                  No hay otros miembros para asignar.{" "}
+                  <Link href="/estudio" className="font-medium hover:underline">
+                    ¡Agregá más miembros!
+                  </Link>
+                </p>
+              </CardContent>
+            ) : (
+              <form action={delegateAction} className="flex flex-col gap-4">
+                <CardContent className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    {currentOwner
+                      ? `Asignado actualmente a ${currentOwner.nombre?.trim() ? currentOwner.nombre : currentOwner.email}.`
+                      : "Sin delegar (solo el dueño)."}
+                  </p>
+                  <select
+                    name="assigned_to"
+                    defaultValue={transferTargets[0]?.user_id ?? ""}
+                    className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                  >
+                    {transferTargets.map((m) => (
+                      <option key={m.user_id} value={m.user_id}>
+                        {m.nombre?.trim() ? m.nombre : m.email}
+                        {m.user_id === user.id
+                          ? " (vos)"
+                          : m.role === "head"
+                            ? " (dueño)"
+                            : ""}
+                      </option>
+                    ))}
+                    {/* Pull the case back to head-only, but only if it's currently
+                        delegated — when it's already head-only this is a no-op. */}
+                    {currentOwner && (
+                      <option value="">Sin delegar (solo el dueño)</option>
+                    )}
+                  </select>
+                </CardContent>
+                <CardFooter>
+                  <Button type="submit" variant="outline">
+                    Reasignar
+                  </Button>
+                </CardFooter>
+              </form>
+            )}
+          </Card>
+        )}
         </div>
 
-        <div className="space-y-4">
-          <JuzgadoInfoCard juzgado={juzgado} />
+        {/* ---------------- EL DINERO ---------------- */}
+        <div className="min-w-0 space-y-4 xl:col-span-2">
+          <ResumenCard ejecutadoId={id} ejecutado={ejecutado} />
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Montos</CardTitle>
+              <CardDescription>
+                De acá sale la liquidación. Se recalcula al guardar.
+              </CardDescription>
+            </CardHeader>
+            <form action={montosAction} className="flex flex-col gap-4">
+              <CardContent>
+                <MontosFields ejecutado={ejecutado} sinTitulo />
+              </CardContent>
+              <CardFooter>
+                <Button type="submit">Guardar y recalcular</Button>
+              </CardFooter>
+            </form>
+          </Card>
+
           <LiquidacionesSection ejecutadoId={id} />
-          <HonorariosCard ejecutadoId={id} />
+
+          {/* Vía lives here because the acuerdo IS money: monto, cuotas and
+              vencimiento are what the debtor will actually pay. */}
+          <ViaCard
+            via={viaOf(ejecutado.via)}
+            montoAcuerdo={ejecutado.monto_acuerdo}
+            cuotas={ejecutado.cuotas}
+            fechaVencimiento={ejecutado.fecha_vencimiento}
+            action={viaAction}
+          />
+
           <CobrosCard ejecutadoId={id} />
+          <HonorariosCard ejecutadoId={id} />
         </div>
       </div>
     </div>

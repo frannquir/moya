@@ -57,6 +57,32 @@ export type ViaFields = {
   fecha_vencimiento: string | null;
 };
 
+/**
+ * The orderings the list offers. "recientes" is most recently added and is the
+ * default; "actualizados" answers a different question — what moved lately.
+ */
+export const ORDEN_OPTIONS = [
+  { value: "recientes", label: "Agregados recientemente", column: "created_at", asc: false },
+  { value: "actualizados", label: "Actualizados recientemente", column: "updated_at", asc: false },
+  // nombre_orden, not nombre: a generated lower(btrim(nombre)) column, because
+  // PostgREST's .order() takes a column name and cannot express lower(nombre).
+  { value: "alfabetico", label: "Alfabético (A-Z)", column: "nombre_orden", asc: true },
+  { value: "deuda", label: "Mayor deuda", column: "deuda_inicial", asc: false },
+  { value: "juzgado", label: "Juzgado", column: "juzgado", asc: true },
+] as const;
+
+export type Orden = (typeof ORDEN_OPTIONS)[number]["value"];
+
+export const ORDEN_DEFAULT: Orden = "recientes";
+
+export function isOrden(value: string | null | undefined): value is Orden {
+  return ORDEN_OPTIONS.some((o) => o.value === value);
+}
+
+export function ordenOf(value: string | null | undefined): Orden {
+  return isOrden(value) ? value : ORDEN_DEFAULT;
+}
+
 export function isVia(value: string): value is Via {
   return (VIA_OPTIONS as readonly string[]).includes(value);
 }
@@ -248,6 +274,132 @@ export function validateViaFields(f: ViaFields): string | null {
   }
   if (!f.fecha_vencimiento) {
     return "La fecha de vencimiento de la primera cuota es obligatoria.";
+  }
+  return null;
+}
+
+// The detail page edits the case on the left and the liquidación's inputs on the
+// right, so it saves through separate forms — and separate forms need disjoint
+// column sets, never one shared type. `EjecutadoFormFields` is spread straight
+// into `.update()`, so a form posting half of it would write NULL over the other
+// half (gotcha #41). It stays as it is and keeps serving creation, where every
+// field really is on one form; the types below serve editing only.
+
+/** Right column: the figures and dates the liquidación is computed from. */
+export type EjecutadoMontosFields = {
+  deuda_inicial: number;
+  gastos: number;
+  fecha_gastos: string | null;
+  interes_gastos: number | null;
+  fecha_mora: string | null;
+  fecha_deuda: string | null;
+};
+
+/**
+ * The medida cautelar block. Its own set because Codemandados sits between it and
+ * the identity fields and carries a form of its own, and nested forms are invalid
+ * HTML — a separate card means a separate disjoint parser.
+ *
+ * dinero_en_cuenta rides along: it only exists because an embargo was granted.
+ */
+export type EjecutadoCautelarFields = {
+  medida_cautelar: MedidaCautelar | null;
+  medida_cautelar_estado: MedidaEstado | null;
+  medida_cautelar_diligenciada: boolean;
+  medida_cautelar_nota: string;
+  dinero_en_cuenta: number | null;
+};
+
+/**
+ * What is left: identity, expediente, movimiento, observaciones. Derived by Omit,
+ * so a new column that joins neither other set lands here rather than nowhere.
+ */
+export type EjecutadoCasoFields = Omit<
+  EjecutadoFormFields,
+  keyof EjecutadoMontosFields | keyof EjecutadoCautelarFields
+>;
+
+// The money half must name real columns of EjecutadoFormFields with the same
+// types, so a typo or a drifted type stops the build.
+//
+// It cannot catch an under-split: EjecutadoCasoFields is derived by Omit, so a
+// column left out of the money half lands in the caso half automatically.
+// Completeness comes from that derivation, not from this assertion.
+type _MontosAreRealColumns =
+  EjecutadoMontosFields extends Pick<EjecutadoFormFields, keyof EjecutadoMontosFields>
+    ? true
+    : never;
+const _montosCheck: _MontosAreRealColumns = true;
+void _montosCheck;
+
+type _CautelarAreRealColumns =
+  EjecutadoCautelarFields extends Pick<EjecutadoFormFields, keyof EjecutadoCautelarFields>
+    ? true
+    : never;
+const _cautelarCheck: _CautelarAreRealColumns = true;
+void _cautelarCheck;
+
+export function parseMontosFormData(fd: FormData): EjecutadoMontosFields {
+  return {
+    deuda_inicial: numOrNull(fd, "deuda_inicial") ?? 0,
+    gastos: numOrNull(fd, "gastos") ?? 0,
+    fecha_gastos: str(fd, "fecha_gastos") || null,
+    interes_gastos: numOrNull(fd, "interes_gastos"),
+    fecha_mora: str(fd, "fecha_mora") || null,
+    fecha_deuda: str(fd, "fecha_deuda") || null,
+  };
+}
+
+export function validateMontosFields(f: EjecutadoMontosFields): string | null {
+  if (f.interes_gastos !== null && !(f.interes_gastos >= 0)) {
+    return "El interés sobre gastos no puede ser negativo.";
+  }
+  if (!(f.deuda_inicial >= 0)) return "La deuda inicial no puede ser negativa.";
+  if (!(f.gastos >= 0)) return "Los gastos no pueden ser negativos.";
+  return null;
+}
+
+export function parseCautelarFormData(fd: FormData): EjecutadoCautelarFields {
+  const all = parseEjecutadoFormData(fd);
+  return {
+    medida_cautelar: all.medida_cautelar,
+    medida_cautelar_estado: all.medida_cautelar_estado,
+    medida_cautelar_diligenciada: all.medida_cautelar_diligenciada,
+    medida_cautelar_nota: all.medida_cautelar_nota,
+    dinero_en_cuenta: all.dinero_en_cuenta,
+  };
+}
+
+/** The caso half, parsed from its own form. */
+export function parseCasoFormData(fd: FormData): EjecutadoCasoFields {
+  // One parser, so CUIL masking, documento sync, expediente normalisation and the
+  // tri-state selects stay in one place; the money half is dropped after.
+  const all = parseEjecutadoFormData(fd);
+  const {
+    deuda_inicial: _d,
+    gastos: _g,
+    fecha_gastos: _fg,
+    interes_gastos: _ig,
+    fecha_mora: _fm,
+    fecha_deuda: _fd2,
+    medida_cautelar: _mc,
+    medida_cautelar_estado: _mce,
+    medida_cautelar_diligenciada: _mcd,
+    medida_cautelar_nota: _mcn,
+    dinero_en_cuenta: _dec,
+    ...caso
+  } = all;
+  void [_d, _g, _fg, _ig, _fm, _fd2, _mc, _mce, _mcd, _mcn, _dec];
+  return caso;
+}
+
+export function validateCasoFields(f: EjecutadoCasoFields): string | null {
+  if (!f.nombre) return "El nombre del demandado es obligatorio.";
+  if (f.cuil !== "" && !isValidCuil(f.cuil)) {
+    return "CUIL inválido: revisá el número, el dígito verificador no coincide.";
+  }
+  if (f.numero_expediente !== "" && extractCausa(f.numero_expediente).causa === null) {
+    return "N° de expediente inválido: debe contener un número de causa (1 a 7 dígitos).";
   }
   return null;
 }

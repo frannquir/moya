@@ -58,7 +58,7 @@ export function EncargadoEditor({ initial }: { initial: Partial<AbogadoConfig> }
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="@container grid grid-cols-1 gap-2 @xs:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="enc-legajo">Legajo previsional</Label>
           <Input
@@ -79,7 +79,7 @@ export function EncargadoEditor({ initial }: { initial: Partial<AbogadoConfig> }
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="@container grid grid-cols-1 gap-2 @xs:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="enc-ibm">IBM</Label>
           <Input
@@ -109,7 +109,7 @@ export function EncargadoEditor({ initial }: { initial: Partial<AbogadoConfig> }
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="@container grid grid-cols-1 gap-2 @xs:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="enc-dom-electronico">Domicilio electrónico</Label>
           <Input

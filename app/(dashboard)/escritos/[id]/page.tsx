@@ -12,6 +12,8 @@ import {
 import { EscritoEditor } from "./escrito-editor";
 import { updateEscrito, archiveEscrito } from "./actions";
 import { getById as getJuzgadoById } from "@/lib/data/juzgados";
+import { requireUser } from "@/lib/data/auth";
+import { getMembership } from "@/lib/data/estudio";
 import { JuzgadoInfoCard } from "@/app/(dashboard)/ejecutados/juzgado-info-card";
 
 export default async function EscritoDetailPage({
@@ -34,6 +36,12 @@ export default async function EscritoDetailPage({
   const ejecutado = Array.isArray(escrito.ejecutado)
     ? escrito.ejecutado[0]
     : escrito.ejecutado;
+
+  // Only to decide whether an estudio-config gap gets a link or a "lo carga el
+  // head" note — a member sent to /estudio would only meet a refusal.
+  const user = await requireUser(supabase);
+  const membership = await getMembership(supabase, user.id);
+  const isHead = membership?.role === "head";
 
   const juzgado = ejecutado?.juzgado_id
     ? await getJuzgadoById(supabase, ejecutado.juzgado_id)
@@ -82,6 +90,8 @@ export default async function EscritoDetailPage({
         </CardHeader>
         <CardContent>
           <EscritoEditor
+            ejecutadoId={ejecutado?.id ?? null}
+            isHead={isHead}
             initialTitulo={escrito.titulo}
             initialContenido={escrito.contenido}
             saveAction={saveAction}

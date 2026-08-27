@@ -6,7 +6,7 @@ import { listActive } from "@/lib/data/ejecutados";
 import { requireUser } from "@/lib/data/auth";
 import { getMembership, listMembers } from "@/lib/data/estudio";
 import { EjecutadosBoard, type BoardMember } from "./ejecutados-board";
-import { VIA_OPTIONS, type Via } from "@/lib/domain/ejecutado";
+import { VIA_OPTIONS, ordenOf, type Via } from "@/lib/domain/ejecutado";
 
 export const metadata: Metadata = { title: "Ejecutados" };
 
@@ -15,9 +15,15 @@ const PAGE_SIZE = 25;
 export default async function EjecutadosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string; vista?: string; via?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    page?: string;
+    vista?: string;
+    via?: string;
+    orden?: string;
+  }>;
 }) {
-  const { q, page, vista, via } = await searchParams;
+  const { q, page, vista, via, orden: ordenRaw } = await searchParams;
   const pageNum = Math.max(1, parseInt(page ?? "1", 10) || 1);
   const term = (q ?? "").trim().slice(0, 100);
 
@@ -33,6 +39,8 @@ export default async function EjecutadosPage({
   const viaFilter: "" | Via = (VIA_OPTIONS as readonly string[]).includes(via ?? "")
     ? (via as Via)
     : "";
+  // Anything unrecognised falls back to the default rather than 500ing.
+  const orden = ordenOf(ordenRaw);
 
   // Head-only firm-wide folder view needs the member directory.
   const members: BoardMember[] = isHead
@@ -54,6 +62,7 @@ export default async function EjecutadosPage({
       page: pageNum,
       pageSize: PAGE_SIZE,
       assignedTo: user.id,
+      orden,
       ...(viaFilter ? { via: viaFilter } : {}),
     });
 
@@ -62,6 +71,7 @@ export default async function EjecutadosPage({
       const params = new URLSearchParams({
         ...(term ? { q: term } : {}),
         ...(viaFilter ? { via: viaFilter } : {}),
+        ...(orden !== "recientes" ? { orden } : {}),
         page: String(totalPages),
       });
       redirect(`?${params}`);
@@ -77,6 +87,7 @@ export default async function EjecutadosPage({
           view: "miembro",
           assignedTo: user.id,
           via: viaFilter,
+          orden,
         },
       ],
       result,

@@ -58,7 +58,7 @@ export default async function ProfilePage() {
               <Input id="nombre" name="nombre" defaultValue={profile?.nombre ?? ""} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="@container grid grid-cols-1 gap-4 @sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="matricula">Matrícula</Label>
                 <Input id="matricula" name="matricula" defaultValue={profile?.matricula ?? ""} />
@@ -72,7 +72,7 @@ export default async function ProfilePage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="@container grid grid-cols-1 gap-4 @sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="legajo">Legajo</Label>
                 <Input id="legajo" name="legajo" defaultValue={profile?.legajo ?? ""} />

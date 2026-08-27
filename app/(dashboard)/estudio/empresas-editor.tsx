@@ -68,7 +68,7 @@ export function EmpresasEditor({ initial }: { initial: Row[] }) {
               placeholder="TARTAN S.A."
             />
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="@container grid grid-cols-1 gap-2 @xs:grid-cols-2">
             <div className="space-y-1">
               <Label>Domicilio legal</Label>
               <Input

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DateField } from "@/components/date-field";
+import { ArsInput } from "@/components/ars-input";
 import { Badge } from "@/components/ui/badge";
 import { formatArs } from "@/lib/domain/cobros";
 import { formatArDate } from "@/lib/domain/dates";
@@ -45,17 +46,10 @@ export async function CobrosCard({ ejecutadoId }: { ejecutadoId: string }) {
 
         <form action={add} className="space-y-3 rounded-md border p-4">
           <h3 className="text-sm font-medium">Registrar cobro</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="@container grid grid-cols-1 gap-3 @xs:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="monto">Monto (ARS) *</Label>
-              <Input
-                id="monto"
-                name="monto"
-                type="number"
-                step="0.01"
-                min="0"
-                required
-              />
+              <ArsInput id="monto" name="monto" min={0} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="fecha">Fecha</Label>

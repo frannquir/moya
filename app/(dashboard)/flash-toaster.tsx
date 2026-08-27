@@ -32,8 +32,8 @@ const TOASTS: Record<string, { type: "success" | "error"; text: string }> = {
   invite_exists: { type: "error", text: "Ese usuario ya pertenece a un estudio." },
   invite_empty: { type: "error", text: "Ingresá un email." },
   remove_ok: { type: "success", text: "Miembro quitado." },
-  remove_head: { type: "error", text: "No se puede quitar al head del estudio." },
-  leave_head: { type: "error", text: "Sos head del estudio, no podés salir." },
+  remove_head: { type: "error", text: "No se puede quitar al dueño del estudio." },
+  leave_head: { type: "error", text: "Sos el dueño del estudio, no podés salir." },
   gmail_desconectado: { type: "success", text: "Gmail desconectado." },
 };
 

@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LabelConInfo } from "@/components/label-info";
 import { Switch } from "@/components/ui/switch";
 import { CuilInput } from "@/components/cuil-input";
 import { onlyDigits, type PartyFields } from "@/lib/domain/demanda";
@@ -88,7 +89,7 @@ export function PartyFieldsBlock({
 
       {showTarjeta && (
         <div className="space-y-2">
-          <Label htmlFor={id("tarjeta_cabal")}>Tarjeta Cabal</Label>
+          <LabelConInfo htmlFor={id("tarjeta_cabal")} campo="tarjeta_cabal">Tarjeta Cabal</LabelConInfo>
           <Input
             id={id("tarjeta_cabal")}
             name={name("tarjeta_cabal")}
