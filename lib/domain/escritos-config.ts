@@ -32,10 +32,62 @@ export const ABOGADO_DEFAULT: AbogadoConfig = {
   email: "CORREO DEL ESTUDIO",
 };
 
-export const CUENTA_HONORARIOS =
-  "Caja de ahorro del Banco __________, " +
-  "Cuenta Nro: 0000000-0 000-0, CBU: 0000000000000000000000, " +
-  "DNI: 00000000, Alias de CBU: ALIAS.CBU, de titularidad de NOMBRE Y APELLIDO";
+/**
+ * The estudio's account for regulated fees, in named parts.
+ *
+ * `texto` carries a value entered before the split, verbatim. Nothing tries to
+ * pull a CBU back out of that prose — a regex that guesses wrong puts the wrong
+ * account number in a court filing.
+ */
+export type CuentaHonorariosConfig = {
+  tipo: string;
+  banco: string;
+  numero: string;
+  cbu: string;
+  alias: string;
+  dni: string;
+  titular: string;
+  texto?: string;
+};
+
+export const CUENTA_HONORARIOS_DEFAULT: CuentaHonorariosConfig = {
+  tipo: "Caja de ahorro",
+  banco: "__________",
+  numero: "0000000-0 000-0",
+  cbu: "0000000000000000000000",
+  alias: "ALIAS.CBU",
+  dni: "00000000",
+  titular: "NOMBRE Y APELLIDO",
+};
+
+/**
+ * The one line the templates expect. Both call sites need a noun phrase — "a la
+ * {{CUENTA_HONORARIOS}}" and "en la siguiente cuenta: {{CUENTA_HONORARIOS}}" —
+ * so an empty part drops its whole clause instead of leaving "CBU: ,".
+ */
+export function formatCuentaHonorarios(
+  cuenta: Partial<CuentaHonorariosConfig> | null | undefined,
+): string {
+  const v = (s: string | null | undefined) => (s ?? "").trim();
+  if (!cuenta) return "";
+
+  const cabecera = [v(cuenta.tipo), v(cuenta.banco) && `del Banco ${v(cuenta.banco)}`]
+    .filter(Boolean)
+    .join(" ");
+
+  return [
+    cabecera,
+    v(cuenta.numero) && `Cuenta Nro: ${v(cuenta.numero)}`,
+    v(cuenta.cbu) && `CBU: ${v(cuenta.cbu)}`,
+    v(cuenta.dni) && `DNI: ${v(cuenta.dni)}`,
+    v(cuenta.alias) && `Alias de CBU: ${v(cuenta.alias)}`,
+    v(cuenta.titular) && `de titularidad de ${v(cuenta.titular)}`,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+export const CUENTA_HONORARIOS = formatCuentaHonorarios(CUENTA_HONORARIOS_DEFAULT);
 
 export type EmpresaConfig = {
   razonSocial: string;
@@ -72,7 +124,8 @@ export function getConfiguredEmpresas(
 }
 
 export type EstudioEscritosConfig = {
-  cuenta_honorarios?: string;
+  /** An object since the split; a plain string is a value saved before it. */
+  cuenta_honorarios?: string | CuentaHonorariosConfig;
   /**
    * The apoderado every escrito is presented by — the estudio's owner, not
    * whoever clicks generate (Fran, 2026-08-22). The head is a lawyer who works
@@ -100,7 +153,23 @@ export function resolveCuentaHonorarios(
   config: EstudioEscritosConfig | null | undefined,
 ): string {
   const v = config?.cuenta_honorarios;
-  return nonEmpty(v) ? (v as string) : CUENTA_HONORARIOS;
+  if (typeof v === "string") return nonEmpty(v) ? v : CUENTA_HONORARIOS;
+  const compuesta = formatCuentaHonorarios(v);
+  if (compuesta !== "") return compuesta;
+  if (nonEmpty(v?.texto)) return v!.texto as string;
+  return CUENTA_HONORARIOS;
+}
+
+/** The stored value as parts, whichever shape it is in, for the settings form. */
+export function cuentaHonorariosPartes(
+  config: EstudioEscritosConfig | null | undefined,
+): CuentaHonorariosConfig {
+  const vacia: CuentaHonorariosConfig = {
+    tipo: "", banco: "", numero: "", cbu: "", alias: "", dni: "", titular: "",
+  };
+  const v = config?.cuenta_honorarios;
+  if (typeof v === "string") return { ...vacia, texto: v };
+  return { ...vacia, ...(v ?? {}) };
 }
 
 export type Genero = "F" | "M";

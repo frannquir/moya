@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import {
   ABOGADO_DEFAULT,
+  CUENTA_HONORARIOS,
+  CUENTA_HONORARIOS_DEFAULT,
+  cuentaHonorariosPartes,
+  formatCuentaHonorarios,
+  resolveCuentaHonorarios,
   articuloDe,
   formatAutorizados,
   resolveDomicilioProcesal,
@@ -181,5 +186,88 @@ describe("resolveEncargado", () => {
   it("treats an absent config the same as an empty one", () => {
     expect(resolveEncargado(null).nombre).toBe(ABOGADO_DEFAULT.nombre);
     expect(resolveEncargado(undefined).nombre).toBe(ABOGADO_DEFAULT.nombre);
+  });
+});
+
+describe("formatCuentaHonorarios", () => {
+  const cuenta = {
+    tipo: "Caja de ahorro",
+    banco: "Nación",
+    numero: "123-4",
+    cbu: "0000000000000000000001",
+    alias: "MI.ALIAS",
+    dni: "12345678",
+    titular: "Juana Pérez",
+  };
+
+  it("reads as a noun phrase, the way both templates use it", () => {
+    // "...transferir el saldo a la {{CUENTA_HONORARIOS}}" and "en la siguiente
+    // cuenta: {{CUENTA_HONORARIOS}}".
+    expect(formatCuentaHonorarios(cuenta)).toBe(
+      "Caja de ahorro del Banco Nación, Cuenta Nro: 123-4, " +
+        "CBU: 0000000000000000000001, DNI: 12345678, " +
+        "Alias de CBU: MI.ALIAS, de titularidad de Juana Pérez",
+    );
+  });
+
+  it("drops the whole clause for a part that is empty", () => {
+    expect(formatCuentaHonorarios({ ...cuenta, cbu: "", dni: "" })).toBe(
+      "Caja de ahorro del Banco Nación, Cuenta Nro: 123-4, " +
+        "Alias de CBU: MI.ALIAS, de titularidad de Juana Pérez",
+    );
+  });
+
+  it("returns an empty string when nothing is filled", () => {
+    expect(formatCuentaHonorarios({})).toBe("");
+    expect(formatCuentaHonorarios(undefined)).toBe("");
+  });
+
+  it("still composes the placeholder constant", () => {
+    // CUENTA_HONORARIOS is built from the parts, so the two cannot drift.
+    expect(CUENTA_HONORARIOS).toBe(formatCuentaHonorarios(CUENTA_HONORARIOS_DEFAULT));
+    expect(CUENTA_HONORARIOS).toContain("Alias de CBU: ALIAS.CBU");
+  });
+});
+
+describe("resolveCuentaHonorarios", () => {
+  it("composes the parts", () => {
+    expect(
+      resolveCuentaHonorarios({
+        cuenta_honorarios: { tipo: "Caja de ahorro", banco: "Nación", numero: "", cbu: "", alias: "", dni: "", titular: "" },
+      }),
+    ).toBe("Caja de ahorro del Banco Nación");
+  });
+
+  it("renders a value saved before the split", () => {
+    expect(resolveCuentaHonorarios({ cuenta_honorarios: "cuenta vieja en una línea" })).toBe(
+      "cuenta vieja en una línea",
+    );
+  });
+
+  it("falls back to texto while every part is empty", () => {
+    expect(
+      resolveCuentaHonorarios({
+        cuenta_honorarios: { tipo: "", banco: "", numero: "", cbu: "", alias: "", dni: "", titular: "", texto: "lo de antes" },
+      }),
+    ).toBe("lo de antes");
+  });
+
+  it("shows the placeholder when there is nothing at all", () => {
+    expect(resolveCuentaHonorarios({})).toBe(CUENTA_HONORARIOS);
+    expect(resolveCuentaHonorarios({ cuenta_honorarios: "" })).toBe(CUENTA_HONORARIOS);
+  });
+});
+
+describe("cuentaHonorariosPartes", () => {
+  it("keeps a pre-split string as texto so the form does not lose it", () => {
+    expect(cuentaHonorariosPartes({ cuenta_honorarios: "una línea" })).toMatchObject({
+      tipo: "",
+      texto: "una línea",
+    });
+  });
+
+  it("fills every part, so no input goes uncontrolled", () => {
+    const p = cuentaHonorariosPartes({});
+    expect(Object.values(p).every((v) => v === "")).toBe(true);
   });
 });

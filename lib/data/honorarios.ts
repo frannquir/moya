@@ -2,8 +2,6 @@ import { type SupabaseClient } from "@supabase/supabase-js";
 import { type Database } from "@/lib/supabase/types";
 import { type Tables } from "@/lib/supabase/db-helpers";
 import {
-  HONORARIO_TIPOS,
-  type HonorarioTipo,
   arsToJus,
   jusToArs,
   grossCapJus,
@@ -39,13 +37,15 @@ export async function getHonorarioWithBalance(
   return data;
 }
 
-// Set/replace the honorario type (3.5 or 7 JUS), one per ejecutado.
+// Set/replace the honorario amount in JUS, one per ejecutado.
 export async function setHonorarioTipo(
   supabase: Client,
   input: { ejecutadoId: string; userId: string; estudioId: string; tipoJus: number },
 ): Promise<void> {
-  if (!HONORARIO_TIPOS.includes(input.tipoJus as HonorarioTipo)) {
-    throw new Error(`Tipo de honorario inválido: ${input.tipoJus} (debe ser 3.5 o 7 JUS).`);
+  // Matches the DB's own honorarios_monto_total_jus_positivo. A NaN from an
+  // empty field fails this too, which is the point.
+  if (!(input.tipoJus > 0)) {
+    throw new Error("El honorario tiene que ser mayor a 0 JUS.");
   }
 
   // Lowering the type below what's already been collected would strand the balance.
@@ -57,7 +57,7 @@ export async function setHonorarioTipo(
   if (existing && (existing.pagado_jus ?? 0) > newCap) {
     throw new Error(
       `No se puede fijar el honorario en ${input.tipoJus} JUS: ya se cobraron ${existing.pagado_jus} JUS, ` +
-        `más de lo que permite ese tipo con IVA y aportes (${newCap} JUS).`,
+        `más de lo que permite ese monto con IVA y aportes (${newCap} JUS).`,
     );
   }
 

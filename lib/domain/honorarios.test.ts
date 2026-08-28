@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  HONORARIO_TIPOS,
+  HONORARIO_JUS_DEFAULT,
   IVA_RATE,
   APORTES_RATE,
   TAX_MULTIPLIER,
@@ -51,12 +51,19 @@ describe("grossCapJus", () => {
     expect(grossCapJus(3.5)).toBe(4.59);
   });
 
-  it("every honorario type produces a 2-dp cap", () => {
-    for (const tipo of HONORARIO_TIPOS) {
-      const cap = grossCapJus(tipo);
+  it("every honorario amount produces a 2-dp cap", () => {
+    // The amount is free now, so this has to hold for arbitrary figures, not
+    // just the two the UI used to offer.
+    for (const monto of [0.5, 1, 3.5, 5, 7, 8.25, 12, 20.4]) {
+      const cap = grossCapJus(monto);
       expect(cap).toBe(roundJus(cap));
-      expect(cap).toBeGreaterThan(tipo);
+      expect(cap).toBeGreaterThan(monto);
     }
+  });
+
+  it("scales a free amount by the same 1.31", () => {
+    expect(grossCapJus(5)).toBe(6.55);
+    expect(grossCapJus(10)).toBe(13.1);
   });
 
   it("zero base has a zero cap", () => {
@@ -71,7 +78,7 @@ describe("taxJus", () => {
   });
 
   it("base + tax reconstitutes the gross cap", () => {
-    for (const tipo of HONORARIO_TIPOS) {
+    for (const tipo of [0.5, 3.5, 5, 7, 8.25]) {
       expect(roundJus(tipo + taxJus(tipo))).toBe(grossCapJus(tipo));
     }
   });
@@ -162,5 +169,11 @@ describe("ARS <-> JUS conversion at the gross cap", () => {
 
   it("returns 0 JUS when no JUS value is configured", () => {
     expect(arsToJus(100000, 0)).toBe(0);
+  });
+});
+
+describe("HONORARIO_JUS_DEFAULT", () => {
+  it("is 7, the amount the card starts at", () => {
+    expect(HONORARIO_JUS_DEFAULT).toBe(7);
   });
 });
