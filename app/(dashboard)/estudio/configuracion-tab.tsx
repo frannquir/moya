@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -10,7 +9,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import {
-  CUENTA_HONORARIOS,
+  CUENTA_HONORARIOS_DEFAULT,
+  cuentaHonorariosPartes,
   type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
 import { DomiciliosEditor } from "./domicilios-editor";
@@ -32,6 +32,7 @@ export function ConfiguracionTab({
     return <SoloDueno />;
   }
 
+  const cuenta = cuentaHonorariosPartes(config);
   const initialDomicilios = Object.entries(config.domicilios_procesales ?? {}).map(
     ([departamento, domicilio]) => ({
       departamento,
@@ -94,15 +95,64 @@ export function ConfiguracionTab({
               <EncargadoEditor initial={config.encargado ?? {}} />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="cuenta_honorarios">Cuenta de honorarios</Label>
-              <Textarea
-                id="cuenta_honorarios"
-                name="cuenta_honorarios"
-                rows={3}
-                defaultValue={config.cuenta_honorarios ?? ""}
-                placeholder={CUENTA_HONORARIOS}
-              />
+            <div className="space-y-3">
+              <div>
+                <div className="text-sm font-medium">Cuenta de honorarios</div>
+                <p className="text-xs text-muted-foreground">
+                  Adónde se transfieren los honorarios regulados. Los escritos la
+                  arman en una sola línea.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <CampoCuenta
+                  name="cuenta_tipo"
+                  label="Tipo de cuenta"
+                  defaultValue={cuenta.tipo}
+                  placeholder={CUENTA_HONORARIOS_DEFAULT.tipo}
+                />
+                <CampoCuenta
+                  name="cuenta_banco"
+                  label="Banco"
+                  defaultValue={cuenta.banco}
+                  placeholder="Banco de la Nación Argentina"
+                />
+                <CampoCuenta
+                  name="cuenta_numero"
+                  label="Número de cuenta"
+                  defaultValue={cuenta.numero}
+                  placeholder={CUENTA_HONORARIOS_DEFAULT.numero}
+                />
+                <CampoCuenta
+                  name="cuenta_cbu"
+                  label="CBU"
+                  defaultValue={cuenta.cbu}
+                  placeholder="22 dígitos"
+                  inputMode="numeric"
+                />
+                <CampoCuenta
+                  name="cuenta_alias"
+                  label="Alias"
+                  defaultValue={cuenta.alias}
+                  placeholder={CUENTA_HONORARIOS_DEFAULT.alias}
+                />
+                <CampoCuenta
+                  name="cuenta_dni"
+                  label="DNI del titular"
+                  defaultValue={cuenta.dni}
+                  placeholder={CUENTA_HONORARIOS_DEFAULT.dni}
+                  inputMode="numeric"
+                />
+                <div className="sm:col-span-2">
+                  <CampoCuenta
+                    name="cuenta_titular"
+                    label="Titular"
+                    defaultValue={cuenta.titular}
+                    placeholder={CUENTA_HONORARIOS_DEFAULT.titular}
+                  />
+                </div>
+              </div>
+              {/* Keeps a value written before the split from being dropped. */}
+              <input type="hidden" name="cuenta_texto" defaultValue={cuenta.texto ?? ""} />
             </div>
             </div>
 
@@ -138,6 +188,33 @@ export function ConfiguracionTab({
           </form>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function CampoCuenta({
+  name,
+  label,
+  defaultValue,
+  placeholder,
+  inputMode,
+}: {
+  name: string;
+  label: string;
+  defaultValue: string;
+  placeholder?: string;
+  inputMode?: "numeric";
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={name}>{label}</Label>
+      <Input
+        id={name}
+        name={name}
+        defaultValue={defaultValue}
+        placeholder={placeholder}
+        inputMode={inputMode}
+      />
     </div>
   );
 }

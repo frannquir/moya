@@ -8,8 +8,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  HONORARIO_TIPOS,
+  HONORARIO_JUS_DEFAULT,
   IVA_RATE,
   APORTES_RATE,
   formatJus,
@@ -71,28 +73,32 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
           )}
         </CardTitle>
         <CardDescription>
-          Honorario regulado (3,5 o 7 JUS) más IVA {Math.round(IVA_RATE * 100)}% y
-          aportes {Math.round(APORTES_RATE * 100)}%. Valor JUS actual:{" "}
-          {formatArs(jusValue)}
+          Honorario regulado en JUS más IVA {Math.round(IVA_RATE * 100)}% y aportes{" "}
+          {Math.round(APORTES_RATE * 100)}%. Valor JUS actual: {formatArs(jusValue)}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <form action={setTipoBound} className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Tipo:</span>
-          {HONORARIO_TIPOS.map((t) => (
-            <Button
-              key={t}
-              type="submit"
+        <form action={setTipoBound} className="flex flex-wrap items-end gap-2">
+          <div className="space-y-2">
+            <Label htmlFor="tipo_jus" className="text-sm text-muted-foreground">
+              Honorario (JUS)
+            </Label>
+            <Input
+              id="tipo_jus"
               name="tipo_jus"
-              value={t}
-              size="sm"
-              variant={tipo === t ? "default" : "outline"}
-            >
-              {formatJus(t)}
-            </Button>
-          ))}
+              type="number"
+              step="0.5"
+              min="0.5"
+              required
+              className="w-28"
+              defaultValue={tipo ?? HONORARIO_JUS_DEFAULT}
+            />
+          </div>
+          <Button type="submit" size="sm" variant={tipo == null ? "default" : "outline"}>
+            {tipo == null ? "Fijar" : "Actualizar"}
+          </Button>
           {tipo != null && (
-            <span className="text-xs text-muted-foreground">
+            <span className="pb-2 text-xs text-muted-foreground">
               → máximo a cobrar {formatJus(gross)}
             </span>
           )}
@@ -100,7 +106,7 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
 
         {!honorario && (
           <p className="text-sm text-muted-foreground">
-            Elegí el tipo de honorario para empezar a registrar pagos.
+            Fijá el honorario para empezar a registrar pagos.
           </p>
         )}
 

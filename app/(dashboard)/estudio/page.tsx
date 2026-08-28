@@ -29,6 +29,19 @@ const MESSAGES: Record<string, { tone: "ok" | "error"; text: string }> = {
   remove_ok: { tone: "ok", text: "Miembro quitado." },
   remove_head: { tone: "error", text: "No se puede quitar al dueño del estudio." },
   leave_head: { tone: "error", text: "Sos el dueño del estudio, no podés salir." },
+  config_ok: { tone: "ok", text: "Configuración guardada." },
+  cuit_empresa_invalido: {
+    tone: "error",
+    text: "El CUIT de una empresa no es válido. Revisá el dígito verificador; no se guardó nada.",
+  },
+  cuit_encargado_invalido: {
+    tone: "error",
+    text: "El CUIT del encargado no es válido. Revisá el dígito verificador; no se guardó nada.",
+  },
+  cbu_invalido: {
+    tone: "error",
+    text: "El CBU tiene que tener 22 dígitos. No se guardó nada.",
+  },
 };
 
 export default async function EstudioPage({

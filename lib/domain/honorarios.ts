@@ -3,14 +3,12 @@ import { type Tables } from "@/lib/supabase/db-helpers";
 export type Honorario = Tables<"honorarios">;
 export type HonorarioPago = Tables<"honorarios_pagos">;
 
-// The two regulated honorario types (JUS). These are the BASE amounts — the
-// regulated fee itself, before tax.
-export const HONORARIO_TIPOS = [3.5, 7] as const;
-export type HonorarioTipo = (typeof HONORARIO_TIPOS)[number];
+// What a new honorario starts at, in JUS. The amount is free — the firm
+// regulates case by case — so this is a default, not a limit.
+export const HONORARIO_JUS_DEFAULT = 7;
 
-// Tax charged on top of the regulated base, additive (Fran/client, 2026-07-22):
-// a 7 JUS honorario may be collected up to 9.17 JUS gross, a 3.5 up to 4.59.
-// The type choice stays 3.5 / 7 — only what may be collected against it grows.
+// Tax charged on top of the regulated base, additive: a 7 JUS honorario may be
+// collected up to 9.17 JUS gross, a 3.5 up to 4.59.
 //
 // The DB trigger check_honorario_pago_cap() enforces the same ceiling via
 // public.honorario_gross_cap(); the two are kept in step by the constants here

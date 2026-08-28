@@ -8,6 +8,7 @@ import { archiveGmailConnection } from "@/lib/data/mail";
 import { updateEscritosConfig } from "@/lib/data/estudio";
 import {
   type AbogadoConfig,
+  type CuentaHonorariosConfig,
   type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
 import { formatCuil, isValidCuil } from "@/lib/domain/cuil";
@@ -175,12 +176,9 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
   // this is the validator validateParty already applies to the empleador's CUIT —
   // one implementation, not two. An empty CUIT stays allowed: an empresa may be
   // configured before its CUIT is known.
-  for (const [clave, emp] of Object.entries(empresas)) {
+  for (const emp of Object.values(empresas)) {
     if (emp.cuit !== "" && !isValidCuil(emp.cuit)) {
-      throw new Error(
-        `CUIT inválido en la empresa "${clave}": revisá el número, ` +
-          "el dígito verificador no coincide.",
-      );
+      redirect("/estudio?msg=cuit_empresa_invalido");
     }
   }
 
@@ -207,14 +205,34 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
   }
 
   if (encargado.cuit && !isValidCuil(encargado.cuit)) {
-    throw new Error(
-      "CUIT inválido en el encargado del estudio: revisá el número, " +
-        "el dígito verificador no coincide.",
-    );
+    redirect("/estudio?msg=cuit_encargado_invalido");
+  }
+
+  const campo = (k: string) => String(formData.get(k) ?? "").trim();
+
+  const cuenta_honorarios: CuentaHonorariosConfig = {
+    tipo: campo("cuenta_tipo"),
+    banco: campo("cuenta_banco"),
+    numero: campo("cuenta_numero"),
+    cbu: campo("cuenta_cbu").replace(/\D/g, ""),
+    alias: campo("cuenta_alias"),
+    dni: campo("cuenta_dni"),
+    titular: campo("cuenta_titular"),
+  };
+  // Carried from the hidden field so a value written before the split is not
+  // dropped by a save that leaves the parts empty.
+  const textoPrevio = campo("cuenta_texto");
+  if (textoPrevio !== "") cuenta_honorarios.texto = textoPrevio;
+
+  // Length only. A CBU has its own check digits, but a validator that rejects a
+  // correct number is worse than none — the empresa CUIT check already blocks
+  // this form, and 22 digits cannot false-positive.
+  if (cuenta_honorarios.cbu !== "" && cuenta_honorarios.cbu.length !== 22) {
+    redirect("/estudio?msg=cbu_invalido");
   }
 
   const config: EstudioEscritosConfig = {
-    cuenta_honorarios: String(formData.get("cuenta_honorarios") ?? "").trim(),
+    cuenta_honorarios,
     encargado,
     domicilios_procesales,
     empresas,
@@ -223,4 +241,5 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
   await updateEscritosConfig(supabase, estudio.id, config);
 
   revalidatePath("/estudio");
+  redirect("/estudio?msg=config_ok");
 }
