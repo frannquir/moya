@@ -11,6 +11,35 @@ export const MOVIMIENTO_OPTIONS = [
 
 export type Movimiento = (typeof MOVIMIENTO_OPTIONS)[number];
 
+/**
+ * A stable key per movimiento, so the UI can colour a case by its stage without
+ * matching on the Spanish label — rewording an option would otherwise silently
+ * drop its colour and leave one grey row in a coloured table.
+ *
+ * `satisfies` (not `:`) keeps the literal types, so `Etapa` stays the union of
+ * the five keys rather than widening to string, AND still fails the build if a
+ * movimiento is added to MOVIMIENTO_OPTIONS without a key here.
+ */
+export const MOVIMIENTO_ETAPA = {
+  "Inicio Causa": "inicio",
+  "Enviar Cédula": "cedula",
+  "Enviar Mandamiento": "mandamiento",
+  "Pedir Sentencia": "sentencia",
+  "En Cobro": "cobro",
+} as const satisfies Record<Movimiento, string>;
+
+export type Etapa = (typeof MOVIMIENTO_ETAPA)[Movimiento];
+
+/**
+ * The etapa a stored movimiento belongs to. NULL — and any value that predates
+ * the current option list — reads as "no stage", which the UI renders neutral
+ * rather than guessing a colour.
+ */
+export function etapaDe(movimiento: string | null | undefined): Etapa | null {
+  if (!movimiento) return null;
+  return (MOVIMIENTO_ETAPA as Record<string, Etapa>)[movimiento] ?? null;
+}
+
 // Medida cautelar tipo: stored lowercase (DB CHECK), displayed capitalized.
 export const MEDIDA_CAUTELAR_OPTIONS = [
   { value: "embargo", label: "Embargo" },

@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createClient as createBrowserClient } from "@/lib/supabase/browser";
 import { listEmailsInWindow, getGmailConnection } from "@/lib/data/mail";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatArDate, formatArDateTime } from "@/lib/domain/dates";
@@ -200,9 +201,15 @@ export function MailBoard({
       ) : (
         <div className="space-y-4">
           {groups.map((group) => (
+            // A matched folder is real work against a real case; the unmatched
+            // ones are a triage pile, so they recede rather than compete.
             <section
               key={`${group.kind}:${group.ejecutado?.id ?? group.kind}`}
-              className="rounded-md border"
+              className={cn(
+                "rounded-md border",
+                group.kind === "por_confirmar" && "border-warning/40",
+                !group.ejecutado && "border-dashed bg-muted/30",
+              )}
             >
               <div className="flex items-center justify-between gap-2 border-b px-4 py-3">
                 <div className="flex min-w-0 items-baseline gap-2">
@@ -217,8 +224,11 @@ export function MailBoard({
                       <span className="shrink-0 text-sm text-muted-foreground">
                         {group.ejecutado.numero_expediente || "—"}
                       </span>
+                      {/* Amber, like every other "asked but not settled" state
+                          in the app: a guessed match is pending a human, not a
+                          finished one. */}
                       {group.kind === "por_confirmar" && (
-                        <Badge variant="outline" className="shrink-0">
+                        <Badge variant="warning" className="shrink-0">
                           Por confirmar
                         </Badge>
                       )}

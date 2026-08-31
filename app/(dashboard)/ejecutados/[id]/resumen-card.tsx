@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCobrosTotals } from "@/lib/data/cobros";
 import { getHonorarioWithBalance, getJusValue } from "@/lib/data/honorarios";
@@ -55,10 +56,13 @@ export async function ResumenCard({
             // No fecha_mora means no liquidación; a bare dash reads as a bug.
             hint={liquidado === null ? "Falta la fecha de mora" : undefined}
           />
+          {/* Reclamado and Liquidado are claims; only Cobrado is money that
+              actually arrived, so it is the only figure here that goes green. */}
           <Cifra
             label="Cobrado"
             value={`$${formatMonedaAr(cobrado)}`}
             muted={cobrado === 0}
+            tone={cobrado > 0 ? "cobrado" : undefined}
           />
         </div>
 
@@ -97,19 +101,24 @@ function Cifra({
   value,
   muted = false,
   hint,
+  tone,
 }: {
   label: string;
   value: string;
   muted?: boolean;
   hint?: string;
+  /** Green, and only ever for money the estudio has actually received. */
+  tone?: "cobrado";
 }) {
   return (
     <div>
       <p className="text-xs text-muted-foreground">{label}</p>
       <p
-        className={`font-heading text-base font-semibold tabular-nums ${
-          muted ? "text-muted-foreground" : ""
-        }`}
+        className={cn(
+          "font-heading text-base font-semibold tabular-nums",
+          muted && "text-muted-foreground",
+          !muted && tone === "cobrado" && "text-success",
+        )}
       >
         {value}
       </p>

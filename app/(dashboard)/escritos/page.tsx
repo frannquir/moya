@@ -17,6 +17,7 @@ import {
   type MedidaCautelar,
 } from "@/lib/domain/escritos";
 import { viaOf, type Movimiento } from "@/lib/domain/ejecutado";
+import { MovimientoBadge } from "@/components/movimiento-badge";
 import { generarEscrito } from "../ejecutados/[id]/escritos-actions";
 
 export const metadata: Metadata = { title: "Escritos" };
@@ -107,14 +108,22 @@ export default async function EscritosPage() {
                       {ej.nombre}
                     </Link>
                   </CardTitle>
-                  <CardDescription>
-                    {[
-                      ej.movimiento ?? null,
-                      viaOf(ej.via) === "extrajudicial" ? "Extrajudicial" : null,
-                      ej.numero_expediente ? `Expte. ${ej.numero_expediente}` : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ") || "Sin datos de etapa"}
+                  {/* The etapa drives which escritos are recommended below, so
+                      it leads the description as a pill rather than as the first
+                      word of a joined string. */}
+                  <CardDescription className="flex flex-wrap items-center gap-1.5">
+                    {ej.movimiento ? (
+                      <MovimientoBadge
+                        movimiento={ej.movimiento}
+                        diligenciada={ej.movimiento_diligenciada}
+                      />
+                    ) : (
+                      <span>Sin datos de etapa</span>
+                    )}
+                    {viaOf(ej.via) === "extrajudicial" && (
+                      <Badge variant="accent">Extrajudicial</Badge>
+                    )}
+                    {ej.numero_expediente && <span>Expte. {ej.numero_expediente}</span>}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col gap-2">

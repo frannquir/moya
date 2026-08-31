@@ -53,7 +53,14 @@ export default async function ArchivadosPage() {
           <TableBody>
             {ejecutados && ejecutados.length > 0 ? (
               ejecutados.map((e) => (
-                <TableRow key={e.id}>
+                // Archived cases are closed, not stalled: they get no etapa tint
+                // and no urgency bar, and sit back at 60% so the active list
+                // never has to compete with them. Hover restores them for
+                // whoever is actually reading one.
+                <TableRow
+                  key={e.id}
+                  className="opacity-60 transition-opacity hover:opacity-100"
+                >
                   <TableCell className="font-medium">{e.nombre}</TableCell>
                   <TableCell>{e.numero_expediente || "—"}</TableCell>
                   <TableCell>{e.juzgado || "—"}</TableCell>

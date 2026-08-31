@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { MovimientoBadge } from "@/components/movimiento-badge";
 import { activarBorrador } from "./actions";
 
 export const metadata: Metadata = { title: "Borradores" };
@@ -85,15 +86,20 @@ export default async function BorradoresPage() {
                   {items.map((d) => (
                     <li
                       key={d.id}
-                      className="flex items-center justify-between gap-3 px-6 py-3"
+                      className="group/draft flex items-center justify-between gap-3 px-6 py-3"
                     >
-                      <div className="min-w-0">
+                      {/* Desaturated: a borrador is not live work, and at full
+                          strength its stage pill competes with the active list
+                          for attention it has not earned. Hovering the row
+                          restores it. */}
+                      <div className="min-w-0 opacity-70 transition-opacity group-hover/draft:opacity-100">
                         <div className="flex items-center gap-2">
                           <span className="font-medium truncate">{d.nombre}</span>
                           {d.movimiento && (
-                            <Badge variant="outline" className="shrink-0">
-                              {d.movimiento}
-                            </Badge>
+                            <MovimientoBadge
+                              movimiento={d.movimiento}
+                              className="shrink-0 saturate-75"
+                            />
                           )}
                         </div>
                         <div className="text-xs text-muted-foreground">

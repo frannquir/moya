@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   CUOTAS_OPTIONS,
+  MOVIMIENTO_OPTIONS,
+  etapaDe,
   parseCasoFormData,
   parseCautelarFormData,
   parseEjecutadoFormData,
@@ -338,5 +340,34 @@ describe("the caso / cautelar / montos split", () => {
     });
     expect(parseCasoFormData(fd).nombre).toBe("Demandado de Prueba");
     expect(parseCasoFormData(fd).observaciones).toBe("Observación de prueba");
+  });
+});
+
+describe("etapaDe", () => {
+  it("keys every movimiento the form can store", () => {
+    // The colour ramp is only complete if no option falls through to null —
+    // a stage without a key renders grey in a table where everything else is
+    // coloured, which reads as a bug rather than as "no stage".
+    for (const m of MOVIMIENTO_OPTIONS) {
+      expect(etapaDe(m)).not.toBeNull();
+    }
+  });
+
+  it("maps the pipeline in ramp order", () => {
+    expect(MOVIMIENTO_OPTIONS.map(etapaDe)).toEqual([
+      "inicio",
+      "cedula",
+      "mandamiento",
+      "sentencia",
+      "cobro",
+    ]);
+  });
+
+  it("reads an absent or unknown movimiento as no stage", () => {
+    expect(etapaDe(null)).toBeNull();
+    expect(etapaDe(undefined)).toBeNull();
+    expect(etapaDe("")).toBeNull();
+    // A value left behind by an older option list, or by the migration.
+    expect(etapaDe("Trabada la litis")).toBeNull();
   });
 });

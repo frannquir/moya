@@ -23,6 +23,16 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-mov-inicio: var(--mov-inicio);
+  --color-mov-inicio-foreground: var(--mov-inicio-foreground);
+  --color-mov-cedula: var(--mov-cedula);
+  --color-mov-cedula-foreground: var(--mov-cedula-foreground);
+  --color-mov-mandamiento: var(--mov-mandamiento);
+  --color-mov-mandamiento-foreground: var(--mov-mandamiento-foreground);
+  --color-mov-sentencia: var(--mov-sentencia);
+  --color-mov-sentencia-foreground: var(--mov-sentencia-foreground);
+  --color-mov-cobro: var(--mov-cobro);
+  --color-mov-cobro-foreground: var(--mov-cobro-foreground);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -101,6 +111,28 @@
   --chart-4: oklch(0.55 0.12 320); /* plum */
   --chart-5: oklch(0.68 0.10 145); /* sage */
 
+  /* Etapa ramp — the movimiento a case is sitting on, keyed by lib/domain/ejecutado.ts.
+     Heat builds toward the sentencia (the hardest-fought point of the case) and
+     then RESOLVES green at En Cobro, because that stage is money arriving: the
+     ramp peaks in the middle rather than at the end. Hues are the ones the
+     palette already speaks — 255 navy, 85 gold, 55 orange, 27 destructive,
+     150 success — so a stage colour never reads as foreign next to a badge.
+
+     Each stage carries its own foreground because lightness is chosen for the
+     hue, not for a shared text colour: gold and orange take dark text, the
+     darker three take light text, and all five clear 4.5:1 at the 12px the
+     badge renders at. */
+  --mov-inicio: oklch(0.46 0.12 255);
+  --mov-inicio-foreground: oklch(0.99 0.005 255);
+  --mov-cedula: oklch(0.80 0.13 85);
+  --mov-cedula-foreground: oklch(0.26 0.06 85);
+  --mov-mandamiento: oklch(0.68 0.16 55);
+  --mov-mandamiento-foreground: oklch(0.22 0.05 55);
+  --mov-sentencia: oklch(0.48 0.19 27);
+  --mov-sentencia-foreground: oklch(0.99 0.005 27);
+  --mov-cobro: oklch(0.48 0.13 150);
+  --mov-cobro-foreground: oklch(0.99 0.005 150);
+
   --radius: 0.625rem;
 
   /* Sidebar */
@@ -152,6 +184,20 @@
   --chart-4: oklch(0.55 0.12 320);
   --chart-5: oklch(0.68 0.10 145);
 
+  /* Same ramp, inverted: on a dark surface the pill is the light element and
+     takes dark text, so every stage flips to a dark foreground here. Keeping the
+     hues identical means a case does not change colour when the theme does. */
+  --mov-inicio: oklch(0.66 0.13 255);
+  --mov-inicio-foreground: oklch(0.16 0.03 255);
+  --mov-cedula: oklch(0.80 0.13 85);
+  --mov-cedula-foreground: oklch(0.22 0.05 85);
+  --mov-mandamiento: oklch(0.74 0.15 55);
+  --mov-mandamiento-foreground: oklch(0.20 0.05 55);
+  --mov-sentencia: oklch(0.65 0.19 27);
+  --mov-sentencia-foreground: oklch(0.16 0.04 27);
+  --mov-cobro: oklch(0.70 0.15 150);
+  --mov-cobro-foreground: oklch(0.16 0.03 150);
+
   --sidebar: oklch(0.18 0.03 255);
   --sidebar-foreground: oklch(0.96 0.005 250);
   --sidebar-primary: oklch(0.78 0.12 85);
@@ -181,16 +227,6 @@
   letter-spacing: -0.01em;
 }
 
-/* Movimiento badge colors stable per state so lawyers can scan tables
-   visually. Will use later. */
-.mov-inicio { background: oklch(0.94 0.04 250); color: oklch(0.30 0.10 250); }
-.mov-cedula { background: oklch(0.94 0.06 85); color: oklch(0.32 0.10 85); }
-.mov-mandamiento { background: oklch(0.94 0.06 65); color: oklch(0.35 0.12 65); }
-.mov-sentencia { background: oklch(0.93 0.06 320); color: oklch(0.32 0.10 320); }
-.mov-cobro { background: oklch(0.93 0.06 145); color: oklch(0.30 0.10 145); }
-
-.dark .mov-inicio { background: oklch(0.28 0.06 250); color: oklch(0.85 0.08 250); }
-.dark .mov-cedula { background: oklch(0.30 0.08 85); color: oklch(0.88 0.10 85); }
-.dark .mov-mandamiento { background: oklch(0.30 0.08 65); color: oklch(0.88 0.10 65); }
-.dark .mov-sentencia { background: oklch(0.28 0.06 320); color: oklch(0.85 0.08 320); }
-.dark .mov-cobro { background: oklch(0.28 0.06 145); color: oklch(0.85 0.08 145); }
+/* The etapa colours these classes used to hard-code now live as --mov-* tokens
+   above, consumed through Tailwind utilities in components/movimiento-badge.tsx
+   so the badge and the row tint can share one hue at different alphas. */
