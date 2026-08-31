@@ -14,6 +14,7 @@ import { type EstudioEscritosConfig } from "@/lib/domain/escritos-config";
 import { requireUser } from "@/lib/data/auth";
 import { getMembership, listMembers } from "@/lib/data/estudio";
 import { getGmailConnection } from "@/lib/data/mail";
+import { getCourtIndex } from "@/lib/data/juzgados";
 import { MiembrosTab, type EstudioMember } from "./miembros-tab";
 import { GmailTab } from "./gmail-tab";
 import { ConfiguracionTab } from "./configuracion-tab";
@@ -29,19 +30,6 @@ const MESSAGES: Record<string, { tone: "ok" | "error"; text: string }> = {
   remove_ok: { tone: "ok", text: "Miembro quitado." },
   remove_head: { tone: "error", text: "No se puede quitar al dueño del estudio." },
   leave_head: { tone: "error", text: "Sos el dueño del estudio, no podés salir." },
-  config_ok: { tone: "ok", text: "Configuración guardada." },
-  cuit_empresa_invalido: {
-    tone: "error",
-    text: "El CUIT de una empresa no es válido. Revisá el dígito verificador; no se guardó nada.",
-  },
-  cuit_encargado_invalido: {
-    tone: "error",
-    text: "El CUIT del encargado no es válido. Revisá el dígito verificador; no se guardó nada.",
-  },
-  cbu_invalido: {
-    tone: "error",
-    text: "El CBU tiene que tener 22 dígitos. No se guardó nada.",
-  },
 };
 
 export default async function EstudioPage({
@@ -66,6 +54,9 @@ export default async function EstudioPage({
   const members = (await listMembers(supabase)) as EstudioMember[];
 
   const connection = await getGmailConnection(supabase);
+
+  // Only the head can edit the config, and only that tab needs the courts.
+  const courtIndex = isHead ? await getCourtIndex(supabase) : [];
 
   return (
     // Full width, like /ejecutados. The dashboard <main> owns the padding.
@@ -126,6 +117,7 @@ export default async function EstudioPage({
             nombre={estudio?.nombre ?? ""}
             config={config}
             isHead={isHead}
+            courtIndex={courtIndex}
           />
         </TabsContent>
       </Tabs>

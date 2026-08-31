@@ -42,10 +42,28 @@ export const TOKEN_DESTINO: Record<string, TokenDestino> = {
   DOMICILIO_PROCESAL: { label: "Domicilio procesal del departamento", donde: "estudio" },
   CUENTA_HONORARIOS: { label: "Cuenta de honorarios del estudio", donde: "estudio" },
   CUENTA_ACREEDOR: { label: "Cuenta bancaria de la empresa", donde: "estudio" },
-  ABOGADO_NOMBRE: { label: "Encargado del estudio", donde: "estudio" },
+  // Every field the encabezado prints about the apoderado. They are all here
+  // because buildEncabezado emits a marker for each one rather than filling it
+  // with ABOGADO_DEFAULT — an unconfigured estudio used to file "CUIT Nº
+  // 00-00000000-0" with no warning at all (Fran, 2026-08-31).
+  ABOGADO_NOMBRE: { label: "Nombre del encargado", donde: "estudio" },
+  ABOGADO_MATRICULA: { label: "Matrícula del encargado", donde: "estudio" },
+  ABOGADO_LEGAJO: { label: "Legajo previsional del encargado", donde: "estudio" },
+  ABOGADO_CUIT: { label: "CUIT del encargado", donde: "estudio" },
+  // Derived from the CUIT, so it goes missing with it and shares its label —
+  // escrito-editor collapses the pair into one badge.
   ABOGADO_DNI: { label: "CUIT del encargado", donde: "estudio" },
+  ABOGADO_IBM: { label: "IBM del encargado", donde: "estudio" },
+  ABOGADO_DOMICILIO_ELECTRONICO: {
+    label: "Domicilio electrónico del encargado",
+    donde: "estudio",
+  },
   ABOGADO_TELEFONO: { label: "Teléfono del encargado", donde: "estudio" },
   ABOGADO_EMAIL: { label: "Correo del estudio", donde: "estudio" },
+  // Belt and braces: the config form refuses to save a recused court without a
+  // name, so this should never go unresolved. If it ever does, the badge is the
+  // difference between noticing and filing "recusar sin expresión de causa a []".
+  JUEZ_RECUSADO: { label: "Jueces recusados", donde: "estudio" },
   HONORARIOS_JUS: { label: "Honorario del caso", donde: "caso" },
   HONORARIOS_TOTAL_LETRAS: { label: "Honorario del caso", donde: "caso" },
 

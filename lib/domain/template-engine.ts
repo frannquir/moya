@@ -27,6 +27,41 @@ const TAG_RE =
 // One block may contain another; a third level throws.
 const MAX_BLOCK_DEPTH = 2;
 
+/**
+ * The one token the engine answers itself: it prints the next roman numeral and
+ * advances, so a document numbers its own sections.
+ *
+ * The demanda's headings used to be literal ("XII.- RECUSA…", "XIII.- PETICIÓN"),
+ * which meant a section that renders conditionally left a hole in the sequence —
+ * the filing read X, XI, XIII. Counting at render time is the only way a section
+ * can be optional without a human maintaining the numerals (Fran, 2026-08-31).
+ *
+ * The counter advances only when the token is actually reached, so a {{SECCION}}
+ * inside an {{#if}} that does not render costs nothing — which is exactly the
+ * property the recusación needs.
+ */
+export const SECCION_TOKEN = "SECCION";
+
+const ROMANOS: [number, string][] = [
+  [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"],
+  [100, "C"], [90, "XC"], [50, "L"], [40, "XL"],
+  [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
+];
+
+/** 1 -> "I", 4 -> "IV", 13 -> "XIII". Only ever called with small counts. */
+export function aRomano(n: number): string {
+  if (!Number.isInteger(n) || n < 1) return String(n);
+  let resto = n;
+  let out = "";
+  for (const [valor, simbolo] of ROMANOS) {
+    while (resto >= valor) {
+      out += simbolo;
+      resto -= valor;
+    }
+  }
+  return out;
+}
+
 export type TemplateValue = string | number | boolean | null | undefined;
 export type TemplateRecord = Record<string, TemplateValue>;
 export type TemplateScope = Record<string, TemplateValue | TemplateRecord[]>;
@@ -214,10 +249,14 @@ function truthy(value: TemplateValue | TemplateRecord[]): boolean {
   return s !== "" && s !== "false" && s !== "0";
 }
 
+/** Mutable across one render so {{SECCION}} can number the whole document. */
+type RenderState = { seccion: number };
+
 function renderNodes(
   nodes: Node[],
   item: TemplateRecord | null,
   outer: TemplateScope,
+  state: RenderState,
 ): string {
   let out = "";
   for (const node of nodes) {
@@ -226,6 +265,13 @@ function renderNodes(
         out += node.value;
         break;
       case "token": {
+        // Answered by the engine, never by the scope: a caller that happens to
+        // put SECCION in its scope must not be able to freeze the numbering.
+        if (node.name === SECCION_TOKEN) {
+          state.seccion += 1;
+          out += aRomano(state.seccion);
+          break;
+        }
         const value = lookup(node.name, item, outer);
         // A list is not printable; falling through to [NAME] would be noise, so
         // an accidental {{PARTES}} outside an each renders as the marker too.
@@ -238,14 +284,14 @@ function renderNodes(
         const branch = truthy(lookup(node.name, item, outer))
           ? node.consequent
           : node.alternate;
-        out += renderNodes(branch, item, outer);
+        out += renderNodes(branch, item, outer, state);
         break;
       }
       case "each": {
         const list = lookup(node.name, item, outer);
         if (!Array.isArray(list)) break;
         for (const entry of list) {
-          out += renderNodes(node.body, entry, outer);
+          out += renderNodes(node.body, entry, outer, state);
         }
         break;
       }
@@ -256,7 +302,9 @@ function renderNodes(
 
 export function renderTemplate(contenido: string, tokens: TemplateScope): string {
   const pieces = stripStandaloneLines(scan(contenido));
-  return renderNodes(parse(pieces), null, tokens);
+  // Fresh per render: two documents generated in the same request must not share
+  // a section counter.
+  return renderNodes(parse(pieces), null, tokens, { seccion: 0 });
 }
 
 /**

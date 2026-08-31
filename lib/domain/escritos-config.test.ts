@@ -9,7 +9,8 @@ import {
   articuloDe,
   formatAutorizados,
   resolveDomicilioProcesal,
-  resolveEncargado,
+  buildEncabezado,
+  resolveJuezRecusado,
   tratamientoDe,
   type EstudioEscritosConfig,
 } from "./escritos-config";
@@ -170,22 +171,71 @@ describe("formatAutorizados", () => {
   });
 });
 
-describe("resolveEncargado", () => {
-  it("falls back to visible placeholders when the estudio has not configured one", () => {
-    const e = resolveEncargado({});
-    expect(e.nombre).toBe(ABOGADO_DEFAULT.nombre);
-    expect(e.matricula).toBe(ABOGADO_DEFAULT.matricula);
+describe("buildEncabezado — the encargado half", () => {
+  const empresa = {
+    razonSocial: "TARTAN S.A.",
+    domicilioLegal: "Av. Independencia 1502",
+    cuit: "30-70918460-8",
+    cuentaBancaria: "",
+  };
+  const base = {
+    empresa,
+    domicilioProcesal: "calle falsa 123",
+    demandado: "Juan Pérez",
+    expediente: "MP-1234-2026",
+  };
+
+  it("emits a [TOKEN] for every unconfigured field, never a placeholder value", () => {
+    const out = buildEncabezado({ ...base, abogado: {} });
+
+    // The whole point: extractUnresolved sees these, escrito-editor badges them,
+    // and each badge links to /estudio. ABOGADO_DEFAULT would have printed a
+    // plausible-looking "00-00000000-0" that nothing could detect.
+    expect(out).toContain("[ABOGADO_NOMBRE]");
+    expect(out).toContain("[ABOGADO_MATRICULA]");
+    expect(out).toContain("[ABOGADO_LEGAJO]");
+    expect(out).toContain("[ABOGADO_CUIT]");
+    expect(out).toContain("[ABOGADO_IBM]");
+    expect(out).toContain("[ABOGADO_DOMICILIO_ELECTRONICO]");
+    expect(out).toContain("[ABOGADO_TELEFONO]");
+
+    expect(out).not.toContain(ABOGADO_DEFAULT.nombre);
+    expect(out).not.toContain(ABOGADO_DEFAULT.cuit);
+    expect(out).not.toContain(ABOGADO_DEFAULT.legajo);
   });
 
-  it("fills only the blanks, so a half-filled block still reads as a sentence", () => {
-    const e = resolveEncargado({ encargado: { nombre: "RUBEN ADRIAN GALANTE" } });
-    expect(e.nombre).toBe("RUBEN ADRIAN GALANTE");
-    expect(e.legajo).toBe(ABOGADO_DEFAULT.legajo);
+  it("keeps IVA Responsable Inscripto, which is a real value and not a placeholder", () => {
+    const out = buildEncabezado({ ...base, abogado: {} });
+    expect(out).toContain("IVA Responsable Inscripto");
+    expect(out).not.toContain("[ABOGADO_IVA");
   });
 
-  it("treats an absent config the same as an empty one", () => {
-    expect(resolveEncargado(null).nombre).toBe(ABOGADO_DEFAULT.nombre);
-    expect(resolveEncargado(undefined).nombre).toBe(ABOGADO_DEFAULT.nombre);
+  it("marks only the blanks, so a half-filled encargado keeps what it has", () => {
+    const out = buildEncabezado({
+      ...base,
+      abogado: { nombre: "RUBEN ADRIAN GALANTE", cuit: "20-22341849-0" },
+    });
+    expect(out).toContain("RUBEN ADRIAN GALANTE");
+    expect(out).toContain("CUIT Nº 20-22341849-0");
+    expect(out).toContain("[ABOGADO_LEGAJO]");
+    expect(out).not.toContain("[ABOGADO_NOMBRE]");
+  });
+
+  it("treats whitespace as unconfigured", () => {
+    const out = buildEncabezado({ ...base, abogado: { nombre: "   " } });
+    expect(out).toContain("[ABOGADO_NOMBRE]");
+  });
+
+  it("still marks the empresa half the same way it always did", () => {
+    const out = buildEncabezado({
+      ...base,
+      empresa: null,
+      domicilioProcesal: "",
+      abogado: {},
+    });
+    expect(out).toContain("[EMPRESA]");
+    expect(out).toContain("[DOMICILIO_LEGAL_EMPRESA]");
+    expect(out).toContain("[DOMICILIO_PROCESAL]");
   });
 });
 
@@ -269,5 +319,50 @@ describe("cuentaHonorariosPartes", () => {
   it("fills every part, so no input goes uncontrolled", () => {
     const p = cuentaHonorariosPartes({});
     expect(Object.values(p).every((v) => v === "")).toBe(true);
+  });
+});
+
+describe("resolveJuezRecusado", () => {
+  const config = {
+    jueces_recusados: {
+      "aaaaaaaa-0000-0000-0000-000000000001": "Dra. Marta Lopez",
+      "aaaaaaaa-0000-0000-0000-000000000002": "   ",
+    },
+  };
+
+  it("returns the configured name for a listed court", () => {
+    expect(
+      resolveJuezRecusado(config, "aaaaaaaa-0000-0000-0000-000000000001"),
+    ).toBe("Dra. Marta Lopez");
+  });
+
+  it("returns empty for a court that is not listed", () => {
+    // Not a missing value: an unlisted court means the demanda simply omits the
+    // section, so this must never become a [TOKEN] or a warning.
+    expect(resolveJuezRecusado(config, "aaaaaaaa-0000-0000-0000-00000000ffff")).toBe("");
+  });
+
+  it("returns empty for a case with no court at all", () => {
+    expect(resolveJuezRecusado(config, null)).toBe("");
+    expect(resolveJuezRecusado(config, undefined)).toBe("");
+    expect(resolveJuezRecusado(config, "")).toBe("");
+  });
+
+  it("treats a whitespace-only name as not recused", () => {
+    expect(
+      resolveJuezRecusado(config, "aaaaaaaa-0000-0000-0000-000000000002"),
+    ).toBe("");
+  });
+
+  it("survives a config that predates the feature", () => {
+    expect(resolveJuezRecusado({}, "any")).toBe("");
+    expect(resolveJuezRecusado(null, "any")).toBe("");
+    expect(resolveJuezRecusado(undefined, "any")).toBe("");
+  });
+
+  it("never falls back to the court's sitting judge", () => {
+    // The whole reason the map exists: juzgados.juez is populated for essentially
+    // every court, so a fallback would recuse someone on every demanda.
+    expect(resolveJuezRecusado({ jueces_recusados: {} }, "cualquiera")).toBe("");
   });
 });

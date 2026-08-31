@@ -1,6 +1,8 @@
 "use server";
 
+import { type SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { type Database } from "@/lib/supabase/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/data/auth";
@@ -122,17 +124,98 @@ export async function updateEstudio(formData: FormData) {
   revalidatePath("/estudio");
 }
 
-export async function updateEstudioEscritosConfig(formData: FormData) {
+/**
+ * What the Configuración form gets back. Problems are RETURNED, never redirected:
+ * a redirect re-rendered the tab from the database, which silently reverted every
+ * field the head had typed — seven cuenta fields, nine encargado fields and both
+ * catalogues — because of one wrong CBU digit (Fran, 2026-08-31). Same pattern
+ * createDemanda already uses.
+ *
+ * Every problem is collected in one pass, so a second mistake is not discovered
+ * only after retyping the form to fix the first.
+ */
+export type EscritosConfigState = { ok: true } | { errors: string[] } | null;
+
+type EmpresaRow = {
+  clave: string;
+  razonSocial: string;
+  domicilioLegal: string;
+  cuit: string;
+  cuentaBancaria: string;
+};
+
+/**
+ * The empresa rows exactly as posted, BEFORE anything is keyed by clave. Keying
+ * first is what made a blanked clave a silent delete: the row simply stopped
+ * existing, and the save still reported success.
+ */
+function parseEmpresaRows(raw: string): EmpresaRow[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw || "[]");
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) return [];
+  return parsed.map((row) => {
+    const o = (row ?? {}) as Record<string, unknown>;
+    const s = (k: string) => String(o[k] ?? "").trim();
+    return {
+      clave: s("clave"),
+      razonSocial: s("razonSocial"),
+      domicilioLegal: s("domicilioLegal"),
+      cuit: formatCuil(s("cuit")),
+      cuentaBancaria: s("cuentaBancaria"),
+    };
+  });
+}
+
+// EmpresasEditor always renders one blank row when nothing is configured, so "no
+// data at all" is a row to drop, not a row to complain about.
+function empresaTieneDatos(row: EmpresaRow): boolean {
+  return (
+    row.razonSocial !== "" ||
+    row.domicilioLegal !== "" ||
+    row.cuit !== "" ||
+    row.cuentaBancaria !== ""
+  );
+}
+
+/**
+ * How many cases point at an empresa clave. `ejecutados.empresa` stores the clave
+ * as a free string and deliberately not as an FK (20260528170000_escritos.sql), so
+ * nothing in the database stops a rename from orphaning every case that used it —
+ * their escritos would print [RAZON_SOCIAL], [CUIT_EMPRESA] and
+ * [DOMICILIO_LEGAL_EMPRESA] instead of the company. Archived cases count too:
+ * archiving is reversible and the escritos survive it.
+ */
+async function contarCasosPorEmpresa(
+  supabase: SupabaseClient<Database>,
+  clave: string,
+): Promise<number> {
+  const { count } = await supabase
+    .from("ejecutados")
+    .select("id", { count: "exact", head: true })
+    .eq("empresa", clave);
+  return count ?? 0;
+}
+
+export async function updateEstudioEscritosConfig(
+  _prev: EscritosConfigState,
+  formData: FormData,
+): Promise<EscritosConfigState> {
   const supabase = await createClient();
 
   const user = await requireUser(supabase);
 
   const { data: estudio } = await supabase
     .from("estudios")
-    .select("id")
+    .select("id, escritos_config")
     .eq("owner_user_id", user.id)
     .maybeSingle();
   if (!estudio) throw new Error("Only the head can edit estudio settings");
+
+  const errors: string[] = [];
 
   const domicilios_procesales: Record<string, string> = {};
   try {
@@ -147,26 +230,7 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
   } catch {
   }
 
-  const empresas: Record<
-    string,
-    { razonSocial: string; domicilioLegal: string; cuit: string; cuentaBancaria: string }
-  > = {};
-  try {
-    const parsed = JSON.parse(String(formData.get("empresas_json") ?? "[]"));
-    if (Array.isArray(parsed)) {
-      for (const row of parsed) {
-        const clave = String(row?.clave ?? "").trim();
-        if (!clave) continue;
-        empresas[clave] = {
-          razonSocial: String(row?.razonSocial ?? "").trim(),
-          domicilioLegal: String(row?.domicilioLegal ?? "").trim(),
-          cuit: formatCuil(String(row?.cuit ?? "").trim()),
-          cuentaBancaria: String(row?.cuentaBancaria ?? "").trim(),
-        };
-      }
-    }
-  } catch {
-  }
+  const filas = parseEmpresaRows(String(formData.get("empresas_json") ?? "[]"));
 
   // Validated OUTSIDE the parse, deliberately: the catch above exists to tolerate
   // malformed JSON, and a rejection thrown inside it would be swallowed — the
@@ -176,10 +240,93 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
   // this is the validator validateParty already applies to the empleador's CUIT —
   // one implementation, not two. An empty CUIT stays allowed: an empresa may be
   // configured before its CUIT is known.
-  for (const emp of Object.values(empresas)) {
-    if (emp.cuit !== "" && !isValidCuil(emp.cuit)) {
-      redirect("/estudio?msg=cuit_empresa_invalido");
+  const empresas: Record<
+    string,
+    { razonSocial: string; domicilioLegal: string; cuit: string; cuentaBancaria: string }
+  > = {};
+  const vistas = new Set<string>();
+  for (const fila of filas) {
+    if (fila.clave === "") {
+      // A row with data but no clave is the retype accident: the empresa used to
+      // be dropped here and the save still said "Configuración guardada".
+      if (empresaTieneDatos(fila)) {
+        const nombre = fila.razonSocial !== "" ? `"${fila.razonSocial}"` : "una empresa";
+        errors.push(
+          `Falta la clave de ${nombre}. La clave es lo que se guarda en el ejecutado; sin ella la empresa no se puede guardar.`,
+        );
+      }
+      continue;
     }
+    if (vistas.has(fila.clave)) {
+      errors.push(
+        `La clave "${fila.clave}" está repetida. Cada empresa necesita una clave distinta.`,
+      );
+      continue;
+    }
+    vistas.add(fila.clave);
+
+    if (fila.cuit !== "" && !isValidCuil(fila.cuit)) {
+      errors.push(`El CUIT de "${fila.clave}" no es válido. Revisá el dígito verificador.`);
+    }
+
+    empresas[fila.clave] = {
+      razonSocial: fila.razonSocial,
+      domicilioLegal: fila.domicilioLegal,
+      cuit: fila.cuit,
+      cuentaBancaria: fila.cuentaBancaria,
+    };
+  }
+
+  // A clave that was configured and is no longer posted was either renamed or
+  // removed. Deleting an unused empresa is fine; deleting one that cases point at
+  // is silent damage that only surfaces in a filed document, so it is blocked.
+  const configPrevia = (estudio.escritos_config ?? {}) as EstudioEscritosConfig;
+  for (const clave of Object.keys(configPrevia.empresas ?? {})) {
+    if (clave in empresas) continue;
+    const casos = await contarCasosPorEmpresa(supabase, clave);
+    if (casos > 0) {
+      errors.push(
+        `La empresa "${clave}" la usan ${casos} caso${casos === 1 ? "" : "s"}. ` +
+          "Si la borrás o le cambiás la clave, esos escritos quedan sin razón social, " +
+          "CUIT ni domicilio legal.",
+      );
+    }
+  }
+
+  // The courts whose judge the estudio recuses. A row needs BOTH a court and a
+  // name: the name is the only source (juzgados.juez is deliberately not a
+  // fallback), so a court saved without one would print [JUEZ_RECUSADO] into a
+  // filing. Blocked here rather than rendered as a marker.
+  const jueces_recusados: Record<string, string> = {};
+  try {
+    const parsed = JSON.parse(String(formData.get("jueces_recusados_json") ?? "[]"));
+    if (Array.isArray(parsed)) {
+      for (const row of parsed) {
+        const juzgadoId = String(row?.juzgadoId ?? "").trim();
+        const nombreJuez = String(row?.nombre ?? "").trim();
+        if (juzgadoId === "" && nombreJuez === "") continue;
+        if (juzgadoId === "") {
+          errors.push(
+            `Falta el juzgado del juez recusado "${nombreJuez}". Elegí el departamento y el juzgado.`,
+          );
+          continue;
+        }
+        if (nombreJuez === "") {
+          errors.push(
+            "Falta el nombre de un juez recusado. Sin nombre la demanda no puede imprimir la recusación.",
+          );
+          continue;
+        }
+        if (juzgadoId in jueces_recusados) {
+          errors.push(
+            "Un mismo juzgado aparece dos veces en los jueces recusados. Dejá uno solo.",
+          );
+          continue;
+        }
+        jueces_recusados[juzgadoId] = nombreJuez;
+      }
+    }
+  } catch {
   }
 
   // The apoderado every escrito is presented by. Stored verbatim; each field
@@ -205,7 +352,7 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
   }
 
   if (encargado.cuit && !isValidCuil(encargado.cuit)) {
-    redirect("/estudio?msg=cuit_encargado_invalido");
+    errors.push("El CUIT del encargado no es válido. Revisá el dígito verificador.");
   }
 
   const campo = (k: string) => String(formData.get(k) ?? "").trim();
@@ -225,21 +372,31 @@ export async function updateEstudioEscritosConfig(formData: FormData) {
   if (textoPrevio !== "") cuenta_honorarios.texto = textoPrevio;
 
   // Length only. A CBU has its own check digits, but a validator that rejects a
-  // correct number is worse than none — the empresa CUIT check already blocks
-  // this form, and 22 digits cannot false-positive.
+  // correct number is worse than none — and 22 digits cannot false-positive.
   if (cuenta_honorarios.cbu !== "" && cuenta_honorarios.cbu.length !== 22) {
-    redirect("/estudio?msg=cbu_invalido");
+    errors.push(
+      `El CBU tiene que tener 22 dígitos y tiene ${cuenta_honorarios.cbu.length}.`,
+    );
   }
 
+  // Nothing is written while anything is wrong: a half-saved config is harder to
+  // reason about than a rejected one. The form keeps every value either way.
+  if (errors.length > 0) return { errors };
+
+  // Spread the stored config first: this writes the WHOLE escritos_config column,
+  // so a key this form does not render (jueces_recusados) would be deleted on
+  // every save if it were rebuilt from the four keys alone.
   const config: EstudioEscritosConfig = {
+    ...configPrevia,
     cuenta_honorarios,
     encargado,
     domicilios_procesales,
     empresas,
+    jueces_recusados,
   };
 
   await updateEscritosConfig(supabase, estudio.id, config);
 
   revalidatePath("/estudio");
-  redirect("/estudio?msg=config_ok");
+  return { ok: true };
 }

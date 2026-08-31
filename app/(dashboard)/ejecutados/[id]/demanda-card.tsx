@@ -42,6 +42,9 @@ export function DemandaCard({
   regenerarAction,
   ultimaDemanda,
   avisos = [],
+  juezRecusado = "",
+  tieneJuzgado = false,
+  isHead = false,
 }: {
   initial: DemandadoExtraFields;
   updateAction: Action;
@@ -51,6 +54,16 @@ export function DemandaCard({
   ultimaDemanda?: { id: string; contenido: string } | null;
   /** Parties missing a CUIL or a domicilio — they render as holes in section VII. */
   avisos?: string[];
+  /**
+   * The judge this case's court is recused before, or "" when the court is not on
+   * the estudio's list. Empty is a deliberate "no recusación", not missing data —
+   * the section is simply omitted and the numbering closes over it.
+   */
+  juezRecusado?: string;
+  /** False when the case has no court linked, so recusación cannot be decided. */
+  tieneJuzgado?: boolean;
+  /** Members cannot edit estudio config; they get told who can instead. */
+  isHead?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -128,6 +141,44 @@ export function DemandaCard({
             <Dato label="Teléfono del empleador" value={initial.empleador_telefono} />
           </div>
         )}
+
+        <Separator />
+
+        {/* Section XII is printed only when the case's court is on the estudio's
+            recusados list. Saying so here is the whole point: a section that is
+            silently absent is indistinguishable from one somebody forgot. */}
+        <div className="space-y-1">
+          <p className="text-xs text-muted-foreground">
+            Recusación sin expresión de causa
+          </p>
+          {!tieneJuzgado ? (
+            <p className="text-sm">
+              El caso no tiene juzgado cargado, así que la demanda no puede incluir
+              la recusación.
+            </p>
+          ) : juezRecusado !== "" ? (
+            <p className="text-sm">
+              Se recusa a <span className="font-medium">{juezRecusado}</span>.
+            </p>
+          ) : (
+            <p className="text-sm">
+              Este juzgado no está en la lista de jueces recusados, así que la
+              demanda no incluye ese apartado.
+            </p>
+          )}
+          {isHead ? (
+            <Link
+              href="/estudio"
+              className="text-xs text-muted-foreground underline underline-offset-2"
+            >
+              Editar jueces recusados
+            </Link>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              La lista la carga el dueño del estudio.
+            </span>
+          )}
+        </div>
 
         {avisos.length > 0 && (
           <Alert variant="destructive">
