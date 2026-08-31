@@ -15,6 +15,9 @@ import {
   type Via,
 } from "@/lib/domain/ejecutado";
 import { formatMonedaAr } from "@/lib/domain/moneda-ar";
+import { textoDeInactividad, urgenciaDeCaso } from "@/lib/domain/urgencia";
+import { cn } from "@/lib/utils";
+import { MovimientoBadge, etapaRowClass } from "@/components/movimiento-badge";
 import {
   Select,
   SelectContent,
@@ -286,12 +289,19 @@ export function EjecutadosBoard({
 
       {/* The figures describe the rows below, not the whole estudio: same
           assignedTo and same via filter as the list query. */}
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Ejecutados" value={stats ? String(stats.total) : "—"} />
         <StatCard
           label="Actualizados hoy"
           value={stats ? String(stats.actualizadosHoy) : "—"}
           muted={stats?.actualizadosHoy === 0}
+        />
+        {/* The red figure counts exactly the rows wearing a red edge bar below. */}
+        <StatCard
+          label="Sin movimiento"
+          value={stats ? String(stats.urgentes) : "—"}
+          tone={stats && stats.urgentes > 0 ? "urgente" : undefined}
+          muted={stats?.urgentes === 0}
         />
         <StatCard
           label="Extrajudiciales"
@@ -440,18 +450,30 @@ function StatCard({
   label,
   value,
   muted = false,
+  tone,
 }: {
   label: string;
   value: string;
   muted?: boolean;
+  /** "urgente" tints the whole card; "cobrado" is for money that arrived. */
+  tone?: "urgente" | "cobrado";
 }) {
   return (
-    <div className="rounded-lg border bg-card p-3">
+    <div
+      className={cn(
+        "rounded-lg border bg-card p-3",
+        tone === "urgente" && "border-destructive/30 bg-destructive/5",
+        tone === "cobrado" && "border-success/30 bg-success/5",
+      )}
+    >
       <p className="text-xs text-muted-foreground">{label}</p>
       <p
-        className={`font-heading text-xl font-semibold tabular-nums ${
-          muted ? "text-muted-foreground" : ""
-        }`}
+        className={cn(
+          "font-heading text-xl font-semibold tabular-nums",
+          muted && "text-muted-foreground",
+          !muted && tone === "urgente" && "text-destructive",
+          !muted && tone === "cobrado" && "text-success",
+        )}
       >
         {value}
       </p>
@@ -460,20 +482,43 @@ function StatCard({
 }
 
 function EjecutadoRow({ e }: { e: Ejecutado }) {
+  const urgencia = urgenciaDeCaso(e.updated_at);
+  const inactividad = textoDeInactividad(e.updated_at);
+
   return (
-    <TableRow className="cursor-pointer">
+    <TableRow
+      className={cn(
+        "cursor-pointer",
+        // Every row carries the bar and only its colour changes: sizing it per
+        // row would push the columns 4px sideways on urgent rows alone.
+        //
+        // The bar is red where the etapa pill can also be red, but the two never
+        // read as one signal — a 4px rule at the table's edge is a different
+        // shape in a different place from a filled pill mid-row, and "overdue"
+        // is worth the strongest affordance available.
+        "border-l-4 border-l-transparent",
+        urgencia === "atencion" && "border-l-warning",
+        urgencia === "urgente" && "border-l-destructive",
+        etapaRowClass(e.movimiento),
+      )}
+      title={inactividad ?? undefined}
+    >
       <TableCell className="font-medium">
         <div className="flex flex-wrap items-center gap-2">
           <Link href={`/ejecutados/${e.id}`} className="hover:underline">
             {e.nombre}
           </Link>
           {viaOf(e.via) === "extrajudicial" && (
-            <Badge className="text-[10px]">Extrajudicial</Badge>
+            <Badge variant="accent" className="text-[10px]">
+              Extrajudicial
+            </Badge>
           )}
         </div>
       </TableCell>
       <TableCell>{e.numero_expediente || "—"}</TableCell>
       <TableCell>{e.juzgado || "—"}</TableCell>
+      {/* Deuda inicial is what is claimed, not what came in, so it stays
+          neutral — green is reserved for money actually collected. */}
       <TableCell className="text-right tabular-nums">
         {e.deuda_inicial.toLocaleString("es-AR", {
           style: "currency",
@@ -481,7 +526,7 @@ function EjecutadoRow({ e }: { e: Ejecutado }) {
         })}
       </TableCell>
       <TableCell>
-        {e.movimiento ? <Badge variant="outline">{e.movimiento}</Badge> : "—"}
+        {e.movimiento ? <MovimientoBadge movimiento={e.movimiento} /> : "—"}
       </TableCell>
     </TableRow>
   );

@@ -1,4 +1,7 @@
+import type { ReactNode } from "react";
+
 import { createClient } from "@/lib/supabase/server";
+import { MovimientoBadge } from "@/components/movimiento-badge";
 import {
   Card,
   CardContent,
@@ -79,8 +82,19 @@ export async function EscritosSection({ ejecutadoId }: { ejecutadoId: string }) 
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <SignalChip label="Etapa" value={state.movimiento ?? "—"} />
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          {/* Etapa and Medida are the two signals that actually move the ranking,
+              so they carry their colour here rather than reading as plain text
+              beside three chips that do not. */}
+          <SignalChip
+            label="Etapa"
+            value={
+              <MovimientoBadge
+                movimiento={state.movimiento}
+                className="h-4 px-1.5 text-[10px]"
+              />
+            }
+          />
           <SignalChip
             label="Medida"
             value={
@@ -177,10 +191,16 @@ function EscritoItem({
   );
 }
 
-function SignalChip({ label, value }: { label: string; value: string }) {
+function SignalChip({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) {
   return (
-    <span className="rounded-full border px-2 py-0.5">
-      <span className="text-muted-foreground">{label}:</span>{" "}
+    <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5">
+      <span className="text-muted-foreground">{label}:</span>
       <span className="font-medium text-foreground">{value}</span>
     </span>
   );

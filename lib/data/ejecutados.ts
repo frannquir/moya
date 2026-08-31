@@ -13,6 +13,7 @@ import {
   type ViaFields,
 } from "@/lib/domain/ejecutado";
 import { type DemandadoExtraFields } from "@/lib/domain/demanda";
+import { urgenciaDeCaso } from "@/lib/domain/urgencia";
 
 type Client = SupabaseClient<Database>;
 export type Ejecutado = Tables<"ejecutados">;
@@ -86,6 +87,8 @@ export type EjecutadosStats = {
   actualizadosHoy: number;
   extrajudiciales: number;
   deudaTotal: number;
+  /** Cases nobody has touched in DIAS_URGENTE — the list's red figure. */
+  urgentes: number;
 };
 
 /**
@@ -127,6 +130,9 @@ export async function getStats(
     ).length,
     extrajudiciales: rows.filter((r) => r.via === "extrajudicial").length,
     deudaTotal: rows.reduce((sum, r) => sum + Number(r.deuda_inicial ?? 0), 0),
+    // Same updated_at the rows colour their edge bar from, so the figure and the
+    // bars below it can never disagree.
+    urgentes: rows.filter((r) => urgenciaDeCaso(r.updated_at) === "urgente").length,
   };
 }
 

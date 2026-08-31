@@ -22,6 +22,12 @@ const badgeVariants = cva(
           "bg-success/10 text-success focus-visible:ring-success/20 dark:bg-success/20 dark:focus-visible:ring-success/40 [a]:hover:bg-success/20",
         warning:
           "bg-warning/10 text-warning focus-visible:ring-warning/20 dark:bg-warning/20 dark:focus-visible:ring-warning/40 [a]:hover:bg-warning/20",
+        // The document gold, for facts that are notable but not money and not a
+        // warning — Extrajudicial above all. It used to be `success`, which made
+        // green mean both "a settlement exists" and "cash arrived"; green now
+        // only ever means the second.
+        accent:
+          "bg-accent-soft text-accent-foreground focus-visible:ring-accent/40 [a]:hover:bg-accent/30",
         outline:
           "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost:

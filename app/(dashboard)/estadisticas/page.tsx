@@ -3,8 +3,10 @@ import Link from "next/link";
 import { PhoneCall } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { MovimientoBadge } from "@/components/movimiento-badge";
 import {
   Card,
   CardContent,
@@ -54,14 +56,22 @@ export default async function EstadisticasPage() {
         </p>
       </div>
 
+      {/* Deuda inicial is what is claimed and stays neutral; only the two
+          figures that describe real cash — what came in, what is still owed —
+          carry a colour. */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Figura label="Ejecutados activos" value={String(resumen.ejecutados)} />
         <Figura label="Deuda inicial total" value={`$${formatMonedaAr(resumen.deudaTotal)}`} />
-        <Figura label="Cobrado" value={`$${formatMonedaAr(resumen.cobrado)}`} />
+        <Figura
+          label="Cobrado"
+          value={`$${formatMonedaAr(resumen.cobrado)}`}
+          tone={resumen.cobrado > 0 ? "cobrado" : undefined}
+        />
         <Figura
           label="Honorarios pendientes"
           value={formatJus(resumen.honorariosPendientesJus)}
           sub={`≈ $${formatMonedaAr(jusToArs(resumen.honorariosPendientesJus, jusValue))}`}
+          tone={resumen.honorariosPendientesJus > 0 ? "pendiente" : undefined}
         />
       </div>
 
@@ -165,9 +175,13 @@ export default async function EstadisticasPage() {
                       >
                         {m.nombre || "Sin nombre"}
                       </Link>
-                      <p className="text-xs text-muted-foreground">
-                        {m.de ?? "Sin movimiento"} → {m.a ?? "Sin movimiento"} ·{" "}
-                        {formatArDate(m.createdAt.slice(0, 10))}
+                      {/* The one panel where the ramp is the content: two pills
+                          side by side show which way along it the case moved. */}
+                      <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                        <MovimientoBadge movimiento={m.de} className="h-4 px-1.5 text-[10px]" />
+                        <span aria-hidden>→</span>
+                        <MovimientoBadge movimiento={m.a} className="h-4 px-1.5 text-[10px]" />
+                        <span>· {formatArDate(m.createdAt.slice(0, 10))}</span>
                       </p>
                     </li>
                   ))}
@@ -209,7 +223,16 @@ export default async function EstadisticasPage() {
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        <span className="tabular-nums">${formatMonedaAr(c.monto)}</span>
+                        {/* Green once proveído — that is the point at which the
+                            amount stops being a request and becomes money. */}
+                        <span
+                          className={cn(
+                            "tabular-nums",
+                            c.estado === "Proveído" && "font-medium text-success",
+                          )}
+                        >
+                          ${formatMonedaAr(c.monto)}
+                        </span>
                         <Badge variant={c.estado === "Proveído" ? "success" : "warning"}>
                           {c.estado ?? "—"}
                         </Badge>
@@ -231,11 +254,36 @@ export default async function EstadisticasPage() {
   );
 }
 
-function Figura({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Figura({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  /** "cobrado" is money in; "pendiente" is money the estudio is still owed. */
+  tone?: "cobrado" | "pendiente";
+}) {
   return (
-    <div className="rounded-lg border bg-card p-3">
+    <div
+      className={cn(
+        "rounded-lg border bg-card p-3",
+        tone === "cobrado" && "border-success/30 bg-success/5",
+        tone === "pendiente" && "border-warning/30 bg-warning/5",
+      )}
+    >
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="font-heading text-xl font-semibold tabular-nums">{value}</p>
+      <p
+        className={cn(
+          "font-heading text-xl font-semibold tabular-nums",
+          tone === "cobrado" && "text-success",
+          tone === "pendiente" && "text-warning",
+        )}
+      >
+        {value}
+      </p>
       {sub && <p className="text-xs text-muted-foreground tabular-nums">{sub}</p>}
     </div>
   );

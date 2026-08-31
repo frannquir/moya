@@ -10,6 +10,7 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
+import { CautelarBadge } from "@/components/cautelar-badge";
 import { getConfiguredEmpresas, resolveJuezRecusado } from "@/lib/domain/escritos-config";
 import {
   IdentidadFields,
@@ -164,7 +165,16 @@ export default async function EjecutadoDetailPage({
 
           <Card>
             <CardHeader>
-              <CardTitle>Medida cautelar</CardTitle>
+              <CardTitle className="flex flex-wrap items-center gap-2">
+                Medida cautelar
+                {/* The state repeated from the header, so the card is readable
+                    on its own once the header has scrolled past it. */}
+                <CautelarBadge
+                  medida={ejecutado.medida_cautelar}
+                  estado={ejecutado.medida_cautelar_estado}
+                  diligenciada={ejecutado.medida_cautelar_diligenciada}
+                />
+              </CardTitle>
             </CardHeader>
             <form action={cautelarAction} className="flex flex-col gap-4">
               <CardContent>

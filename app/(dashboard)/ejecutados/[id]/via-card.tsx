@@ -68,14 +68,16 @@ export function ViaCard({
   const fechas = previewable ? vencimientos(vencimiento, cuotasNum) : [];
   const importes = previewable ? montosCuotas(montoNum, cuotasNum) : [];
 
+  // Gold, not green: an acuerdo is a promise to pay, and green is kept for money
+  // that has actually arrived.
   return (
     <Card
-      className={esExtrajudicial ? "border-success/40 bg-success/5" : undefined}
+      className={esExtrajudicial ? "border-accent/50 bg-accent-soft/40" : undefined}
     >
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-4">
           <span>Vía</span>
-          <Badge variant={esExtrajudicial ? "default" : "outline"}>
+          <Badge variant={esExtrajudicial ? "accent" : "outline"}>
             {esExtrajudicial ? "Extrajudicial" : "Judicial"}
           </Badge>
         </CardTitle>

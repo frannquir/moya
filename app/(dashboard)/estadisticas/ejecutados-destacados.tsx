@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { MovimientoBadge } from "@/components/movimiento-badge";
 import { formatArDate } from "@/lib/domain/dates";
 import { formatJus } from "@/lib/domain/honorarios";
 import { formatMonedaAr } from "@/lib/domain/moneda-ar";
@@ -55,13 +56,9 @@ export function EjecutadosDestacados({ items }: { items: EjecutadoReciente[] }) 
             </Link>
             <div className="flex flex-wrap gap-1">
               {e.movimiento && (
-                <Badge variant="outline">
-                  {e.movimiento}
-                  {e.diligenciada === true && " · diligenciada"}
-                  {e.diligenciada === false && " · sin diligenciar"}
-                </Badge>
+                <MovimientoBadge movimiento={e.movimiento} diligenciada={e.diligenciada} />
               )}
-              {e.via === "extrajudicial" && <Badge variant="success">Extrajudicial</Badge>}
+              {e.via === "extrajudicial" && <Badge variant="accent">Extrajudicial</Badge>}
             </div>
           </div>
 
@@ -82,6 +79,7 @@ export function EjecutadosDestacados({ items }: { items: EjecutadoReciente[] }) 
                     : `${formatJus(e.honorarioPendienteJus)} pend.`
               }
               muted={e.honorarioPendienteJus === null}
+              tone={e.honorarioPendienteJus === 0 ? "cobrado" : undefined}
             />
             <Dato
               label="Último pago"
@@ -126,7 +124,18 @@ export function EjecutadosDestacados({ items }: { items: EjecutadoReciente[] }) 
   );
 }
 
-function Dato({ label, value, muted }: { label: string; value: string; muted?: boolean }) {
+function Dato({
+  label,
+  value,
+  muted,
+  tone,
+}: {
+  label: string;
+  value: string;
+  muted?: boolean;
+  /** Green, and only for a fee that has been fully collected. */
+  tone?: "cobrado";
+}) {
   return (
     <div className="min-w-0">
       <dt className="text-muted-foreground">{label}</dt>
@@ -134,6 +143,7 @@ function Dato({ label, value, muted }: { label: string; value: string; muted?: b
         className={cn(
           "truncate font-medium tabular-nums",
           muted && "font-normal text-muted-foreground",
+          !muted && tone === "cobrado" && "text-success",
         )}
       >
         {value}
