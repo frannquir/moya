@@ -10,6 +10,23 @@ import { Badge } from "@/components/ui/badge";
 import { destinoDe, hrefDe } from "@/lib/domain/token-destino";
 import { extractUnresolved } from "@/lib/domain/template-engine";
 
+/**
+ * One entry per distinct label, keeping the first token that carries it. Every
+ * badge links to the same place a duplicate would, so dropping the duplicate
+ * loses nothing.
+ */
+function dedupePorLabel(tokens: string[]): string[] {
+  const vistos = new Set<string>();
+  const out: string[] = [];
+  for (const t of tokens) {
+    const clave = destinoDe(t)?.label ?? t;
+    if (vistos.has(clave)) continue;
+    vistos.add(clave);
+    out.push(t);
+  }
+  return out;
+}
+
 export function EscritoEditor({
   ejecutadoId = null,
   isHead = false,
@@ -28,7 +45,10 @@ export function EscritoEditor({
   const [contenido, setContenido] = useState(initialContenido);
   const [copied, setCopied] = useState(false);
 
-  const pending = extractUnresolved(contenido);
+  // Collapsed by LABEL, not by token: ABOGADO_CUIT and ABOGADO_DNI both go
+  // missing the moment the encargado has no CUIT, and two identical badges read
+  // as two separate problems.
+  const pending = dedupePorLabel(extractUnresolved(contenido));
 
   const handleCopy = async () => {
     try {
@@ -58,6 +78,9 @@ export function EscritoEditor({
           <div className="mb-1 font-medium">
             Faltan completar {pending.length} dato(s) antes de presentar:
           </div>
+          {/* The encabezado no longer invents a plausible value for an
+              unconfigured encargado, so these badges are the only thing standing
+              between an empty config and a filed document. */}
           {/* Each gap links to the screen that fixes it. Printing the raw token
               name was the single most common false "bug" in Week 2 testing — it
               read as broken software rather than as unfilled config. */}

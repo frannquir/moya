@@ -52,7 +52,7 @@ export default async function EscritoDetailPage({
 
   return (
     <div className="max-w-3xl space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link
             href="/escritos"
@@ -62,22 +62,26 @@ export default async function EscritoDetailPage({
           </Link>
           <h1 className="mt-1 text-2xl font-semibold">{escrito.titulo}</h1>
           {ejecutado && (
-            <p className="text-sm text-muted-foreground">
-              Ejecutado:{" "}
-              <Link
-                href={`/ejecutados/${ejecutado.id}`}
-                className="hover:underline"
-              >
-                {ejecutado.nombre}
-              </Link>
-            </p>
+            <p className="text-sm text-muted-foreground">{ejecutado.nombre}</p>
           )}
         </div>
-        <form action={archiveAction}>
-          <Button type="submit" variant="outline">
-            Archivar
-          </Button>
-        </form>
+        {/* "Ir al caso" is a button, not the grey line it used to be. A demanda
+            lands the lawyer here, and every field this document prints is edited
+            back on the case — including the ones that resolved to the WRONG value
+            rather than to a marker, which the "faltan completar" badges below
+            cannot know about. */}
+        <div className="flex flex-wrap items-center gap-2">
+          {ejecutado && (
+            <Button asChild>
+              <Link href={`/ejecutados/${ejecutado.id}`}>Ir al caso</Link>
+            </Button>
+          )}
+          <form action={archiveAction}>
+            <Button type="submit" variant="outline">
+              Archivar
+            </Button>
+          </form>
+        </div>
       </div>
 
       <Card>

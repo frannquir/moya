@@ -8,9 +8,10 @@ import {
   buildEncabezado,
   formatAutorizados,
   resolveCuentaHonorarios,
-  resolveEncargado,
   resolveEmpresa,
   resolveDomicilioProcesal,
+  resolveJuezRecusado,
+  type AbogadoConfig,
   type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
 import { type Empresa } from "@/lib/domain/escritos";
@@ -39,6 +40,9 @@ type Client = SupabaseClient<Database>;
 
 // The demanda template's clave. Matched on clave, never on título (gotcha #31).
 export const DEMANDA_CLAVE = "demanda.cobro-ejecutivo";
+
+/** Where the cautelar fragment is spliced into the demanda body before rendering. */
+export const SECCION_CAUTELAR_TOKEN = "{{SECCION_CAUTELAR}}";
 
 // Re-exported so callers reach one place for both document claves.
 export { CONVENIO_CLAVE };
@@ -128,10 +132,10 @@ export async function loadPartes(
  * use; the wording itself comes from the escritos_templates row so the firm can
  * reword it without a deploy.
  */
-export async function renderSeccionCautelar(
+export async function loadSeccionCautelar(
   supabase: Client,
   partes: ParteCautelar[],
-): Promise<string> {
+): Promise<{ cuerpo: string; scope: TemplateScope }> {
   const plan = resolveCautelar(partes);
   const { data: fragmento } = await supabase
     .from("escritos_templates")
@@ -145,12 +149,22 @@ export async function renderSeccionCautelar(
         "¿Se corrió la migración 20260821120000_demanda_documento?",
     );
   }
-  return renderTemplate(fragmento.contenido, cautelarScope(plan));
+  // Returned UNRENDERED. It used to be rendered here and injected as a finished
+  // string, which meant the demanda was two render passes — and a {{SECCION}}
+  // counter cannot span two passes, so the cautelar heading could not number
+  // itself. The caller splices this into the body and renders once.
+  return { cuerpo: fragmento.contenido, scope: cautelarScope(plan) };
 }
 
 export type EscritoScope = {
   scope: TemplateScope;
   ejecutado: Tables<"ejecutados">;
+  /**
+   * The medida cautelar fragment, unrendered, for the caller to splice into the
+   * body at {{SECCION_CAUTELAR}} before the single render. Null for anything
+   * that is not a demanda.
+   */
+  cuerpoCautelar: string | null;
 };
 
 /**
@@ -196,7 +210,12 @@ export async function buildEscritoScope(
   // 2026-08-22). The head is a lawyer who works for the owner of the estudio, so
   // reading the presenter's own profile here would have had whoever clicked
   // generate sign the escrito as apoderado.
-  const abogado = resolveEncargado(config);
+  //
+  // Passed RAW. It used to go through resolveEncargado, which filled every blank
+  // with ABOGADO_DEFAULT — so an unconfigured estudio filed a document reading
+  // "CUIT Nº 00-00000000-0" and nothing warned about it, because a placeholder
+  // is not a [TOKEN] and extractUnresolved only sees [TOKEN].
+  const abogado = config.encargado ?? {};
 
   const encabezado = buildEncabezado({
     abogado,
@@ -218,6 +237,9 @@ export async function buildEscritoScope(
   const totalIntereses = Number(liq?.total_intereses ?? 0);
   const compensatorios = Number(liq?.total_compensatorios ?? (totalIntereses * 2) / 3);
   const punitorios = Number(liq?.total_punitorios ?? totalIntereses / 3);
+
+  // Set only on the demanda branch; spliced into the body by generarDemanda.
+  let cuerpoCautelar: string | null = null;
 
   const scope: TemplateScope = {
     ENCABEZADO: encabezado,
@@ -269,7 +291,23 @@ export async function buildEscritoScope(
 
     const monto = Number(ej.deuda_inicial ?? 0);
 
-    scope.SECCION_CAUTELAR = await renderSeccionCautelar(supabase, partes);
+    // Section XII (recusación sin expresión de causa) is printed ONLY for a case
+    // whose court the estudio has put on the recusados list, and prints the name
+    // from that list. juzgados.juez is deliberately not a fallback: it is filled
+    // for essentially every court, so falling back would recuse a judge on every
+    // demanda ever generated. No entry = no section, and {{SECCION}} closes the
+    // numbering over the gap.
+    const juezRecusado = resolveJuezRecusado(config, ej.juzgado_id);
+    scope.HAY_RECUSACION = juezRecusado !== "";
+    if (juezRecusado !== "") scope.JUEZ_RECUSADO = juezRecusado;
+
+    const cautelar = await loadSeccionCautelar(supabase, partes);
+    cuerpoCautelar = cautelar.cuerpo;
+    // The fragment's own scope first, then the demanda's richer values on top:
+    // both define PARTES and HAY_CODEMANDADOS, and the demanda's PARTES is a
+    // superset (it adds TARJETA_CABAL and the list separators), so one merged
+    // scope serves both without the fragment losing anything.
+    Object.assign(scope, cautelar.scope);
     scope.PARTES = partesRecords;
     scope.DEMANDADOS = partes.map((p) => p.nombre).join(" Y ");
     scope.DOMICILIO = ej.domicilio ?? "";
@@ -302,7 +340,7 @@ export async function buildEscritoScope(
     Object.assign(scope, await convenioScope(supabase, ej, config, abogado, empresa));
   }
 
-  return { scope, ejecutado: ej };
+  return { scope, ejecutado: ej, cuerpoCautelar };
 }
 
 /**
@@ -321,7 +359,7 @@ async function convenioScope(
   supabase: Client,
   ej: Tables<"ejecutados">,
   config: EstudioEscritosConfig,
-  abogado: ReturnType<typeof resolveEncargado>,
+  abogado: Partial<AbogadoConfig>,
   empresa: ReturnType<typeof resolveEmpresa>,
 ): Promise<TemplateScope> {
   const monto = Number(ej.monto_acuerdo ?? 0);
@@ -343,9 +381,11 @@ async function convenioScope(
     // The apoderado, from the estudio's Encargado (decision #18) — the convenio's
     // first line is "Entre el Dr. … en su carácter de letrado apoderado de …",
     // so it must name the estudio's apoderado and not whoever clicked generate.
-    ABOGADO_NOMBRE: abogado.nombre,
-    ABOGADO_TELEFONO: abogado.telefono,
-    ABOGADO_EMAIL: abogado.email,
+    // Empty, never a default: this function's own contract above is that an
+    // unfilled value arrives as "" so the engine prints a [TOKEN] marker.
+    ABOGADO_NOMBRE: abogado.nombre ?? "",
+    ABOGADO_TELEFONO: abogado.telefono ?? "",
+    ABOGADO_EMAIL: abogado.email ?? "",
     // The estudio's physical address for this departamento. The source convenio
     // gives the apoderado's domicilio as the estudio's street address, which is
     // exactly what domicilios_procesales already holds.
@@ -477,10 +517,18 @@ export async function generarDemanda(
     );
   }
 
-  const { scope, ejecutado } = await buildEscritoScope(supabase, {
+  const { scope, ejecutado, cuerpoCautelar } = await buildEscritoScope(supabase, {
     ejecutadoId: opts.ejecutadoId,
     esDemanda: true,
   });
+
+  // One render for the whole document, cautelar fragment included, so {{SECCION}}
+  // numbers every heading in document order. A function replacer, because the
+  // fragment is arbitrary text and "$&" in it must not be treated as a group ref.
+  const cuerpo =
+    cuerpoCautelar === null
+      ? template.contenido
+      : template.contenido.replace(SECCION_CAUTELAR_TOKEN, () => cuerpoCautelar);
 
   return insertEscrito(supabase, {
     estudioId: ejecutado.estudio_id,
@@ -488,6 +536,6 @@ export async function generarDemanda(
     templateId: template.id,
     userId: opts.userId,
     titulo: template.titulo,
-    contenido: renderTemplate(template.contenido, scope),
+    contenido: renderTemplate(cuerpo, scope),
   });
 }

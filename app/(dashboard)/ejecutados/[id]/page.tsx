@@ -10,7 +10,7 @@ import {
   CardDescription,
   CardFooter,
 } from "@/components/ui/card";
-import { getConfiguredEmpresas } from "@/lib/domain/escritos-config";
+import { getConfiguredEmpresas, resolveJuezRecusado } from "@/lib/domain/escritos-config";
 import {
   IdentidadFields,
   ExpedienteFields,
@@ -186,6 +186,9 @@ export default async function EjecutadoDetailPage({
               regenerarAction={regenerarAction}
               ultimaDemanda={ultimaDemanda}
               avisos={avisosDePartes(partesDemanda)}
+              juezRecusado={resolveJuezRecusado(escritosConfig, ejecutado.juzgado_id)}
+              tieneJuzgado={ejecutado.juzgado_id !== null}
+              isHead={isHead}
               initial={{
                 trabaja: ejecutado.trabaja === true,
                 empleador_nombre: ejecutado.empleador_nombre,

@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   MANUAL_INPUT_TOKENS,
+  aRomano,
   detectManualPlaceholders,
   extractPlaceholders,
   extractUnresolved,
@@ -305,5 +306,65 @@ describe("MANUAL_INPUT_TOKENS — the fojas", () => {
     expect(
       detectManualPlaceholders("Resúmenes en número de {{FOJAS_RESUMENES}} fs."),
     ).toEqual([]);
+  });
+});
+
+describe("aRomano", () => {
+  it("covers the range a demanda actually uses", () => {
+    expect([1, 4, 5, 9, 10, 11, 12, 13, 14].map(aRomano)).toEqual([
+      "I", "IV", "V", "IX", "X", "XI", "XII", "XIII", "XIV",
+    ]);
+  });
+
+  it("does not invent a numeral for a non-count", () => {
+    expect(aRomano(0)).toBe("0");
+    expect(aRomano(-1)).toBe("-1");
+  });
+});
+
+describe("{{SECCION}} - self-numbering sections", () => {
+  it("numbers in document order", () => {
+    expect(renderTemplate("{{SECCION}}.- A\n{{SECCION}}.- B\n{{SECCION}}.- C", {})).toBe(
+      "I.- A\nII.- B\nIII.- C",
+    );
+  });
+
+  it("skips a section whose {{#if}} is false, and keeps the sequence closed", () => {
+    // The whole point of the token: the recusacion drops out and PETICION moves
+    // up from XIII to XII instead of leaving a hole at XII.
+    const body =
+      "{{SECCION}}.- COPIA\n{{#if RECUSA}}{{SECCION}}.- RECUSA\n{{/if}}{{SECCION}}.- PETICION";
+    expect(renderTemplate(body, { RECUSA: true })).toBe(
+      "I.- COPIA\nII.- RECUSA\nIII.- PETICION",
+    );
+    expect(renderTemplate(body, { RECUSA: false })).toBe("I.- COPIA\nII.- PETICION");
+  });
+
+  it("is answered by the engine, so a scope cannot freeze the numbering", () => {
+    expect(renderTemplate("{{SECCION}}.- A {{SECCION}}.- B", { SECCION: "IX" })).toBe(
+      "I.- A II.- B",
+    );
+  });
+
+  it("never renders as an unresolved marker, even with an empty scope", () => {
+    const out = renderTemplate("{{SECCION}}.- SOLA", {});
+    expect(out).toBe("I.- SOLA");
+    expect(extractUnresolved(out)).toEqual([]);
+  });
+
+  it("starts from I on every render, so two documents do not share a counter", () => {
+    const body = "{{SECCION}}.- A";
+    expect(renderTemplate(body, {})).toBe("I.- A");
+    expect(renderTemplate(body, {})).toBe("I.- A");
+  });
+
+  it("counts once per party inside an {{#each}}", () => {
+    // Not something the demanda does, but the counter must not silently reset
+    // or double-count when a block repeats.
+    expect(
+      renderTemplate("{{#each PARTES}}{{SECCION}}:{{NOMBRE}} {{/each}}", {
+        PARTES: [{ NOMBRE: "A" }, { NOMBRE: "B" }],
+      }),
+    ).toBe("I:A II:B ");
   });
 });

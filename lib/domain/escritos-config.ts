@@ -2,6 +2,20 @@
 
 import { type Empresa } from "./escritos";
 
+/**
+ * The IVA conditions a lawyer can be under, in the order the forms show them.
+ * Lived as three separate copies (the profile page, the profile action and the
+ * encargado editor); the action's copy is what a submitted value is validated
+ * against, so a drift between them silently rewrote the user's choice to
+ * "Responsable Inscripto".
+ */
+export const IVA_OPTIONS = [
+  "Responsable Inscripto",
+  "Monotributista",
+  "Exento",
+  "Consumidor Final",
+] as const;
+
 export type AbogadoConfig = {
   nombre: string;
   matricula: string;
@@ -135,7 +149,34 @@ export type EstudioEscritosConfig = {
   encargado?: Partial<AbogadoConfig>;
   domicilios_procesales?: Record<string, string>;
   empresas?: Record<string, EmpresaConfig>;
+  /**
+   * juzgados.id -> the judge's name as it must be printed.
+   *
+   * Section XII of the demanda (recusación sin expresión de causa) renders only
+   * for a case whose juzgado_id is a key here, and prints this value. It is
+   * deliberately NOT read from `juzgados.juez`: that column is populated for
+   * essentially all 292 courts, so falling back to it would recuse a judge on
+   * every demanda, which is the bug this map exists to fix (Fran, 2026-08-31).
+   *
+   * Keyed by the court's real id rather than by name so a rename cannot silently
+   * change who gets recused. Civil y Comercial only — a Juzgado de Paz is never
+   * recused.
+   */
+  jueces_recusados?: Record<string, string>;
 };
+
+/**
+ * The recused judge for a court, or "" when that court is not on the list.
+ * An empty result means section XII is omitted entirely — not that a name is
+ * missing, so it is never a [TOKEN] and never a warning.
+ */
+export function resolveJuezRecusado(
+  config: EstudioEscritosConfig | null | undefined,
+  juzgadoId: string | null | undefined,
+): string {
+  if (!juzgadoId) return "";
+  return String(config?.jueces_recusados?.[juzgadoId] ?? "").trim();
+}
 
 function nonEmpty(value: string | null | undefined): boolean {
   return !!value && String(value).trim() !== "";
@@ -272,41 +313,18 @@ export function resolveDomicilioProcesal(
   return "";
 }
 
-/**
- * The apoderado for the encabezado. Any field the estudio has not filled in
- * falls back to a visible placeholder, so an unconfigured estudio produces
- * "NOMBRE Y APELLIDO DEL ABOGADO, abogado inscripto al Tº __ Fº ___…" rather
- * than a sentence with holes in it.
- */
-export function resolveEncargado(
-  config: EstudioEscritosConfig | null | undefined,
-): AbogadoConfig {
-  return resolveAbogado(config?.encargado);
-}
-
-export function resolveAbogado(
-  profile: Partial<AbogadoConfig> | null | undefined,
-): AbogadoConfig {
-  if (!profile) return ABOGADO_DEFAULT;
-  const pick = (key: keyof AbogadoConfig) => {
-    const v = profile[key];
-    return v && String(v).trim() ? String(v) : ABOGADO_DEFAULT[key];
-  };
-  return {
-    nombre: pick("nombre"),
-    matricula: pick("matricula"),
-    legajo: pick("legajo"),
-    cuit: pick("cuit"),
-    ibm: pick("ibm"),
-    ivaCondicion: pick("ivaCondicion"),
-    domicilioElectronico: pick("domicilioElectronico"),
-    telefono: pick("telefono"),
-    email: pick("email"),
-  };
-}
 
 export type EncabezadoInput = {
-  abogado: AbogadoConfig;
+  /**
+   * The estudio's Encargado AS CONFIGURED — not run through a defaults filler.
+   * A missing field has to reach the page as a [ABOGADO_*] marker: the whole
+   * point is that extractUnresolved sees it, escrito-editor badges it, and the
+   * badge links to /estudio. Substituting ABOGADO_DEFAULT here printed
+   * "CUIT Nº 00-00000000-0" in a filing with no warning anywhere (Fran,
+   * 2026-08-31), while the empresa half of this very sentence has always used
+   * markers.
+   */
+  abogado: Partial<AbogadoConfig>;
   empresa: EmpresaConfig | null;
   domicilioProcesal: string;
   demandado: string;
@@ -329,6 +347,26 @@ export function buildEncabezado({
   const demandadoUpper = (demandado || "[DEMANDADO]").toUpperCase();
   const expt = expediente || "[EXPEDIENTE]";
 
+  // Same treatment the empresa fields above already get. Every one of these has
+  // a matching TOKEN_DESTINO entry, so an unconfigured estudio produces badges
+  // that link to /estudio instead of a plausible-looking wrong CUIT.
+  const ab = (key: keyof AbogadoConfig, token: string) =>
+    String(abogado[key] ?? "").trim() || `[${token}]`;
+
+  const nombre = ab("nombre", "ABOGADO_NOMBRE");
+  const matricula = ab("matricula", "ABOGADO_MATRICULA");
+  const legajo = ab("legajo", "ABOGADO_LEGAJO");
+  const cuit = ab("cuit", "ABOGADO_CUIT");
+  const ibm = ab("ibm", "ABOGADO_IBM");
+  const domicilioElectronico = ab(
+    "domicilioElectronico",
+    "ABOGADO_DOMICILIO_ELECTRONICO",
+  );
+  const telefono = ab("telefono", "ABOGADO_TELEFONO");
+  // NOT a marker: "Responsable Inscripto" is a real value and the ordinary case,
+  // not a 0000 placeholder standing in for something nobody entered.
+  const iva = String(abogado.ivaCondicion ?? "").trim() || ABOGADO_DEFAULT.ivaCondicion;
+
   const comparecencia = sinAutos
     ? // A demanda is the document filed to OBTAIN a case number, so there are no
       // autos to caption and no expediente to cite — DEMANDA.docx ends the
@@ -339,12 +377,12 @@ export function buildEncabezado({
       `(Expt. N° ${expt}) ante V.S. respetuosamente digo:`;
 
   return (
-    `${abogado.nombre}, abogado inscripto al ${abogado.matricula}, ` +
-    `Legajo Previsional nº ${abogado.legajo}, CUIT Nº ${abogado.cuit}, ` +
-    `IBM Nº ${abogado.ibm}, IVA ${abogado.ivaCondicion}, en mi carácter de ` +
+    `${nombre}, abogado inscripto al ${matricula}, ` +
+    `Legajo Previsional nº ${legajo}, CUIT Nº ${cuit}, ` +
+    `IBM Nº ${ibm}, IVA ${iva}, en mi carácter de ` +
     `apoderado de ${razonSocial} con domicilio legal en ${domicilioLegal}, ` +
     `constituyendo domicilio procesal en la ${procesal} y domicilio electrónico ` +
-    `en ${abogado.domicilioElectronico}, Teléfono de contacto: ${abogado.telefono}` +
+    `en ${domicilioElectronico}, Teléfono de contacto: ${telefono}` +
     comparecencia
   );
 }
