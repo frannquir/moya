@@ -70,7 +70,7 @@ export function FilasSkeleton({ n = 6 }: { n?: number }) {
 }
 
 /**
- * The 3/2 split both /ejecutados/[id] and /estadisticas settle into. Matching the
+ * The 3/2 split both /ejecutados/[id] and the home page settle into. Matching the
  * real `xl:grid-cols-5` is the point — a 2+1 fallback shifts the whole page when
  * the content lands.
  */

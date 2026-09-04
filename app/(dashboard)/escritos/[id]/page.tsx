@@ -51,7 +51,7 @@ export default async function EscritoDetailPage({
   const archiveAction = archiveEscrito.bind(null, id);
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link
@@ -84,26 +84,37 @@ export default async function EscritoDetailPage({
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Documento</CardTitle>
-          <CardDescription>
-            Editá el texto, completá los datos faltantes y copialo para
-            presentarlo. Los cambios se guardan al hacer clic en «Guardar».
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <EscritoEditor
-            ejecutadoId={ejecutado?.id ?? null}
-            isHead={isHead}
-            initialTitulo={escrito.titulo}
-            initialContenido={escrito.contenido}
-            saveAction={saveAction}
-          />
-        </CardContent>
-      </Card>
+      {/* The court details sit beside the document instead of under it, so the
+          editor gets the page width it needs and the data the lawyer copies into
+          the caratula stays visible while typing. */}
+      <div
+        className={
+          juzgado
+            ? "grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]"
+            : "grid items-start gap-4"
+        }
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Documento</CardTitle>
+            <CardDescription>
+              Editá el texto, completá los datos faltantes y copialo para
+              presentarlo. Los cambios se guardan al hacer clic en «Guardar».
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <EscritoEditor
+              ejecutadoId={ejecutado?.id ?? null}
+              isHead={isHead}
+              initialTitulo={escrito.titulo}
+              initialContenido={escrito.contenido}
+              saveAction={saveAction}
+            />
+          </CardContent>
+        </Card>
 
-      <JuzgadoInfoCard juzgado={juzgado} />
+        <JuzgadoInfoCard juzgado={juzgado} />
+      </div>
     </div>
   );
 }

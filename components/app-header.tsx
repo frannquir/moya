@@ -35,7 +35,6 @@ const SECTIONS: { prefix: string; label: string }[] = [
   { prefix: "/facturas", label: "Facturas" },
   { prefix: "/mail", label: "Mail" },
   { prefix: "/estudio", label: "Mi estudio" },
-  { prefix: "/estadisticas", label: "Estadísticas" },
   { prefix: "/settings/profile", label: "Perfil" },
   { prefix: "/settings", label: "Configuración" },
 ];

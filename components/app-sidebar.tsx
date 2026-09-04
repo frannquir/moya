@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  BarChart3,
   Briefcase,
   FileEdit,
   ScrollText,
@@ -42,10 +41,7 @@ type NavGroup = {
 const NAV: NavGroup[] = [
   {
     label: "Panel",
-    items: [
-      { title: "Inicio", href: "/", icon: LayoutDashboard },
-      { title: "Estadísticas", href: "/estadisticas", icon: BarChart3 },
-    ],
+    items: [{ title: "Inicio", href: "/", icon: LayoutDashboard }],
   },
   {
     label: "Casos",

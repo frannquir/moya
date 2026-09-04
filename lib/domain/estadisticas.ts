@@ -1,4 +1,4 @@
-// Date and wording helpers for the /estadisticas chase list.
+// Date and wording helpers for the home page chase list.
 
 import { parseLocalDate } from "./dates";
 

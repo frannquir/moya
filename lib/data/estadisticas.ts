@@ -6,7 +6,7 @@ import { DEMANDA_CLAVE } from "@/lib/data/escrito-render";
 
 type Client = SupabaseClient<Database>;
 
-// Queries behind /estadisticas. Estudio-scoped by RLS. Joins run in TS: the
+// Queries behind the home page (ex /estadisticas). Estudio-scoped by RLS. Joins run in TS: the
 // estudio is a few hundred rows and there is no aggregate RPC.
 
 export type ParaReclamar = {
