@@ -20,8 +20,11 @@ export default async function FacturasPage() {
 
   const { data: rows } = await supabase
     .from("cobros_pagos")
+    // `empresa` is who the factura is requested for, and it was missing from
+    // this select — so generateMensaje() never received it and every message
+    // printed the literal [empresa] marker.
     .select(
-      "id, monto, fecha, ejecutado:ejecutados(id, nombre), factura:facturas(mensaje_generado, confirmada, fecha_generada)",
+      "id, monto, fecha, ejecutado:ejecutados(id, nombre, empresa), factura:facturas(mensaje_generado, confirmada, fecha_generada)",
     )
     .eq("estado", "Proveído")
     .is("archived_at", null)
@@ -32,6 +35,7 @@ export default async function FacturasPage() {
     monto: Number(r.monto),
     fecha: r.fecha,
     demandado: r.ejecutado?.nombre ?? "—",
+    empresa: r.ejecutado?.empresa ?? null,
     factura: Array.isArray(r.factura)
       ? (r.factura[0] ?? null)
       : (r.factura ?? null),
@@ -106,6 +110,7 @@ export default async function FacturasPage() {
                       <FacturaDialog
                         pagoId={it.pagoId}
                         demandado={it.demandado}
+                        empresa={it.empresa}
                         monto={it.monto}
                         fecha={it.fecha}
                         factura={it.factura}

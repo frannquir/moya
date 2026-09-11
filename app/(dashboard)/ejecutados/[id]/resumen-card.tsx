@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCobrosTotals } from "@/lib/data/cobros";
 import { getHonorarioWithBalance, getJusValue } from "@/lib/data/honorarios";
 import { formatMonedaAr } from "@/lib/domain/moneda-ar";
-import { remainingGrossJus, formatJus } from "@/lib/domain/honorarios";
+import { techoHonorario } from "@/lib/domain/honorarios";
 import { type Tables } from "@/lib/supabase/db-helpers";
 
 /**
  * The money column's four figures. They do not add up: the first three are the
- * debtor's ledger in pesos, honorarios is the firm's in JUS, so it sits apart.
+ * debtor's ledger, the fourth is the firm's own, so it sits apart. All four are
+ * in pesos — JUS is kept to the regulated fee itself, on the honorarios card.
  */
 export async function ResumenCard({
   ejecutadoId,
@@ -38,8 +39,18 @@ export async function ResumenCard({
   const dineroEnCuenta = Number(ejecutado.dinero_en_cuenta ?? 0);
 
   const baseJus = Number(honorario?.monto_total_jus ?? 0);
-  const pagadoJus = Number(honorario?.pagado_jus ?? 0);
-  const pendienteJus = baseJus > 0 ? remainingGrossJus(baseJus, pagadoJus) : null;
+  // Against the ceiling that applies, so this agrees with the honorarios card
+  // when a lower figure was settled with the debtor.
+  const pendienteArs =
+    baseJus > 0
+      ? techoHonorario({
+          baseJus,
+          maxAcordadoArs: honorario?.max_acordado_ars ?? null,
+          pagadoJus: Number(honorario?.pagado_jus ?? 0),
+          pagadoArs: Number(honorario?.pagado_ars ?? 0),
+          jusValue,
+        }).pendienteArs
+      : null;
 
   return (
     <Card>
@@ -66,19 +77,14 @@ export async function ResumenCard({
           />
         </div>
 
-        {/* Different debtor, different unit. */}
+        {/* Different debtor, same unit — this is the firm's own money. */}
         <div className="rounded-md border p-3">
           <p className="text-xs text-muted-foreground">Honorarios pendientes</p>
           <p className="font-heading text-lg font-semibold tabular-nums">
-            {pendienteJus === null ? (
+            {pendienteArs === null ? (
               <span className="text-muted-foreground">Sin honorario cargado</span>
             ) : (
-              <>
-                {formatJus(pendienteJus)}
-                <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  ≈ ${formatMonedaAr(pendienteJus * jusValue)}
-                </span>
-              </>
+              `$${formatMonedaAr(pendienteArs)}`
             )}
           </p>
         </div>

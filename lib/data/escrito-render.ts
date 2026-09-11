@@ -29,7 +29,7 @@ import {
   fechaEnLetras,
   planDePagos,
 } from "@/lib/domain/convenio";
-import { grossCapJus, jusToArs } from "@/lib/domain/honorarios";
+import { techoHonorario } from "@/lib/domain/honorarios";
 import { getJusValue } from "@/lib/data/honorarios";
 import { cuilToDni, formatDni, isValidCuil } from "@/lib/domain/cuil";
 import { getById as getJuzgadoById } from "@/lib/data/juzgados";
@@ -369,7 +369,7 @@ async function convenioScope(
   const [honorario, jusValue] = await Promise.all([
     supabase
       .from("honorarios")
-      .select("monto_total_jus")
+      .select("monto_total_jus, max_acordado_ars")
       .eq("ejecutado_id", ej.id)
       .is("archived_at", null)
       .maybeSingle()
@@ -426,12 +426,24 @@ async function convenioScope(
   }
 
   // Honorarios: the regulated base from the case's own honorario row, and the
-  // gross from lib/domain/honorarios.ts. The tax math is NOT recomputed here —
-  // grossCapJus is the ×1.31 the client signed off and the DB trigger enforces.
+  // total from lib/domain/honorarios.ts. The tax math is NOT recomputed here —
+  // techoHonorario() resolves the same ceiling the DB trigger enforces. A
+  // convenio names the figure the debtor actually agreed to, so a settled
+  // máximo (a peso amount) wins over the ×1.31 one.
   const baseJus = Number(honorario?.monto_total_jus ?? 0);
   if (baseJus > 0) {
     scope.HONORARIOS_JUS = baseJus.toLocaleString("es-AR", { maximumFractionDigits: 2 });
-    scope.HONORARIOS_TOTAL_LETRAS = montoALetras(jusToArs(grossCapJus(baseJus), jusValue));
+    scope.HONORARIOS_TOTAL_LETRAS = montoALetras(
+      techoHonorario({
+        baseJus,
+        maxAcordadoArs: honorario?.max_acordado_ars ?? null,
+        // The clause states the ceiling, not the balance, so collections do not
+        // enter here — pendiente is irrelevant to what the convenio names.
+        pagadoJus: 0,
+        pagadoArs: 0,
+        jusValue,
+      }).capArs,
+    );
   }
 
   return scope;

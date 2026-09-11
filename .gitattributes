@@ -1,0 +1,25 @@
+# Line endings.
+#
+# core.autocrlf=true on Windows checks files out with CRLF, which is harmless
+# for code but not for SQL: a migration that matches a multi-line string literal
+# against stored text is comparing bytes, and a literal carrying \r\n silently
+# matches nothing. That is exactly how 20260831120000_secciones_y_recusacion.sql
+# came to abort — the recusación block never matched, the section numeral
+# survived, and the migration rolled back with a message that pointed at the
+# template rather than at the line endings.
+#
+# Migrations are the load-bearing case, so they are pinned explicitly; the rest
+# of the tree is normalised too, so a diff never turns into a whole-file rewrite.
+
+* text=auto eol=lf
+
+*.sql text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary

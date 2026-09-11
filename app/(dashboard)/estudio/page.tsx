@@ -15,6 +15,7 @@ import { requireUser } from "@/lib/data/auth";
 import { getMembership, listMembers } from "@/lib/data/estudio";
 import { getGmailConnection } from "@/lib/data/mail";
 import { getCourtIndex } from "@/lib/data/juzgados";
+import { getJusConfig, listTasas, listConfigHistorial } from "@/lib/data/config";
 import { MiembrosTab, type EstudioMember } from "./miembros-tab";
 import { GmailTab } from "./gmail-tab";
 import { ConfiguracionTab } from "./configuracion-tab";
@@ -55,8 +56,16 @@ export default async function EstudioPage({
 
   const connection = await getGmailConnection(supabase);
 
-  // Only the head can edit the config, and only that tab needs the courts.
-  const courtIndex = isHead ? await getCourtIndex(supabase) : [];
+  // Only the head can edit the config, and only that tab needs the courts or the
+  // global reference values.
+  const [courtIndex, jus, tasas, historial] = isHead
+    ? await Promise.all([
+        getCourtIndex(supabase),
+        getJusConfig(supabase),
+        listTasas(supabase),
+        listConfigHistorial(supabase),
+      ])
+    : [[], null, [], []];
 
   return (
     // Full width, like /ejecutados. The dashboard <main> owns the padding.
@@ -118,6 +127,9 @@ export default async function EstudioPage({
             config={config}
             isHead={isHead}
             courtIndex={courtIndex}
+            jus={jus}
+            tasas={tasas}
+            historial={historial}
           />
         </TabsContent>
       </Tabs>

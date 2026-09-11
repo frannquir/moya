@@ -20,6 +20,7 @@ import { saveFactura, setFacturaConfirmada } from "./actions";
 type Props = {
   pagoId: string;
   demandado: string;
+  empresa: string | null;
   monto: number;
   fecha: string;
   factura: {
@@ -32,13 +33,14 @@ type Props = {
 export function FacturaDialog({
   pagoId,
   demandado,
+  empresa,
   monto,
   fecha,
   factura,
 }: Props) {
   const [open, setOpen] = useState(false);
   const initialMensaje =
-    factura?.mensaje_generado || generateMensaje({ demandado, monto });
+    factura?.mensaje_generado || generateMensaje({ demandado, monto, empresa });
   const [mensaje, setMensaje] = useState(initialMensaje);
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();

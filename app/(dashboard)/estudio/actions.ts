@@ -14,6 +14,12 @@ import {
   type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
 import { formatCuil, isValidCuil } from "@/lib/domain/cuil";
+import {
+  setJusConfig,
+  upsertTasas,
+  restoreConfigValue,
+} from "@/lib/data/config";
+import { parseTasasBlock, tasaRowFromFields } from "@/lib/domain/liquidaciones";
 
 export async function inviteMember(formData: FormData) {
   const supabase = await createClient();
@@ -399,4 +405,107 @@ export async function updateEstudioEscritosConfig(
 
   revalidatePath("/estudio");
   return { ok: true };
+}
+
+// --- Valores de referencia (JUS, tasas BCRA) --------------------------------
+//
+// Both tables are global, not scoped by estudio, and the RLS policies added in
+// 20260905130000 only let a head write. These actions return their errors rather
+// than throwing so a member who reaches the form gets the reason instead of an
+// error page.
+
+export type ValoresState = { ok: string | null; error: string | null };
+
+export async function guardarJus(
+  _prev: ValoresState,
+  formData: FormData,
+): Promise<ValoresState> {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  try {
+    await setJusConfig(supabase, {
+      value: Number(formData.get("jus_value") ?? 0),
+      date: String(formData.get("jus_date") ?? ""),
+    });
+  } catch (e) {
+    return { ok: null, error: e instanceof Error ? e.message : "No se pudo guardar." };
+  }
+
+  // Every honorario, liquidación and escrito prints pesos derived from this.
+  revalidatePath("/", "layout");
+  return { ok: "Valor del JUS actualizado.", error: null };
+}
+
+export async function guardarTasas(
+  _prev: ValoresState,
+  formData: FormData,
+): Promise<ValoresState> {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  // The six labelled fields. Read as fields, not re-joined into a line and
+  // re-parsed: with the middle box left empty a T.E.A. would slide into the
+  // punitorios slot, which is the kind of error nothing downstream can catch.
+  const fila = tasaRowFromFields({
+    mes: String(formData.get("mes") ?? ""),
+    anio: String(formData.get("anio") ?? ""),
+    tna: String(formData.get("tna") ?? ""),
+    intsPunitorios: String(formData.get("ints_punitorios") ?? ""),
+    tea: String(formData.get("tea") ?? ""),
+    cft: String(formData.get("cft") ?? ""),
+  });
+  if ("error" in fila) return { ok: null, error: fila.error };
+
+  // The extra months of a multi-line paste travel as the raw pasted text and are
+  // re-parsed here, so the client's parsed list never crosses the wire. The row
+  // the fields stand for is dropped from the block: it is the edited one that counts.
+  const porClave = new Map(
+    parseTasasBlock(String(formData.get("bloque") ?? "")).parsed.map((r) => [
+      `${r.anio}-${r.mes}`,
+      r,
+    ]),
+  );
+  const reemplaza = String(formData.get("reemplaza") ?? "");
+  if (reemplaza) porClave.delete(reemplaza);
+  porClave.set(`${fila.row.anio}-${fila.row.mes}`, fila.row);
+
+  const rows = [...porClave.values()];
+
+  try {
+    await upsertTasas(supabase, rows);
+  } catch (e) {
+    return { ok: null, error: e instanceof Error ? e.message : "No se pudo guardar." };
+  }
+
+  // Liquidaciones already stored are not recalculated here — they regenerate on
+  // the next save of their ejecutado. Only the views that read tasas directly
+  // (the calculator, the clamp warning) need to see the new months now.
+  revalidatePath("/", "layout");
+  return {
+    ok: `${rows.length} ${rows.length === 1 ? "mes guardado" : "meses guardados"}.`,
+    error: null,
+  };
+}
+
+// Put the JUS or one month's tasas back to what they were before a recorded
+// change. Goes through the same writes a manual edit does, so the head-only RLS
+// still applies and the restore is itself logged.
+export async function restaurarValor(
+  _prev: ValoresState,
+  formData: FormData,
+): Promise<ValoresState> {
+  const supabase = await createClient();
+  await requireUser(supabase);
+
+  try {
+    const mensaje = await restoreConfigValue(
+      supabase,
+      String(formData.get("historial_id") ?? ""),
+    );
+    revalidatePath("/", "layout");
+    return { ok: mensaje, error: null };
+  } catch (e) {
+    return { ok: null, error: e instanceof Error ? e.message : "No se pudo restaurar." };
+  }
 }

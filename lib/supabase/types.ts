@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   graphql_public: {
     Tables: {
@@ -42,24 +42,36 @@ export type Database = {
       bcra_tasas: {
         Row: {
           anio: number
+          cft: number | null
           created_at: string
           id: string
+          ints_punitorios: number | null
           mes: string
+          tea: number | null
           tna: number
+          updated_at: string
         }
         Insert: {
           anio: number
+          cft?: number | null
           created_at?: string
           id?: string
+          ints_punitorios?: number | null
           mes: string
+          tea?: number | null
           tna: number
+          updated_at?: string
         }
         Update: {
           anio?: number
+          cft?: number | null
           created_at?: string
           id?: string
+          ints_punitorios?: number | null
           mes?: string
+          tea?: number | null
           tna?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -211,6 +223,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      config_historial: {
+        Row: {
+          changed_by_nombre: string
+          changed_by_user_id: string | null
+          created_at: string
+          etiqueta: string
+          id: string
+          tipo: string
+          valor_anterior: Json | null
+          valor_nuevo: Json
+        }
+        Insert: {
+          changed_by_nombre?: string
+          changed_by_user_id?: string | null
+          created_at?: string
+          etiqueta: string
+          id?: string
+          tipo: string
+          valor_anterior?: Json | null
+          valor_nuevo: Json
+        }
+        Update: {
+          changed_by_nombre?: string
+          changed_by_user_id?: string | null
+          created_at?: string
+          etiqueta?: string
+          id?: string
+          tipo?: string
+          valor_anterior?: Json | null
+          valor_nuevo?: Json
+        }
+        Relationships: []
       }
       ejecutado_eventos: {
         Row: {
@@ -891,6 +936,7 @@ export type Database = {
           ejecutado_id: string
           estudio_id: string
           id: string
+          max_acordado_ars: number | null
           monto_total_jus: number
           observaciones: string
           updated_at: string
@@ -902,6 +948,7 @@ export type Database = {
           ejecutado_id: string
           estudio_id: string
           id?: string
+          max_acordado_ars?: number | null
           monto_total_jus: number
           observaciones?: string
           updated_at?: string
@@ -913,6 +960,7 @@ export type Database = {
           ejecutado_id?: string
           estudio_id?: string
           id?: string
+          max_acordado_ars?: number | null
           monto_total_jus?: number
           observaciones?: string
           updated_at?: string
@@ -1282,48 +1330,23 @@ export type Database = {
       honorarios_with_balance: {
         Row: {
           archived_at: string | null
+          cap_cobrable_ars: number | null
           cap_gross_jus: number | null
+          cap_legal_jus: number | null
           created_at: string | null
           created_by_user_id: string | null
           ejecutado_id: string | null
           estudio_id: string | null
           id: string | null
+          max_acordado_ars: number | null
           monto_total_jus: number | null
           observaciones: string | null
+          pagado_ars: number | null
           pagado_jus: number | null
+          pendiente_cobrable_ars: number | null
           pendiente_gross_jus: number | null
           pendiente_jus: number | null
           updated_at: string | null
-        }
-        Insert: {
-          archived_at?: string | null
-          cap_gross_jus?: never
-          created_at?: string | null
-          created_by_user_id?: string | null
-          ejecutado_id?: string | null
-          estudio_id?: string | null
-          id?: string | null
-          monto_total_jus?: number | null
-          observaciones?: string | null
-          pagado_jus?: never
-          pendiente_gross_jus?: never
-          pendiente_jus?: never
-          updated_at?: string | null
-        }
-        Update: {
-          archived_at?: string | null
-          cap_gross_jus?: never
-          created_at?: string | null
-          created_by_user_id?: string | null
-          ejecutado_id?: string | null
-          estudio_id?: string | null
-          id?: string | null
-          monto_total_jus?: number | null
-          observaciones?: string | null
-          pagado_jus?: never
-          pendiente_gross_jus?: never
-          pendiente_jus?: never
-          updated_at?: string | null
         }
         Relationships: [
           {
@@ -1352,6 +1375,7 @@ export type Database = {
     }
     Functions: {
       current_estudio_id: { Args: never; Returns: string }
+      current_user_nombre: { Args: never; Returns: string }
       get_estudio_members: {
         Args: never
         Returns: {
@@ -1373,6 +1397,7 @@ export type Database = {
       }
       honorario_gross_cap: { Args: { base_jus: number }; Returns: number }
       is_current_user_head: { Args: never; Returns: boolean }
+      jus_value: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never
@@ -1391,12 +1416,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1420,11 +1445,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1445,11 +1470,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1470,11 +1495,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1487,11 +1512,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

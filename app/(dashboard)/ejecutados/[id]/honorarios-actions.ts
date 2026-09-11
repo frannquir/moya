@@ -4,12 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/data/auth";
 import {
-  setHonorarioTipo,
+  setHonorarioMonto,
   addHonorarioPago,
   archiveHonorarioPago,
+  getJusValue,
 } from "@/lib/data/honorarios";
+import { jusToArs } from "@/lib/domain/honorarios";
 
-export async function setTipo(ejecutadoId: string, formData: FormData) {
+export async function setMonto(ejecutadoId: string, formData: FormData) {
   const supabase = await createClient();
   const user = await requireUser(supabase);
 
@@ -20,11 +22,30 @@ export async function setTipo(ejecutadoId: string, formData: FormData) {
     .single();
   if (!ej) throw new Error("ejecutado not found");
 
-  await setHonorarioTipo(supabase, {
+  // The negotiated ceiling is a peso figure — it is what was agreed with the
+  // debtor — so pesos are stored as typed. A JUS entry converts here rather than
+  // trusting the client's arithmetic.
+  const maxOn = String(formData.get("max_on") ?? "") === "1";
+  let maxAcordadoArs: number | null = null;
+  if (maxOn) {
+    const raw = Number(formData.get("max_acordado") ?? 0);
+    if (String(formData.get("max_unidad") ?? "ars") === "jus") {
+      const jusValue = await getJusValue(supabase);
+      if (!(jusValue > 0)) {
+        throw new Error("No hay valor JUS configurado para convertir JUS a pesos.");
+      }
+      maxAcordadoArs = jusToArs(raw, jusValue);
+    } else {
+      maxAcordadoArs = raw;
+    }
+  }
+
+  await setHonorarioMonto(supabase, {
     ejecutadoId,
     userId: user.id,
     estudioId: ej.estudio_id,
-    tipoJus: Number(formData.get("tipo_jus") ?? 0),
+    montoJus: Number(formData.get("monto_jus") ?? 0),
+    maxAcordadoArs,
   });
 
   revalidatePath(`/ejecutados/${ejecutadoId}`);

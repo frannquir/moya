@@ -43,7 +43,7 @@ export default async function HonorariosPage() {
   // "Pendiente" means there is still something collectable — measured against
   // the gross cap, since IVA + aportes are collected on top of the fee.
   const pendingCount =
-    rows?.filter((h) => (h.pendiente_gross_jus ?? 0) > 0).length ?? 0;
+    rows?.filter((h) => (h.pendiente_cobrable_ars ?? 0) > 0).length ?? 0;
 
   return (
     <div className="space-y-4">
@@ -51,8 +51,9 @@ export default async function HonorariosPage() {
         <h1 className="text-2xl font-semibold">Honorarios</h1>
         <p className="text-sm text-muted-foreground">
           {rows?.length ?? 0} honorarios · {pendingCount} pendientes · Valor JUS:{" "}
-          {formatArs(jusValue)} · Máximo cobrable = honorario + IVA{" "}
-          {Math.round(IVA_RATE * 100)}% + aportes {Math.round(APORTES_RATE * 100)}%
+          {formatArs(jusValue)} · Máximo a cobrar = honorario + IVA{" "}
+          {Math.round(IVA_RATE * 100)}% + aportes {Math.round(APORTES_RATE * 100)}%, o
+          lo acordado con el ejecutado
         </p>
       </div>
 
@@ -63,7 +64,7 @@ export default async function HonorariosPage() {
               <TableHead>Ejecutado</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Honorario</TableHead>
-              <TableHead className="text-right">Máximo c/ imp.</TableHead>
+              <TableHead className="text-right">Máximo a cobrar</TableHead>
               <TableHead className="text-right">Cobrado</TableHead>
               <TableHead className="text-right">Restante</TableHead>
             </TableRow>
@@ -71,8 +72,10 @@ export default async function HonorariosPage() {
           <TableBody>
             {rows && rows.length > 0 ? (
               rows.map((h) => {
+                // Read from the same column the "Restante" cell prints, so the
+                // badge can never say Pendiente next to a $0.
                 const isPaid =
-                  (h.monto_total_jus ?? 0) > 0 && (h.pendiente_gross_jus ?? 0) <= 0;
+                  (h.monto_total_jus ?? 0) > 0 && (h.pendiente_cobrable_ars ?? 0) <= 0;
                 // Fee covered but the tax on it not yet — a real intermediate state.
                 const baseCubierto =
                   !isPaid &&
@@ -106,22 +109,24 @@ export default async function HonorariosPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {formatJus(h.cap_gross_jus ?? 0)}
+                      {formatArs(h.cap_cobrable_ars ?? 0)}
                       <div className="text-xs text-muted-foreground">
-                        {formatArs(jusToArs(h.cap_gross_jus ?? 0, jusValue))}
+                        {h.max_acordado_ars != null
+                          ? "acordado"
+                          : `honorario + IVA + aportes`}
                       </div>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {formatJus(h.pagado_jus ?? 0)}
+                      {formatArs(h.pagado_ars ?? 0)}
                     </TableCell>
                     <TableCell
                       className={`text-right tabular-nums ${
-                        (h.pendiente_gross_jus ?? 0) > 0
+                        (h.pendiente_cobrable_ars ?? 0) > 0
                           ? "text-warning font-medium"
                           : ""
                       }`}
                     >
-                      {formatJus(h.pendiente_gross_jus ?? 0)}
+                      {formatArs(h.pendiente_cobrable_ars ?? 0)}
                     </TableCell>
                   </TableRow>
                 );

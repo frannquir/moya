@@ -6,6 +6,10 @@ import {
   formatPeriodo,
   fechaUltDia,
   parsePastedTasaLine,
+  parseTasaNumber,
+  parseTasaRow,
+  parseTasasBlock,
+  tasaRowFromFields,
 } from "./liquidaciones";
 import { TASAS_BASE } from "./tasas-base";
 
@@ -100,6 +104,209 @@ describe("liquidaciones", () => {
       expect(parsePastedTasaLine("")).toBeNull();
       expect(parsePastedTasaLine("ENERO")).toBeNull();
       expect(parsePastedTasaLine("ENERO 2026")).toBeNull();
+    });
+  });
+
+  describe("parseTasasBlock", () => {
+    // Written as line arrays so the tab and newline separators stay visible.
+    const block = (...lines: string[]) => lines.join("\n");
+
+    it("parses a pasted block, in chronological order", () => {
+      const { parsed, rejected } = parseTasasBlock(
+        block("AGOSTO\t2026\t74,20", "JULIO\t2026\t78,50", ""),
+      );
+      expect(rejected).toEqual([]);
+      expect(parsed.map((t) => t.mes)).toEqual(["JULIO", "AGOSTO"]);
+      expect(parsed[0].tna).toBe(78.5);
+    });
+
+    it("skips blank lines and reports the ones it could not read", () => {
+      const { parsed, rejected } = parseTasasBlock(
+        block("JULIO 2026 78,50", "", "   ", "basura"),
+      );
+      expect(parsed).toHaveLength(1);
+      expect(rejected).toEqual(["basura"]);
+    });
+
+    it("keeps the last line when a month is repeated", () => {
+      // Pasting a correction underneath is how a typo gets fixed; the upsert
+      // would land the last one anyway, so the preview has to show that one.
+      const { parsed } = parseTasasBlock(
+        block("JULIO 2026 78,50", "JULIO 2026 79,10"),
+      );
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].tna).toBe(79.1);
+    });
+
+    it("normalises SEPTIEMBRE so it cannot duplicate SETIEMBRE", () => {
+      const { parsed } = parseTasasBlock(
+        block("SEPTIEMBRE 2026 70", "SETIEMBRE 2026 71"),
+      );
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].mes).toBe("SETIEMBRE");
+    });
+
+    it("reads a Spanish decimal when the fields are tab-separated", () => {
+      // The failure this guards against is silent: split on the comma and
+      // 78,50 becomes a perfectly plausible 78.
+      const { parsed } = parseTasasBlock("JULIO\t2026\t78,50");
+      expect(parsed[0].tna).toBe(78.5);
+      expect(parseTasasBlock("JULIO   2026   78,50").parsed[0].tna).toBe(78.5);
+    });
+
+    it("still treats the comma as a separator in the CSV form", () => {
+      const { parsed } = parseTasasBlock("ENERO,2026,90.52,45.26,109.5292");
+      expect(parsed[0]).toEqual({
+        mes: "ENERO",
+        anio: 2026,
+        tna: 90.52,
+        intsPunitorios: 45.26,
+        tea: 109.5292,
+        cft: null,
+      });
+    });
+
+    it("skips the header the BCRA table is copied with", () => {
+      const { parsed, rejected } = parseTasasBlock(
+        block(
+          "MES\tAÑO\tFin. Saldos\tInts. Punitorios\tT.E.A.\tC.F.T.",
+          "JUNIO\t2025\t90.5200 \t45.2600 \t109.5292 \t109.5292",
+        ),
+      );
+      expect(rejected).toEqual([]);
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].mes).toBe("JUNIO");
+    });
+  });
+
+  describe("parseTasaNumber", () => {
+    it("reads the four decimals the BCRA publishes, with either mark", () => {
+      // parseSpanishNumber returns 905200 for the first of these: it only
+      // accepts a comma decimal with one or two digits after it, because it
+      // parses money. A rate a thousand times too large would sail through
+      // every check downstream.
+      expect(parseTasaNumber("90,5200")).toBeCloseTo(90.52);
+      expect(parseTasaNumber("90.5200")).toBeCloseTo(90.52);
+      expect(parseSpanishNumber("90,5200")).toBe(905200);
+    });
+
+    it("takes the rightmost mark as the decimal when both appear", () => {
+      expect(parseTasaNumber("1.234,5678")).toBeCloseTo(1234.5678);
+      expect(parseTasaNumber("1,234.5678")).toBeCloseTo(1234.5678);
+    });
+
+    it("handles whole numbers and blanks", () => {
+      expect(parseTasaNumber("78")).toBe(78);
+      expect(parseTasaNumber("")).toBeNaN();
+      expect(parseTasaNumber("   ")).toBeNaN();
+    });
+  });
+
+  describe("parseTasaRow", () => {
+    it("reads the whole BCRA line, trailing spaces and all", () => {
+      // The exact shape of a copy-paste off the BCRA page.
+      expect(parseTasaRow("JUNIO\t2025\t90.5200 \t45.2600 \t109.5292 \t109.5292")).toEqual({
+        mes: "JUNIO",
+        anio: 2025,
+        tna: 90.52,
+        intsPunitorios: 45.26,
+        tea: 109.5292,
+        cft: 109.5292,
+      });
+    });
+
+    it("keeps the rates in published order, not sorted or deduplicated", () => {
+      // T.E.A. and C.F.T. are equal whenever there are no extra charges; two
+      // equal numbers are two fields, not one.
+      const row = parseTasaRow("JUNIO 2025 90.52 45.26 109.5292 109.5292")!;
+      expect(row.tea).toBe(109.5292);
+      expect(row.cft).toBe(109.5292);
+    });
+
+    it("leaves the missing rates null instead of guessing them", () => {
+      // The old three-column paste. Punitorios is half the financiación in
+      // practice, but deriving it here would invent a figure for a document.
+      expect(parseTasaRow("JULIO 2026 78.50")).toEqual({
+        mes: "JULIO",
+        anio: 2026,
+        tna: 78.5,
+        intsPunitorios: null,
+        tea: null,
+        cft: null,
+      });
+    });
+
+    it("does not mistake a later four-digit number for the year", () => {
+      const row = parseTasaRow("ENERO 2026 90.52 45.26 2050")!;
+      expect(row.anio).toBe(2026);
+      expect(row.tea).toBe(2050);
+    });
+
+    it("rejects a line missing the month, the year or every rate", () => {
+      expect(parseTasaRow("2025 90.52")).toBeNull();
+      expect(parseTasaRow("JUNIO 90.52")).toBeNull();
+      expect(parseTasaRow("JUNIO 2025")).toBeNull();
+    });
+  });
+
+  describe("tasaRowFromFields", () => {
+    const campos = {
+      mes: "junio",
+      anio: "2025",
+      tna: "90,5200",
+      intsPunitorios: "45,2600",
+      tea: "109.5292",
+      cft: "109.5292",
+    };
+
+    it("accepts the typed fields, in either decimal convention", () => {
+      const out = tasaRowFromFields(campos);
+      expect(out).toEqual({
+        row: {
+          mes: "JUNIO",
+          anio: 2025,
+          tna: 90.52,
+          intsPunitorios: 45.26,
+          tea: 109.5292,
+          cft: 109.5292,
+        },
+      });
+    });
+
+    it("keeps each rate in its own field when the middle one is blank", () => {
+      // The reason this does not re-join the fields into a line and re-parse:
+      // positionally, an empty punitorios box would promote T.E.A. into it.
+      const out = tasaRowFromFields({ ...campos, intsPunitorios: "" });
+      expect(out).toEqual({
+        row: {
+          mes: "JUNIO",
+          anio: 2025,
+          tna: 90.52,
+          intsPunitorios: null,
+          tea: 109.5292,
+          cft: 109.5292,
+        },
+      });
+    });
+
+    it("normalises SEPTIEMBRE typed by hand", () => {
+      const out = tasaRowFromFields({ ...campos, mes: "Septiembre" });
+      expect("row" in out && out.row.mes).toBe("SETIEMBRE");
+    });
+
+    it("names the field that is wrong instead of failing generically", () => {
+      expect(tasaRowFromFields({ ...campos, mes: "JUNIOO" })).toEqual({
+        error: "Elegí un mes válido.",
+      });
+      expect(tasaRowFromFields({ ...campos, anio: "1999" })).toEqual({
+        error: "El año tiene que estar entre 2001 y 2099.",
+      });
+      expect(tasaRowFromFields({ ...campos, tna: "" })).toEqual({
+        error: "Ingresá la financiación de saldos.",
+      });
+      expect(tasaRowFromFields({ ...campos, tea: "ochenta" })).toEqual({
+        error: "T.E.A. no es un número válido.",
+      });
     });
   });
 
@@ -292,3 +499,4 @@ describe("liquidaciones", () => {
     });
   });
 });
+

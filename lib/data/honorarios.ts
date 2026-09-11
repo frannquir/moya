@@ -4,8 +4,8 @@ import { type Tables } from "@/lib/supabase/db-helpers";
 import {
   arsToJus,
   jusToArs,
-  grossCapJus,
-  remainingGrossJus,
+  techoHonorario,
+  formatArs,
 } from "@/lib/domain/honorarios";
 
 type Client = SupabaseClient<Database>;
@@ -37,28 +37,59 @@ export async function getHonorarioWithBalance(
   return data;
 }
 
-// Set/replace the honorario amount in JUS, one per ejecutado.
-export async function setHonorarioTipo(
+// Set the honorario base and, optionally, the ceiling settled with the debtor.
+// One per ejecutado; a trigger creates it at 7 JUS with every ejecutado, so this
+// normally updates rather than inserts — the upsert only covers rows that
+// predate the trigger.
+//
+// `maxAcordadoArs: null` clears the negotiated ceiling and falls back to the
+// legal base x 1.31, which is denominated in JUS.
+export async function setHonorarioMonto(
   supabase: Client,
-  input: { ejecutadoId: string; userId: string; estudioId: string; tipoJus: number },
+  input: {
+    ejecutadoId: string;
+    userId: string;
+    estudioId: string;
+    montoJus: number;
+    maxAcordadoArs: number | null;
+  },
 ): Promise<void> {
   // Matches the DB's own honorarios_monto_total_jus_positivo. A NaN from an
   // empty field fails this too, which is the point.
-  if (!(input.tipoJus > 0)) {
+  if (!(input.montoJus > 0)) {
     throw new Error("El honorario tiene que ser mayor a 0 JUS.");
   }
+  // Matches honorarios_max_acordado_positivo. A ceiling of zero would reject
+  // every future pago on a honorario that still reads as open.
+  if (input.maxAcordadoArs !== null && !(input.maxAcordadoArs > 0)) {
+    throw new Error("El máximo acordado tiene que ser mayor a 0.");
+  }
 
-  // Lowering the type below what's already been collected would strand the balance.
-  // The DB only caps pagos, not the total, so fence it here with a clean message.
-  // Compared against the GROSS cap of the new type — collections legitimately run
-  // past the base by IVA + aportes.
+  // Lowering either figure below what's already been collected would strand the
+  // balance. The DB only caps pagos, not the total, so fence it here with a
+  // clean message — against the EFFECTIVE ceiling, since collections legitimately
+  // run past the base by IVA + aportes, and in the unit that ceiling is in.
   const existing = await getHonorarioWithBalance(supabase, input.ejecutadoId);
-  const newCap = grossCapJus(input.tipoJus);
-  if (existing && (existing.pagado_jus ?? 0) > newCap) {
-    throw new Error(
-      `No se puede fijar el honorario en ${input.tipoJus} JUS: ya se cobraron ${existing.pagado_jus} JUS, ` +
-        `más de lo que permite ese monto con IVA y aportes (${newCap} JUS).`,
-    );
+  if (existing) {
+    const techo = techoHonorario({
+      baseJus: input.montoJus,
+      maxAcordadoArs: input.maxAcordadoArs,
+      pagadoJus: existing.pagado_jus ?? 0,
+      pagadoArs: existing.pagado_ars ?? 0,
+      jusValue: await getJusValue(supabase),
+    });
+    if (techo.tipo === "acordado" && (existing.pagado_ars ?? 0) > techo.capArs) {
+      throw new Error(
+        `No se puede fijar el máximo acordado en ${formatArs(techo.capArs)}: ` +
+          `ya se cobraron ${formatArs(existing.pagado_ars ?? 0)}.`,
+      );
+    }
+    if (techo.tipo === "legal" && (existing.pagado_jus ?? 0) > (techo.capJus ?? 0)) {
+      throw new Error(
+        `No se puede fijar el honorario en ${input.montoJus} JUS: ` +
+          `el máximo con IVA y aportes queda en ${techo.capJus} JUS y ya se cobraron ${existing.pagado_jus} JUS.`,
+      );
+    }
   }
 
   const { error } = await supabase.from("honorarios").upsert(
@@ -66,7 +97,8 @@ export async function setHonorarioTipo(
       ejecutado_id: input.ejecutadoId,
       estudio_id: input.estudioId,
       created_by_user_id: input.userId,
-      monto_total_jus: input.tipoJus,
+      monto_total_jus: input.montoJus,
+      max_acordado_ars: input.maxAcordadoArs,
     },
     { onConflict: "ejecutado_id" },
   );
@@ -109,20 +141,33 @@ export async function addHonorarioPago(
 
   const { data: hon, error: honError } = await supabase
     .from("honorarios_with_balance")
-    .select("monto_total_jus, pagado_jus")
+    .select("monto_total_jus, max_acordado_ars, pagado_jus, pagado_ars")
     .eq("id", input.honorarioId)
     .maybeSingle();
   if (honError) throw honError;
   if (!hon) throw new Error("Honorario no encontrado.");
 
-  const remaining = remainingGrossJus(hon.monto_total_jus ?? 0, hon.pagado_jus ?? 0);
+  const techo = techoHonorario({
+    baseJus: hon.monto_total_jus ?? 0,
+    maxAcordadoArs: hon.max_acordado_ars,
+    pagadoJus: hon.pagado_jus ?? 0,
+    pagadoArs: hon.pagado_ars ?? 0,
+    jusValue,
+  });
 
   // Resolve the (JUS, ARS) pair from whichever unit the caller provided.
   let montoJus: number;
   let montoArs: number;
   if (input.saldar) {
-    montoJus = remaining; // exact remaining — kills ARS-conversion rounding residue
-    montoArs = jusToArs(remaining, jusValue);
+    // "Saldar" fills the remainder exactly, in the unit the ceiling is in —
+    // converting the other way would leave a centavo the trigger then rejects.
+    if (techo.tipo === "acordado") {
+      montoArs = techo.pendienteArs;
+      montoJus = arsToJus(montoArs, jusValue);
+    } else {
+      montoJus = techo.pendienteJus ?? 0;
+      montoArs = jusToArs(montoJus, jusValue);
+    }
   } else if (input.montoJus != null) {
     montoJus = input.montoJus;
     montoArs = jusToArs(montoJus, jusValue);
@@ -134,11 +179,28 @@ export async function addHonorarioPago(
     throw new Error("Ingresá un monto en JUS o en ARS.");
   }
 
-  // Friendly fence; the DB trigger is the hard one.
-  if (!(montoJus > 0)) throw new Error("El monto del pago debe ser mayor a 0.");
-  if (montoJus > remaining) {
+  // A real peso amount under ~$267 converts to 0.00 JUS at a JUS of 53.232, and
+  // honorarios_pagos_monto_jus_check would reject the row. Reachable now that
+  // pesos are the entry unit: the last instalment of a quita can be small. The
+  // pesos are what was received and what the ceiling is checked against, so the
+  // JUS side is floored at its own minimum rather than the payment refused.
+  if (montoArs > 0 && montoJus <= 0) montoJus = 0.01;
+
+  // Friendly fence; the DB trigger is the hard one. Checked in the ceiling's own
+  // unit, exactly as check_honorario_pago_cap() does it.
+  if (!(montoJus > 0) || !(montoArs > 0)) {
+    throw new Error("El monto del pago debe ser mayor a 0.");
+  }
+  if (techo.tipo === "acordado") {
+    if (montoArs > techo.pendienteArs) {
+      throw new Error(
+        `El pago de ${formatArs(montoArs)} excede lo pendiente del máximo acordado ` +
+          `(${formatArs(techo.pendienteArs)}).`,
+      );
+    }
+  } else if (montoJus > (techo.pendienteJus ?? 0)) {
     throw new Error(
-      `El pago de ${montoJus} JUS excede lo pendiente con IVA y aportes (${remaining} JUS).`,
+      `El pago de ${montoJus} JUS excede lo pendiente con IVA y aportes (${techo.pendienteJus} JUS).`,
     );
   }
 

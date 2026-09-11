@@ -10,6 +10,7 @@ import {
   IVA_RATE,
   APORTES_RATE,
   formatArs,
+  formatArsExacto,
   formatJus,
   jusToArs,
   arsToJus,
@@ -20,25 +21,28 @@ import { addPago } from "./honorarios-actions";
 export function HonorariosAddPagoForm({
   honorarioId,
   jusValue,
-  pendienteGrossJus,
+  pendienteArs,
 }: {
   honorarioId: string;
   jusValue: number;
-  pendienteGrossJus: number;
+  pendienteArs: number;
 }) {
-  const [unidad, setUnidad] = useState<"jus" | "ars">("jus");
+  // Pesos first: a payment arrives as a bank transfer, not as a number of JUS.
+  const [unidad, setUnidad] = useState<"jus" | "ars">("ars");
   const [monto, setMonto] = useState("");
 
   const n = Number(monto || 0);
-  const montoJus = unidad === "jus" ? n : arsToJus(n, jusValue);
+  const montoArs = unidad === "ars" ? n : jusToArs(n, jusValue);
   const preview =
     unidad === "jus"
       ? `≈ ${formatArs(jusToArs(n, jusValue))}`
       : `≈ ${formatJus(arsToJus(n, jusValue))}`;
 
   // What the lawyer is actually charging vs. what is tax they collect and remit.
-  const split = splitGross(montoJus > 0 ? montoJus : 0);
-  const excede = montoJus > pendienteGrossJus;
+  // Split in pesos: the same 1.31 applies either way, and this way the parts
+  // reconcile to the amount actually banked.
+  const split = splitGross(montoArs > 0 ? montoArs : 0);
+  const excede = montoArs > pendienteArs;
 
   return (
     <form
@@ -104,25 +108,20 @@ export function HonorariosAddPagoForm({
       </div>
 
       {/* The point of the tax model: how much of this is fee, how much is tax. */}
-      {montoJus > 0 && (
+      {montoArs > 0 && (
         <div className="rounded-md border bg-muted/30 p-3 text-xs">
           <div className="mb-1 text-muted-foreground">De este pago:</div>
           <div className="@container grid grid-cols-1 gap-2 tabular-nums @xs:grid-cols-3">
-            <SplitCell label="Honorario" jus={split.base} jusValue={jusValue} />
-            <SplitCell
-              label={`IVA ${Math.round(IVA_RATE * 100)}%`}
-              jus={split.iva}
-              jusValue={jusValue}
-            />
+            <SplitCell label="Honorario" ars={split.base} />
+            <SplitCell label={`IVA ${Math.round(IVA_RATE * 100)}%`} ars={split.iva} />
             <SplitCell
               label={`Aportes ${Math.round(APORTES_RATE * 100)}%`}
-              jus={split.aportes}
-              jusValue={jusValue}
+              ars={split.aportes}
             />
           </div>
           {excede && (
             <p className="mt-2 text-destructive">
-              Excede lo pendiente con IVA y aportes ({formatJus(pendienteGrossJus)}).
+              Excede lo pendiente ({formatArsExacto(pendienteArs)}).
             </p>
           )}
         </div>
@@ -154,27 +153,18 @@ export function HonorariosAddPagoForm({
           size="sm"
           variant="outline"
         >
-          Saldar ({formatJus(pendienteGrossJus)})
+          Saldar ({formatArsExacto(pendienteArs)})
         </Button>
       </div>
     </form>
   );
 }
 
-function SplitCell({
-  label,
-  jus,
-  jusValue,
-}: {
-  label: string;
-  jus: number;
-  jusValue: number;
-}) {
+function SplitCell({ label, ars }: { label: string; ars: number }) {
   return (
     <div>
       <div className="text-muted-foreground">{label}</div>
-      <div className="font-medium">{formatJus(jus)}</div>
-      <div className="text-muted-foreground">{formatArs(jusToArs(jus, jusValue))}</div>
+      <div className="font-medium">{formatArsExacto(ars)}</div>
     </div>
   );
 }
