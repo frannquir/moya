@@ -11,7 +11,13 @@ import {
 } from "@/lib/data/honorarios";
 import { jusToArs } from "@/lib/domain/honorarios";
 
-export async function setMonto(ejecutadoId: string, formData: FormData) {
+export type MontoState = { ok: string | null; error: string | null };
+
+export async function setMonto(
+  ejecutadoId: string,
+  _prev: MontoState,
+  formData: FormData,
+): Promise<MontoState> {
   const supabase = await createClient();
   const user = await requireUser(supabase);
 
@@ -20,7 +26,7 @@ export async function setMonto(ejecutadoId: string, formData: FormData) {
     .select("estudio_id")
     .eq("id", ejecutadoId)
     .single();
-  if (!ej) throw new Error("ejecutado not found");
+  if (!ej) return { ok: null, error: "No se encontró el ejecutado." };
 
   // The negotiated ceiling is a peso figure — it is what was agreed with the
   // debtor — so pesos are stored as typed. A JUS entry converts here rather than
@@ -32,7 +38,10 @@ export async function setMonto(ejecutadoId: string, formData: FormData) {
     if (String(formData.get("max_unidad") ?? "ars") === "jus") {
       const jusValue = await getJusValue(supabase);
       if (!(jusValue > 0)) {
-        throw new Error("No hay valor JUS configurado para convertir JUS a pesos.");
+        return {
+          ok: null,
+          error: "No hay valor JUS configurado para convertir JUS a pesos.",
+        };
       }
       maxAcordadoArs = jusToArs(raw, jusValue);
     } else {
@@ -40,16 +49,23 @@ export async function setMonto(ejecutadoId: string, formData: FormData) {
     }
   }
 
-  await setHonorarioMonto(supabase, {
-    ejecutadoId,
-    userId: user.id,
-    estudioId: ej.estudio_id,
-    montoJus: Number(formData.get("monto_jus") ?? 0),
-    maxAcordadoArs,
-  });
+  // Returned, not thrown: this action backs a dialog whose fields the lawyer
+  // just typed, and a thrown error unmounts the form along with them.
+  try {
+    await setHonorarioMonto(supabase, {
+      ejecutadoId,
+      userId: user.id,
+      estudioId: ej.estudio_id,
+      montoJus: Number(formData.get("monto_jus") ?? 0),
+      maxAcordadoArs,
+    });
+  } catch (e) {
+    return { ok: null, error: e instanceof Error ? e.message : "No se pudo guardar." };
+  }
 
   revalidatePath(`/ejecutados/${ejecutadoId}`);
   revalidatePath("/honorarios");
+  return { ok: "Honorario actualizado.", error: null };
 }
 
 export async function addPago(honorarioId: string, formData: FormData) {
