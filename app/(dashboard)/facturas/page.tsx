@@ -10,41 +10,16 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { calcFactura, formatArs } from "@/lib/domain/facturas";
+import { splitGross } from "@/lib/domain/honorarios";
 import { formatArDate } from "@/lib/domain/dates";
+import { listFacturables } from "@/lib/data/facturas";
 import { FacturaDialog } from "./factura-dialog";
 
 export const metadata: Metadata = { title: "Facturas" };
 
 export default async function FacturasPage() {
   const supabase = await createClient();
-
-  const { data: rows } = await supabase
-    .from("cobros_pagos")
-    // `empresa` is who the factura is requested for, and it was missing from
-    // this select — so generateMensaje() never received it and every message
-    // printed the literal [empresa] marker.
-    .select(
-      "id, monto, fecha, ejecutado:ejecutados(id, nombre, empresa), factura:facturas(mensaje_generado, confirmada, fecha_generada)",
-    )
-    .eq("estado", "Proveído")
-    .is("archived_at", null)
-    .order("fecha", { ascending: false });
-
-  const items = (rows ?? []).map((r) => ({
-    pagoId: r.id,
-    monto: Number(r.monto),
-    fecha: r.fecha,
-    demandado: r.ejecutado?.nombre ?? "—",
-    empresa: r.ejecutado?.empresa ?? null,
-    factura: Array.isArray(r.factura)
-      ? (r.factura[0] ?? null)
-      : (r.factura ?? null),
-  }));
-  items.sort((a, b) => {
-    const aConf = a.factura?.confirmada ? 1 : 0;
-    const bConf = b.factura?.confirmada ? 1 : 0;
-    return aConf - bConf;
-  });
+  const items = await listFacturables(supabase);
 
   const pendientes = items.filter((i) => !i.factura?.confirmada).length;
 
@@ -53,7 +28,8 @@ export default async function FacturasPage() {
       <div>
         <h1 className="text-2xl font-semibold">Facturas</h1>
         <p className="text-sm text-muted-foreground">
-          {items.length} pagos cobrados · {pendientes} facturas pendientes
+          {items.length} pagos facturables · {pendientes} facturas pendientes ·
+          cobros del deudor (pacto cuota litis) y honorarios cobrados (Factura B)
         </p>
       </div>
 
@@ -62,9 +38,10 @@ export default async function FacturasPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Deudor</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead className="text-right">Monto</TableHead>
               <TableHead className="text-right">Total factura</TableHead>
-              <TableHead>Fecha pago</TableHead>
+              <TableHead>Fecha</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acción</TableHead>
             </TableRow>
@@ -72,7 +49,14 @@ export default async function FacturasPage() {
           <TableBody>
             {items.length > 0 ? (
               items.map((it) => {
-                const { total } = calcFactura(it.monto);
+                // What the accountant is asked to invoice: the firm's 15% cut on
+                // a cobro, the whole fee payment on a Factura B.
+                const total =
+                  it.tipo === "factura-b"
+                    ? it.monto
+                    : calcFactura(it.monto).total;
+                const aportes =
+                  it.tipo === "factura-b" ? splitGross(it.monto).aportes : null;
                 const status = !it.factura
                   ? { label: "Sin generar", variant: "outline" as const }
                   : it.factura.confirmada
@@ -80,37 +64,44 @@ export default async function FacturasPage() {
                     : { label: "Generada", variant: "warn" as const };
                 return (
                   <TableRow
-                    key={it.pagoId}
+                    key={`${it.tipo}:${it.pagoId}`}
                     className={it.factura?.confirmada ? "opacity-60" : ""}
                   >
                     <TableCell className="font-medium">{it.demandado}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {it.tipo === "factura-b" ? "Factura B" : "Cuota litis"}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatArs(it.monto)}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatArs(total)}
+                      {aportes !== null && (
+                        <div className="text-xs text-muted-foreground">
+                          aportes {formatArs(aportes)}
+                        </div>
+                      )}
                     </TableCell>
-                    <TableCell>
-                      {formatArDate(it.fecha)}
-                    </TableCell>
+                    <TableCell>{formatArDate(it.fecha)}</TableCell>
                     <TableCell>
                       {status.variant === "ok" ? (
-                        <Badge variant="success">
-                          {status.label}
-                        </Badge>
+                        <Badge variant="success">{status.label}</Badge>
                       ) : status.variant === "warn" ? (
-                        <Badge variant="warning">
-                          {status.label}
-                        </Badge>
+                        <Badge variant="warning">{status.label}</Badge>
                       ) : (
                         <Badge variant="outline">{status.label}</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">
                       <FacturaDialog
+                        tipo={it.tipo}
                         pagoId={it.pagoId}
+                        ejecutadoId={it.ejecutadoId}
                         demandado={it.demandado}
                         empresa={it.empresa}
+                        documento={it.documento}
                         monto={it.monto}
                         fecha={it.fecha}
                         factura={it.factura}
@@ -122,11 +113,11 @@ export default async function FacturasPage() {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={6}
+                  colSpan={7}
                   className="text-center text-muted-foreground py-8"
                 >
-                  Aún no hay pagos confirmados. Marcá un cobro como "Proveído"
-                  para que aparezca acá.
+                  Aún no hay pagos para facturar. Marcá un cobro como
+                  &quot;Proveído&quot; o registrá un pago de honorarios.
                 </TableCell>
               </TableRow>
             )}

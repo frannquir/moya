@@ -791,9 +791,10 @@ export type Database = {
           created_by_user_id: string | null
           estudio_id: string
           fecha_generada: string
+          honorario_pago_id: string | null
           id: string
           mensaje_generado: string
-          pago_id: string
+          pago_id: string | null
           updated_at: string
         }
         Insert: {
@@ -803,9 +804,10 @@ export type Database = {
           created_by_user_id?: string | null
           estudio_id: string
           fecha_generada?: string
+          honorario_pago_id?: string | null
           id?: string
           mensaje_generado?: string
-          pago_id: string
+          pago_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -815,9 +817,10 @@ export type Database = {
           created_by_user_id?: string | null
           estudio_id?: string
           fecha_generada?: string
+          honorario_pago_id?: string | null
           id?: string
           mensaje_generado?: string
-          pago_id?: string
+          pago_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -829,9 +832,16 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "facturas_honorario_pago_id_fkey"
+            columns: ["honorario_pago_id"]
+            isOneToOne: false
+            referencedRelation: "honorarios_pagos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "facturas_pago_id_fkey"
             columns: ["pago_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "cobros_pagos"
             referencedColumns: ["id"]
           },
