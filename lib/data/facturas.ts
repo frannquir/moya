@@ -8,16 +8,22 @@ export type FacturaRow = {
   mensaje_generado: string;
   confirmada: boolean;
   fecha_generada: string;
+  tipo: TipoFactura;
 };
+
+/** Every payment opens on this one; the dialog flips it when it is the other. */
+export const TIPO_POR_DEFECTO: TipoFactura = "cuota-litis";
 
 /**
  * One invoiceable payment, from either side of the ledger.
  *
- * `id` is the payment's own id — a cobros_pagos row for "cuota-litis", a
- * honorarios_pagos row for "factura-b" — and `tipo` says which, because the two
- * are stored in different tables and hang off different columns of facturas.
+ * `origen` says which table the money is in — that is fixed by where it was
+ * recorded. `tipo` says which of the two messages was written about it, which is
+ * the lawyer's choice and defaults to cuota litis for everything. The two are
+ * deliberately independent: a cobro can carry a Factura B.
  */
 export type ItemFacturable = {
+  origen: "cobro" | "honorario";
   tipo: TipoFactura;
   pagoId: string;
   ejecutadoId: string | null;
@@ -50,14 +56,14 @@ export async function listFacturables(supabase: Client): Promise<ItemFacturable[
     supabase
       .from("cobros_pagos")
       .select(
-        "id, monto, fecha, ejecutado:ejecutados(id, nombre, empresa, documento), factura:facturas!facturas_pago_id_fkey(mensaje_generado, confirmada, fecha_generada)",
+        "id, monto, fecha, ejecutado:ejecutados(id, nombre, empresa, documento), factura:facturas!facturas_pago_id_fkey(mensaje_generado, confirmada, fecha_generada, tipo)",
       )
       .eq("estado", "Proveído")
       .is("archived_at", null),
     supabase
       .from("honorarios_pagos")
       .select(
-        "id, monto_ars, fecha, honorario:honorarios(ejecutado:ejecutados(id, nombre, empresa, documento)), factura:facturas!facturas_honorario_pago_id_fkey(mensaje_generado, confirmada, fecha_generada)",
+        "id, monto_ars, fecha, honorario:honorarios(ejecutado:ejecutados(id, nombre, empresa, documento)), factura:facturas!facturas_honorario_pago_id_fkey(mensaje_generado, confirmada, fecha_generada, tipo)",
       )
       .is("archived_at", null),
   ]);
@@ -69,8 +75,10 @@ export async function listFacturables(supabase: Client): Promise<ItemFacturable[
 
   for (const r of cobros.data ?? []) {
     const ej = r.ejecutado;
+    const factura = primeraFactura(r.factura);
     items.push({
-      tipo: "cuota-litis",
+      origen: "cobro",
+      tipo: factura?.tipo ?? TIPO_POR_DEFECTO,
       pagoId: r.id,
       ejecutadoId: ej?.id ?? null,
       demandado: ej?.nombre ?? "—",
@@ -78,14 +86,16 @@ export async function listFacturables(supabase: Client): Promise<ItemFacturable[
       documento: ej?.documento ?? "",
       monto: Number(r.monto),
       fecha: r.fecha,
-      factura: primeraFactura(r.factura),
+      factura,
     });
   }
 
   for (const r of honorarios.data ?? []) {
     const ej = r.honorario?.ejecutado;
+    const factura = primeraFactura(r.factura);
     items.push({
-      tipo: "factura-b",
+      origen: "honorario",
+      tipo: factura?.tipo ?? TIPO_POR_DEFECTO,
       pagoId: r.id,
       ejecutadoId: ej?.id ?? null,
       demandado: ej?.nombre ?? "—",
@@ -93,7 +103,7 @@ export async function listFacturables(supabase: Client): Promise<ItemFacturable[
       documento: ej?.documento ?? "",
       monto: Number(r.monto_ars),
       fecha: r.fecha,
-      factura: primeraFactura(r.factura),
+      factura,
     });
   }
 

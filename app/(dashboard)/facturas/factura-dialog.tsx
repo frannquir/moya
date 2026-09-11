@@ -27,6 +27,7 @@ import { formatArDate } from "@/lib/domain/dates";
 import { saveFactura, setFacturaConfirmada } from "./actions";
 
 type Props = {
+  origen: "cobro" | "honorario";
   tipo: TipoFactura;
   pagoId: string;
   ejecutadoId: string | null;
@@ -43,7 +44,8 @@ type Props = {
 };
 
 export function FacturaDialog({
-  tipo,
+  origen,
+  tipo: tipoInicial,
   pagoId,
   ejecutadoId,
   demandado,
@@ -54,12 +56,23 @@ export function FacturaDialog({
   factura,
 }: Props) {
   const [open, setOpen] = useState(false);
-  const initialMensaje =
+  // Everything opens on cuota litis unless a factura already chose otherwise.
+  const [tipo, setTipo] = useState<TipoFactura>(tipoInicial);
+  const [mensaje, setMensaje] = useState(
     factura?.mensaje_generado ||
-    generateMensaje({ tipo, demandado, monto, empresa, documento });
-  const [mensaje, setMensaje] = useState(initialMensaje);
+      generateMensaje({ tipo: tipoInicial, demandado, monto, empresa, documento }),
+  );
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  // Switching template rewrites the message — the two say different things to
+  // different people, so carrying edits across would produce a hybrid that is
+  // neither. Same reason it does not silently keep a hand-edited body.
+  const cambiarTipo = (t: TipoFactura) => {
+    if (t === tipo) return;
+    setTipo(t);
+    setMensaje(generateMensaje({ tipo: t, demandado, monto, empresa, documento }));
+  };
 
   // Same mechanism as the escrito editor: whatever is still [TOKEN] in the text
   // is a gap, and each gap links to the screen that fills it. Read off the
@@ -83,19 +96,19 @@ export function FacturaDialog({
     if (!factura) {
       const fd = new FormData();
       fd.set("mensaje", mensaje);
-      startTransition(() => saveFactura(tipo, pagoId, fd));
+      startTransition(() => saveFactura(origen, tipo, pagoId, fd));
     }
   };
 
   const handleSave = () => {
     const fd = new FormData();
     fd.set("mensaje", mensaje);
-    startTransition(() => saveFactura(tipo, pagoId, fd));
+    startTransition(() => saveFactura(origen, tipo, pagoId, fd));
   };
 
   const handleToggleConfirmada = () => {
     startTransition(() =>
-      setFacturaConfirmada(tipo, pagoId, !(factura?.confirmada ?? false)),
+      setFacturaConfirmada(origen, pagoId, !(factura?.confirmada ?? false)),
     );
   };
 
@@ -114,9 +127,6 @@ export function FacturaDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {demandado}
-            <Badge variant="outline">
-              {esFacturaB ? "Factura B" : "Pacto cuota litis"}
-            </Badge>
             {factura && (
               <Badge
                 className={
@@ -130,10 +140,31 @@ export function FacturaDialog({
             )}
           </DialogTitle>
           <DialogDescription>
-            {esFacturaB ? "Honorarios cobrados" : "Pago del deudor"} de{" "}
+            {origen === "honorario" ? "Honorarios cobrados" : "Pago del deudor"} de{" "}
             {formatArs(monto)} · {formatArDate(fecha)}
           </DialogDescription>
         </DialogHeader>
+
+        {/* The two templates. Same button pair as the JUS/ARS switches elsewhere
+            in the app, so it reads as a choice rather than as a filter. */}
+        <div className="flex gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant={!esFacturaB ? "default" : "outline"}
+            onClick={() => cambiarTipo("cuota-litis")}
+          >
+            Pacto cuota litis
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={esFacturaB ? "default" : "outline"}
+            onClick={() => cambiarTipo("factura-b")}
+          >
+            Factura B
+          </Button>
+        </div>
 
         <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
           {esFacturaB ? (

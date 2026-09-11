@@ -795,6 +795,7 @@ export type Database = {
           id: string
           mensaje_generado: string
           pago_id: string | null
+          tipo: string
           updated_at: string
         }
         Insert: {
@@ -808,6 +809,7 @@ export type Database = {
           id?: string
           mensaje_generado?: string
           pago_id?: string | null
+          tipo?: string
           updated_at?: string
         }
         Update: {
@@ -821,6 +823,7 @@ export type Database = {
           id?: string
           mensaje_generado?: string
           pago_id?: string | null
+          tipo?: string
           updated_at?: string
         }
         Relationships: [

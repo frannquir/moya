@@ -83,7 +83,7 @@ describe("generateMensajeFacturaB", () => {
 });
 
 describe("generateMensaje", () => {
-  it("elige el mensaje segun el tipo de pago", () => {
+  it("elige la plantilla segun el tipo elegido, no segun de donde salio la plata", () => {
     const cuota = generateMensaje({
       tipo: "cuota-litis",
       demandado: "X",
@@ -98,5 +98,25 @@ describe("generateMensaje", () => {
     });
     expect(cuota).toContain("pacto cuota litis");
     expect(facturaB).toContain("Fact B");
+  });
+
+  it("el mismo pago puede facturarse de las dos formas", () => {
+    // COFRE: un cobro con nota "honorarios solicitados". Con el tipo derivado
+    // del origen solo podia pedirle a Tartan el 15% de plata que ya eran
+    // honorarios; ahora el boton cambia la plantilla sobre el mismo pago.
+    const pago = { demandado: "COFRE NATALIA VALERIA", monto: 424800.25, empresa: "Tartan", documento: "12345678" };
+    const cuota = generateMensaje({ tipo: "cuota-litis", ...pago });
+    const facturaB = generateMensaje({ tipo: "factura-b", ...pago });
+    expect(cuota).toContain("para Tartan");
+    expect(cuota).toContain("$63.720,04"); // 15%
+    expect(facturaB).toContain("a nombre de COFRE NATALIA VALERIA");
+    expect(facturaB).toContain("el total de $424.800,25");
+  });
+});
+
+describe("TIPO_POR_DEFECTO", () => {
+  it("todo arranca en cuota litis", async () => {
+    const { TIPO_POR_DEFECTO } = await import("@/lib/data/facturas");
+    expect(TIPO_POR_DEFECTO).toBe("cuota-litis");
   });
 });

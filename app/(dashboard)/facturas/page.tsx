@@ -29,7 +29,8 @@ export default async function FacturasPage() {
         <h1 className="text-2xl font-semibold">Facturas</h1>
         <p className="text-sm text-muted-foreground">
           {items.length} pagos facturables · {pendientes} facturas pendientes ·
-          cobros del deudor (pacto cuota litis) y honorarios cobrados (Factura B)
+          cobros del deudor y honorarios cobrados. Cada uno arranca en pacto
+          cuota litis; el botón dentro cambia a Factura B.
         </p>
       </div>
 
@@ -49,14 +50,12 @@ export default async function FacturasPage() {
           <TableBody>
             {items.length > 0 ? (
               items.map((it) => {
-                // What the accountant is asked to invoice: the firm's 15% cut on
-                // a cobro, the whole fee payment on a Factura B.
-                const total =
-                  it.tipo === "factura-b"
-                    ? it.monto
-                    : calcFactura(it.monto).total;
-                const aportes =
-                  it.tipo === "factura-b" ? splitGross(it.monto).aportes : null;
+                // What the accountant is asked to invoice under the chosen
+                // template: the firm's 15% cut plus IVA, or the whole amount
+                // received with its aportes named.
+                const esFacturaB = it.tipo === "factura-b";
+                const total = esFacturaB ? it.monto : calcFactura(it.monto).total;
+                const aportes = esFacturaB ? splitGross(it.monto).aportes : null;
                 const status = !it.factura
                   ? { label: "Sin generar", variant: "outline" as const }
                   : it.factura.confirmada
@@ -67,11 +66,22 @@ export default async function FacturasPage() {
                     key={`${it.tipo}:${it.pagoId}`}
                     className={it.factura?.confirmada ? "opacity-60" : ""}
                   >
-                    <TableCell className="font-medium">{it.demandado}</TableCell>
+                    <TableCell className="font-medium">
+                      {it.demandado}
+                      {/* Where the money is, which the lawyer cannot change and
+                          which no longer decides the template. */}
+                      <div className="text-xs text-muted-foreground">
+                        {it.origen === "honorario" ? "honorarios" : "cobro"}
+                      </div>
+                    </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {it.tipo === "factura-b" ? "Factura B" : "Cuota litis"}
-                      </Badge>
+                      {it.factura ? (
+                        <Badge variant="outline">
+                          {esFacturaB ? "Factura B" : "Cuota litis"}
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatArs(it.monto)}
@@ -96,6 +106,7 @@ export default async function FacturasPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <FacturaDialog
+                        origen={it.origen}
                         tipo={it.tipo}
                         pagoId={it.pagoId}
                         ejecutadoId={it.ejecutadoId}

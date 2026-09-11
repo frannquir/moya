@@ -4,9 +4,15 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { type TipoFactura } from "@/lib/domain/facturas";
 
-/** Which column of facturas a payment of this kind hangs off. */
-const columnaDe = (tipo: TipoFactura) =>
-  tipo === "factura-b" ? "honorario_pago_id" : "pago_id";
+/**
+ * Where the money is, which decides the column — NOT which message was written
+ * about it. A cobro can carry a Factura B, so `origen` and `tipo` are separate
+ * arguments throughout.
+ */
+export type OrigenPago = "cobro" | "honorario";
+
+const columnaDe = (origen: OrigenPago) =>
+  origen === "honorario" ? "honorario_pago_id" : "pago_id";
 
 /**
  * Resolve the estudio from the payment itself rather than trusting the caller:
@@ -15,10 +21,10 @@ const columnaDe = (tipo: TipoFactura) =>
  */
 async function estudioDelPago(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  tipo: TipoFactura,
+  origen: OrigenPago,
   pagoId: string,
 ): Promise<string> {
-  const tabla = tipo === "factura-b" ? "honorarios_pagos" : "cobros_pagos";
+  const tabla = origen === "honorario" ? "honorarios_pagos" : "cobros_pagos";
   const { data } = await supabase
     .from(tabla)
     .select("estudio_id")
@@ -29,6 +35,7 @@ async function estudioDelPago(
 }
 
 export async function saveFactura(
+  origen: OrigenPago,
   tipo: TipoFactura,
   pagoId: string,
   formData: FormData,
@@ -39,9 +46,9 @@ export async function saveFactura(
   } = await supabase.auth.getUser();
   if (!user) throw new Error("unauthenticated");
 
-  const estudioId = await estudioDelPago(supabase, tipo, pagoId);
+  const estudioId = await estudioDelPago(supabase, origen, pagoId);
   const mensaje = String(formData.get("mensaje") ?? "");
-  const columna = columnaDe(tipo);
+  const columna = columnaDe(origen);
 
   // Select-then-write rather than upsert: uniqueness is now enforced by two
   // PARTIAL indexes (one per source), and PostgREST's on_conflict cannot state
@@ -58,6 +65,7 @@ export async function saveFactura(
       .from("facturas")
       .update({
         mensaje_generado: mensaje,
+        tipo,
         fecha_generada: new Date().toISOString(),
       })
       .eq("id", existing.id);
@@ -66,13 +74,14 @@ export async function saveFactura(
     // The two ids are spelled out rather than written as a computed key: a
     // computed key widens the object to a string index signature, which the
     // generated Insert type rejects outright — and losing that check on the one
-    // statement that decides which kind of factura this is would be a poor trade.
+    // statement that decides where a factura hangs would be a poor trade.
     const { error } = await supabase.from("facturas").insert({
-      pago_id: tipo === "factura-b" ? null : pagoId,
-      honorario_pago_id: tipo === "factura-b" ? pagoId : null,
+      pago_id: origen === "honorario" ? null : pagoId,
+      honorario_pago_id: origen === "honorario" ? pagoId : null,
       estudio_id: estudioId,
       created_by_user_id: user.id,
       mensaje_generado: mensaje,
+      tipo,
       fecha_generada: new Date().toISOString(),
     });
     if (error) throw error;
@@ -82,7 +91,7 @@ export async function saveFactura(
 }
 
 export async function setFacturaConfirmada(
-  tipo: TipoFactura,
+  origen: OrigenPago,
   pagoId: string,
   confirmada: boolean,
 ) {
@@ -90,7 +99,7 @@ export async function setFacturaConfirmada(
   const { error } = await supabase
     .from("facturas")
     .update({ confirmada })
-    .eq(columnaDe(tipo), pagoId);
+    .eq(columnaDe(origen), pagoId);
   if (error) throw error;
 
   revalidatePath("/facturas");
