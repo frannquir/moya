@@ -3,12 +3,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { renderTemplate } from "@/lib/domain/template-engine";
 import {
-  buildEscritoScope,
   generarDemanda,
   insertEscrito,
-  CONVENIO_CLAVE,
+  renderEscritoBody,
 } from "@/lib/data/escrito-render";
 
 export async function generarEscrito(ejecutadoId: string, formData: FormData) {
@@ -35,12 +33,11 @@ export async function generarEscrito(ejecutadoId: string, formData: FormData) {
     throw new Error("Ese tipo de plantilla no se genera desde la biblioteca");
   }
 
-  const { scope, ejecutado } = await buildEscritoScope(supabase, {
+  // The same render path "Restaurar original" uses, so an escrito restored a
+  // month from now is byte-identical to one generated today from the same data.
+  const { contenido, ejecutado } = await renderEscritoBody(supabase, {
     ejecutadoId,
-    esDemanda: false,
-    // The convenio needs the settlement, the honorario and the JUS value on top
-    // of the shared scope. Keyed on clave, never on título (gotcha #31).
-    esConvenio: template.clave === CONVENIO_CLAVE,
+    template,
   });
 
   const created = await insertEscrito(supabase, {
@@ -49,7 +46,7 @@ export async function generarEscrito(ejecutadoId: string, formData: FormData) {
     templateId: template.id,
     userId: user.id,
     titulo: template.titulo,
-    contenido: renderTemplate(template.contenido, scope),
+    contenido,
   });
 
   revalidatePath("/escritos");

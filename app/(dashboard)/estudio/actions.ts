@@ -9,6 +9,8 @@ import { requireUser } from "@/lib/data/auth";
 import { archiveGmailConnection } from "@/lib/data/mail";
 import { updateEscritosConfig } from "@/lib/data/estudio";
 import {
+  mergeEscritosConfig,
+  parseAutorizados,
   type AbogadoConfig,
   type CuentaHonorariosConfig,
   type EstudioEscritosConfig,
@@ -287,15 +289,20 @@ export async function updateEstudioEscritosConfig(
   // removed. Deleting an unused empresa is fine; deleting one that cases point at
   // is silent damage that only surfaces in a filed document, so it is blocked.
   const configPrevia = (estudio.escritos_config ?? {}) as EstudioEscritosConfig;
-  for (const clave of Object.keys(configPrevia.empresas ?? {})) {
-    if (clave in empresas) continue;
-    const casos = await contarCasosPorEmpresa(supabase, clave);
-    if (casos > 0) {
-      errors.push(
-        `La empresa "${clave}" la usan ${casos} caso${casos === 1 ? "" : "s"}. ` +
-          "Si la borrás o le cambiás la clave, esos escritos quedan sin razón social, " +
-          "CUIT ni domicilio legal.",
-      );
+  // Gated on the field, like the write below: a form that does not render the
+  // empresas editor does not remove anything, so it must not be told it is
+  // about to. Without this the guard would reject every save from such a form.
+  if (formData.has("empresas_json")) {
+    for (const clave of Object.keys(configPrevia.empresas ?? {})) {
+      if (clave in empresas) continue;
+      const casos = await contarCasosPorEmpresa(supabase, clave);
+      if (casos > 0) {
+        errors.push(
+          `La empresa "${clave}" la usan ${casos} caso${casos === 1 ? "" : "s"}. ` +
+            "Si la borrás o le cambiás la clave, esos escritos quedan sin razón social, " +
+            "CUIT ni domicilio legal.",
+        );
+      }
     }
   }
 
@@ -334,6 +341,15 @@ export async function updateEstudioEscritosConfig(
     }
   } catch {
   }
+
+  // The estudio's own autorizados for section IX. Parsed and validated in
+  // lib/domain so the rules are covered by Vitest rather than only by clicking
+  // through the form. `undefined` back means "no override" — the derived member
+  // list — and is NOT the same as an empty array.
+  const { autorizados, errors: erroresAutorizados } = parseAutorizados(
+    String(formData.get("autorizados_json") ?? ""),
+  );
+  errors.push(...erroresAutorizados);
 
   // The apoderado every escrito is presented by. Stored verbatim; each field
   // falls back to a visible placeholder at render time.
@@ -389,19 +405,35 @@ export async function updateEstudioEscritosConfig(
   // reason about than a rejected one. The form keeps every value either way.
   if (errors.length > 0) return { errors };
 
-  // Spread the stored config first: this writes the WHOLE escritos_config column,
-  // so a key this form does not render (jueces_recusados) would be deleted on
-  // every save if it were rebuilt from the four keys alone.
-  const config: EstudioEscritosConfig = {
-    ...configPrevia,
-    cuenta_honorarios,
-    encargado,
-    domicilios_procesales,
-    empresas,
-    jueces_recusados,
-  };
+  // Only the keys this form actually rendered, each gated on the field that
+  // carries it. mergeEscritosConfig carries the rest of the column through
+  // untouched.
+  //
+  // This replaces a whole-column rebuild from a hand-written spread, which
+  // deleted any key the form did not name — the comment that used to sit here
+  // was the only thing stopping it, and `autorizados` would have been the sixth
+  // key to depend on someone reading it. Now a key can only be lost by removing
+  // it from EstudioEscritosConfig, which does not compile.
+  const patch: Partial<EstudioEscritosConfig> = {};
+  if (formData.has("cuenta_texto")) patch.cuenta_honorarios = cuenta_honorarios;
+  if (formData.has("encargado_json")) patch.encargado = encargado;
+  if (formData.has("domicilios_json")) {
+    patch.domicilios_procesales = domicilios_procesales;
+  }
+  if (formData.has("empresas_json")) patch.empresas = empresas;
+  if (formData.has("jueces_recusados_json")) {
+    patch.jueces_recusados = jueces_recusados;
+  }
+  // Assigning `undefined` is deliberate and is NOT the same as skipping the
+  // line: mergeEscritosConfig reads Object.hasOwn, so this removes the override
+  // and puts the list back to the estudio's members.
+  if (formData.has("autorizados_json")) patch.autorizados = autorizados;
 
-  await updateEscritosConfig(supabase, estudio.id, config);
+  await updateEscritosConfig(
+    supabase,
+    estudio.id,
+    mergeEscritosConfig(configPrevia, patch),
+  );
 
   revalidatePath("/estudio");
   return { ok: true };

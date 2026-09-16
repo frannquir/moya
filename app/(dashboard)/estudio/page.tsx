@@ -130,6 +130,11 @@ export default async function EstudioPage({
             jus={jus}
             tasas={tasas}
             historial={historial}
+            miembros={members.map((m) => ({
+              nombre: m.nombre,
+              genero: m.genero,
+              es_abogado: m.es_abogado,
+            }))}
           />
         </TabsContent>
       </Tabs>

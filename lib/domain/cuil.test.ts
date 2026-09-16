@@ -126,7 +126,7 @@ describe("cuilToDni", () => {
 
 describe("formatDni", () => {
   it("groups with dots", () => {
-    expect(formatDni("23890549")).toBe("23.890.549");
+    expect(formatDni("21456789")).toBe("21.456.789");
     expect(formatDni("9876543")).toBe("9.876.543");
     expect(formatDni("123456")).toBe("123.456");
     expect(formatDni("999")).toBe("999");

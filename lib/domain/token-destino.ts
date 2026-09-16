@@ -67,8 +67,12 @@ export const TOKEN_DESTINO: Record<string, TokenDestino> = {
   HONORARIOS_JUS: { label: "Honorario del caso", donde: "caso" },
   HONORARIOS_TOTAL_LETRAS: { label: "Honorario del caso", donde: "caso" },
 
-  // --- members ---
-  AUTORIZADOS: { label: "Miembros del estudio", donde: "perfil" },
+  // The estudio's own autorizados list since 2026-09-16. It used to point at
+  // /settings/profile, which was only ever half an answer: a member could fix
+  // their own name there but nobody could add the procurador who actually does
+  // the trámite, and no member could fix another member's blank profile. The
+  // list is now editable in one place, and that place is head-only.
+  AUTORIZADOS: { label: "Autorizados de los escritos", donde: "estudio" },
 };
 
 export function destinoDe(token: string): TokenDestino | null {

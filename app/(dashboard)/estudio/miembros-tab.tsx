@@ -19,6 +19,14 @@ export type EstudioMember = {
   role: "head" | "member";
   joined_at: string;
   nombre: string;
+  /**
+   * Both returned by get_estudio_members() since 20260822120000 /
+   * 20260822130000, and both were missing from this type — which is how the
+   * autorizados editor came within one cast of seeding every member as
+   * "sin especificar, no abogado" while their profiles said otherwise.
+   */
+  genero: string | null;
+  es_abogado: boolean;
 };
 
 export function MiembrosTab({

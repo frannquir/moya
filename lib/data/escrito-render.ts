@@ -6,7 +6,7 @@ import { parseLocalDate } from "@/lib/domain/dates";
 import { renderTemplate, type TemplateRecord, type TemplateScope } from "@/lib/domain/template-engine";
 import {
   buildEncabezado,
-  formatAutorizados,
+  resolveAutorizados,
   resolveCuentaHonorarios,
   resolveEmpresa,
   resolveDomicilioProcesal,
@@ -320,11 +320,21 @@ export async function buildEscritoScope(
     if (ej.fojas_resumenes !== null) scope.FOJAS_RESUMENES = String(ej.fojas_resumenes);
     scope.MONTO = formatMontoNumerico(monto);
     scope.MONTO_LETRAS = montoALetras(monto);
-    // Section IX lists the estudio's own members, head first, the presenting
-    // lawyer included (Fran, 2026-08-22). get_estudio_members() is SECURITY
-    // DEFINER and scoped to current_estudio_id(), so it needs the caller's
-    // session: a service-role client sees nothing and the marker shows instead.
-    const autorizados = formatAutorizados(await listMembers(supabase));
+    // Section IX. The estudio's own autorizados list when it has configured one
+    // — the people who do the trámites are usually not Moya users at all — and
+    // otherwise the members, head first, the presenting lawyer included (Fran,
+    // 2026-08-22).
+    //
+    // listMembers is skipped entirely when an override exists: this is the
+    // app's heaviest page and get_estudio_members() is one more round trip it
+    // does not need. When it does run, it needs the caller's session —
+    // the RPC is SECURITY DEFINER and scoped to current_estudio_id(), so a
+    // service-role client sees nothing and the marker shows instead.
+    const hayPropios = Array.isArray(config.autorizados);
+    const autorizados = resolveAutorizados(
+      config,
+      hayPropios ? [] : await listMembers(supabase),
+    );
     if (autorizados !== "") scope.AUTORIZADOS = autorizados;
     scope.HAY_CODEMANDADOS = partes.length > 1;
     scope.VARIOS_CODEMANDADOS = partes.length > 2;
@@ -507,6 +517,46 @@ export async function insertEscrito(
 }
 
 /**
+ * Render one template against one case — the single path every generated
+ * document goes through.
+ *
+ * Extracted so "Restaurar original" cannot drift from generation. The three
+ * kinds of document are not interchangeable: a demanda needs `esDemanda` AND
+ * the cautelar fragment spliced in before the render, and a convenio needs its
+ * own half of the scope. A generic "re-render the template" would have quietly
+ * produced a demanda with no section VII and no way to notice. Keyed on clave,
+ * never on título (gotcha #31).
+ */
+export async function renderEscritoBody(
+  supabase: Client,
+  opts: {
+    ejecutadoId: string;
+    template: { clave: string | null; contenido: string };
+  },
+): Promise<{ contenido: string; ejecutado: Tables<"ejecutados"> }> {
+  const { scope, ejecutado, cuerpoCautelar } = await buildEscritoScope(supabase, {
+    ejecutadoId: opts.ejecutadoId,
+    esDemanda: opts.template.clave === DEMANDA_CLAVE,
+    // The convenio needs the settlement, the honorario and the JUS value on top
+    // of the shared scope.
+    esConvenio: opts.template.clave === CONVENIO_CLAVE,
+  });
+
+  // One render for the whole document, cautelar fragment included, so {{SECCION}}
+  // numbers every heading in document order. A function replacer, because the
+  // fragment is arbitrary text and "$&" in it must not be treated as a group ref.
+  const cuerpo =
+    cuerpoCautelar === null
+      ? opts.template.contenido
+      : opts.template.contenido.replace(
+          SECCION_CAUTELAR_TOKEN,
+          () => cuerpoCautelar,
+        );
+
+  return { contenido: renderTemplate(cuerpo, scope), ejecutado };
+}
+
+/**
  * Generate the demanda for a case from its current data and store it. Used both
  * by "Iniciar demanda" and by "Generar de nuevo" on the Demanda card — the party
  * list may have changed since, and a regeneration always produces a NEW escrito
@@ -518,7 +568,7 @@ export async function generarDemanda(
 ): Promise<{ id: string }> {
   const { data: template } = await supabase
     .from("escritos_templates")
-    .select("id, titulo, contenido")
+    .select("id, clave, titulo, contenido")
     .eq("clave", DEMANDA_CLAVE)
     .maybeSingle();
 
@@ -529,18 +579,10 @@ export async function generarDemanda(
     );
   }
 
-  const { scope, ejecutado, cuerpoCautelar } = await buildEscritoScope(supabase, {
+  const { contenido, ejecutado } = await renderEscritoBody(supabase, {
     ejecutadoId: opts.ejecutadoId,
-    esDemanda: true,
+    template,
   });
-
-  // One render for the whole document, cautelar fragment included, so {{SECCION}}
-  // numbers every heading in document order. A function replacer, because the
-  // fragment is arbitrary text and "$&" in it must not be treated as a group ref.
-  const cuerpo =
-    cuerpoCautelar === null
-      ? template.contenido
-      : template.contenido.replace(SECCION_CAUTELAR_TOKEN, () => cuerpoCautelar);
 
   return insertEscrito(supabase, {
     estudioId: ejecutado.estudio_id,
@@ -548,6 +590,6 @@ export async function generarDemanda(
     templateId: template.id,
     userId: opts.userId,
     titulo: template.titulo,
-    contenido: renderTemplate(cuerpo, scope),
+    contenido,
   });
 }
