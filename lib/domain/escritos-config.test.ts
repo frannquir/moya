@@ -10,6 +10,7 @@ import {
   formatAutorizados,
   resolveAutorizados,
   parseAutorizados,
+  autorizadoVacio,
   AUTORIZADOS_DERIVADO,
   mergeEscritosConfig,
   ESCRITOS_CONFIG_KEYS,
@@ -63,8 +64,8 @@ describe("resolveDomicilioProcesal", () => {
 
 // Week 2C: section IX lists the estudio's own members rather than a free-text
 // config field. The treatment splits on TWO axes (Fran, 2026-08-22), because the
-// source demanda uses both: "la Dra. María Victoria Iñurrieta" is a female
-// lawyer, "Sr. Lautaro Moyano" is a man who is not one.
+// source demanda uses both: "la Dra. María Laura Fernández" is a female
+// lawyer, "Sr. Julián Ortega" is a man who is not one.
 describe("tratamientoDe", () => {
   it("covers all four cases", () => {
     expect(tratamientoDe("F", true)).toBe("Dra.");
@@ -102,30 +103,30 @@ describe("articuloDe", () => {
 
 describe("formatAutorizados", () => {
   // Section IX is running text: "…con las presentes actuaciones la Dra. María
-  // Victoria Iñurrieta…". Without the article the sentence is ungrammatical.
-  // The source writes "la Dra." but then a bare "Sr. Lautaro Moyano"; the article
+  // Laura Fernández…". Without the article the sentence is ungrammatical.
+  // The source writes "la Dra." but then a bare "Sr. Julián Ortega"; the article
   // is applied uniformly here rather than carrying that inconsistency forward.
   it("reproduces the source demanda's list, with the article on every name", () => {
     expect(
       formatAutorizados([
-        { nombre: "María Victoria Iñurrieta", genero: "F", es_abogado: true },
-        { nombre: "Lautaro Moyano", genero: "M", es_abogado: false },
-        { nombre: "Matias Prusso", genero: "M", es_abogado: false },
+        { nombre: "María Laura Fernández", genero: "F", es_abogado: true },
+        { nombre: "Julián Ortega", genero: "M", es_abogado: false },
+        { nombre: "Tomás Rivas", genero: "M", es_abogado: false },
       ]),
     ).toBe(
-      "la Dra. María Victoria Iñurrieta y/o el Sr. Lautaro Moyano y/o el Sr. Matias Prusso",
+      "la Dra. María Laura Fernández y/o el Sr. Julián Ortega y/o el Sr. Tomás Rivas",
     );
   });
 
   it("reads as a sentence when dropped into the template text", () => {
     const lista = formatAutorizados([
-      { nombre: "María Victoria Iñurrieta", genero: "F", es_abogado: true },
+      { nombre: "María Laura Fernández", genero: "F", es_abogado: true },
     ]);
     expect(
       `Quedan autorizados a realizar cualquier trámite relacionado con las presentes actuaciones ${lista} y/o quienes ellos designen.-`,
     ).toBe(
       "Quedan autorizados a realizar cualquier trámite relacionado con las presentes " +
-        "actuaciones la Dra. María Victoria Iñurrieta y/o quienes ellos designen.-",
+        "actuaciones la Dra. María Laura Fernández y/o quienes ellos designen.-",
     );
   });
 
@@ -180,7 +181,7 @@ describe("buildEncabezado — the encargado half", () => {
   const empresa = {
     razonSocial: "TARTAN S.A.",
     domicilioLegal: "Av. Independencia 1502",
-    cuit: "30-70918460-8",
+    cuit: "30-70123456-8",
     cuentaBancaria: "",
   };
   const base = {
@@ -218,10 +219,10 @@ describe("buildEncabezado — the encargado half", () => {
   it("marks only the blanks, so a half-filled encargado keeps what it has", () => {
     const out = buildEncabezado({
       ...base,
-      abogado: { nombre: "RUBEN ADRIAN GALANTE", cuit: "20-22341849-0" },
+      abogado: { nombre: "HECTOR DANIEL SUAREZ", cuit: "20-21456789-0" },
     });
-    expect(out).toContain("RUBEN ADRIAN GALANTE");
-    expect(out).toContain("CUIT Nº 20-22341849-0");
+    expect(out).toContain("HECTOR DANIEL SUAREZ");
+    expect(out).toContain("CUIT Nº 20-21456789-0");
     expect(out).toContain("[ABOGADO_LEGAJO]");
     expect(out).not.toContain("[ABOGADO_NOMBRE]");
   });
@@ -374,12 +375,12 @@ describe("resolveJuezRecusado", () => {
 
 describe("resolveAutorizados", () => {
   const miembros = [
-    { nombre: "Lautaro Moyano", genero: "M", es_abogado: false },
-    { nombre: "Matias Prusso", genero: "M", es_abogado: true },
+    { nombre: "Julián Ortega", genero: "M", es_abogado: false },
+    { nombre: "Tomás Rivas", genero: "M", es_abogado: true },
   ];
 
   it("derives from the members when the estudio has no list of its own", () => {
-    const esperado = "el Sr. Lautaro Moyano y/o el Dr. Matias Prusso";
+    const esperado = "el Sr. Julián Ortega y/o el Dr. Tomás Rivas";
     expect(resolveAutorizados({}, miembros)).toBe(esperado);
     expect(resolveAutorizados(null, miembros)).toBe(esperado);
     expect(resolveAutorizados(undefined, miembros)).toBe(esperado);
@@ -392,13 +393,13 @@ describe("resolveAutorizados", () => {
       resolveAutorizados(
         {
           autorizados: [
-            { nombre: "Lautaro Moyano", genero: "M", es_abogado: true },
+            { nombre: "Julián Ortega", genero: "M", es_abogado: true },
             { nombre: "Ana Procuradora", genero: "F", es_abogado: false },
           ],
         },
         miembros,
       ),
-    ).toBe("el Dr. Lautaro Moyano y/o la Sra. Ana Procuradora");
+    ).toBe("el Dr. Julián Ortega y/o la Sra. Ana Procuradora");
   });
 
   it("prints the configured order, which is why it is an array", () => {
@@ -419,9 +420,9 @@ describe("resolveAutorizados", () => {
   });
 
   it("falls back to the members when the stored value is not a list", () => {
-    const roto = { autorizados: "Lautaro" } as unknown as EstudioEscritosConfig;
+    const roto = { autorizados: "Julián" } as unknown as EstudioEscritosConfig;
     expect(resolveAutorizados(roto, miembros)).toBe(
-      "el Sr. Lautaro Moyano y/o el Dr. Matias Prusso",
+      "el Sr. Julián Ortega y/o el Dr. Tomás Rivas",
     );
   });
 
@@ -490,8 +491,8 @@ describe("parseAutorizados", () => {
   it("rejects the same person twice, ignoring case and accents", () => {
     const { errors } = parseAutorizados(
       JSON.stringify([
-        { nombre: "Maria Inurrieta", genero: "F", es_abogado: true },
-        { nombre: "MARIA INURRIETA", genero: "F", es_abogado: true },
+        { nombre: "Maria Fernandez", genero: "F", es_abogado: true },
+        { nombre: "MARIA FERNANDEZ", genero: "F", es_abogado: true },
       ]),
     );
     expect(errors).toHaveLength(1);
@@ -509,6 +510,38 @@ describe("parseAutorizados", () => {
   it("reports a value that is not a list", () => {
     expect(parseAutorizados(JSON.stringify({ nombre: "Ana" })).errors).toHaveLength(1);
     expect(parseAutorizados(JSON.stringify("Ana")).errors).toHaveLength(1);
+  });
+});
+
+describe("autorizadoVacio", () => {
+  // The editor words its warning with this, so it must agree with what
+  // parseAutorizados actually does to the row.
+  it("is true only for a row with nothing in it", () => {
+    expect(autorizadoVacio({ nombre: "", genero: null, es_abogado: false })).toBe(true);
+    expect(autorizadoVacio({ nombre: "   ", genero: "X", es_abogado: null })).toBe(true);
+    expect(autorizadoVacio({ nombre: "", genero: "F", es_abogado: false })).toBe(false);
+    expect(autorizadoVacio({ nombre: "", genero: null, es_abogado: true })).toBe(false);
+    expect(autorizadoVacio({ nombre: "Ana", genero: null, es_abogado: false })).toBe(false);
+  });
+
+  it("matches the parser: a vacio row is dropped, any other nameless row is rejected", () => {
+    const vacia = { nombre: "", genero: null, es_abogado: false };
+    const sinNombre = { nombre: "", genero: "M", es_abogado: false };
+
+    const soloVacia = parseAutorizados(JSON.stringify([vacia]));
+    expect(autorizadoVacio(vacia)).toBe(true);
+    expect(soloVacia).toEqual({ autorizados: [], errors: [] });
+
+    const conDatos = parseAutorizados(JSON.stringify([sinNombre]));
+    expect(autorizadoVacio(sinNombre)).toBe(false);
+    expect(conDatos.errors).toHaveLength(1);
+  });
+
+  it("covers the seed of a member whose profile has no nombre", () => {
+    // What "Restaurar por defecto" builds for a member with no lawyer_profiles
+    // row. It saves by being dropped, so the editor must not say it blocks the
+    // save.
+    expect(autorizadoVacio({ nombre: null, genero: null, es_abogado: null })).toBe(true);
   });
 });
 

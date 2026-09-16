@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import {
   AUTORIZADOS_DERIVADO,
+  autorizadoVacio,
   formatAutorizados,
   type AutorizadoConfig,
   type Genero,
@@ -191,11 +192,22 @@ export function AutorizadosEditor({
                 </div>
               </div>
 
-              {row.nombre.trim() === "" && (
-                <p className="text-xs text-warning">
-                  Sin nombre no se puede guardar.
-                </p>
-              )}
+              {/* Two different outcomes, and the copy has to say which one
+                  applies: parseAutorizados drops a row with nothing in it, and
+                  rejects the save for a row that has data but no name. The
+                  first is what "Restaurar por defecto" builds for a member
+                  whose profile has no nombre. */}
+              {row.nombre.trim() === "" &&
+                (autorizadoVacio(row) ? (
+                  <p className="text-xs text-warning">
+                    Fila vacía: si no le cargás un nombre, se descarta al
+                    guardar y no se imprime.
+                  </p>
+                ) : (
+                  <p className="text-xs text-destructive">
+                    Falta el nombre: así no se puede guardar.
+                  </p>
+                ))}
 
               <div className="flex justify-end">
                 <Button

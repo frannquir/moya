@@ -83,7 +83,7 @@ export function EmpresasEditor({ initial }: { initial: Row[] }) {
               <CuilInput
                 value={row.cuit}
                 onValueChange={(next) => update(i, "cuit", next)}
-                placeholder="30-70918460-8"
+                placeholder="30-70123456-8"
               />
             </div>
           </div>

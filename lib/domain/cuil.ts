@@ -74,8 +74,8 @@ export function cuilToDni(cuil: string): string {
 }
 
 /**
- * Dot-grouped DNI, e.g. "23.890.549". The escritos print `D.N.I. N° 23.890.549`
- * and `C.U.I.L. N° 23-23890549-4` in the same sentence, so both helpers exist.
+ * Dot-grouped DNI, e.g. "21.456.789". The escritos print `D.N.I. N° 21.456.789`
+ * and `C.U.I.L. N° 20-21456789-0` in the same sentence, so both helpers exist.
  */
 export function formatDni(dni: string): string {
   const d = cuilDigits(dni).replace(/^0+/, "");

@@ -73,19 +73,44 @@ export function EscritoEditor({
   const [restaurando, startRestaurar] = useTransition();
   const [restauracion, setRestauracion] = useState<RestaurarResult | null>(null);
 
+  // Which action ran last. `state` from useActionState outlives later actions,
+  // so without this an old save error kept showing after a successful restore
+  // and hid the restore's own confirmation.
+  const [ultima, setUltima] = useState<"guardar" | "restaurar" | null>(null);
+
+  // What the last submit actually sent. "Escrito guardado." is only true while
+  // the fields still hold exactly that — otherwise the alert kept vouching for
+  // text typed after the save, which is the very confusion this editor exists
+  // to remove.
+  const [enviado, setEnviado] = useState<{ titulo: string; contenido: string } | null>(
+    null,
+  );
+
   // Collapsed by LABEL, not by token: ABOGADO_CUIT and ABOGADO_DNI both go
   // missing the moment the encargado has no CUIT, and two identical badges read
   // as two separate problems.
   const pending = dedupePorLabel(extractUnresolved(contenido));
 
-  const guardado = state !== null && "ok" in state;
-  const restaurado = restauracion !== null && "contenido" in restauracion;
   const error =
-    state !== null && "error" in state
+    ultima === "guardar" && state !== null && "error" in state
       ? state.error
-      : restauracion !== null && "error" in restauracion
+      : ultima === "restaurar" && restauracion !== null && "error" in restauracion
         ? restauracion.error
         : null;
+  const guardado =
+    ultima === "guardar" &&
+    !guardando &&
+    state !== null &&
+    "ok" in state &&
+    enviado !== null &&
+    enviado.titulo === titulo &&
+    enviado.contenido === contenido;
+  // Same rule for the restore: the confirmation goes away once the text moves.
+  const restaurado =
+    ultima === "restaurar" &&
+    restauracion !== null &&
+    "contenido" in restauracion &&
+    restauracion.contenido === contenido;
 
   const handleCopy = async () => {
     try {
@@ -104,6 +129,7 @@ export function EscritoEditor({
   // textarea showing the old edited text over a database that no longer has it.
   const handleRestaurar = () =>
     startRestaurar(async () => {
+      setUltima("restaurar");
       const resultado = await restaurarAction();
       setRestauracion(resultado);
       if ("contenido" in resultado) setContenido(resultado.contenido);
@@ -113,7 +139,11 @@ export function EscritoEditor({
   return (
     <form
       action={formAction}
-      onSubmit={() => setRestauracion(null)}
+      onSubmit={() => {
+        setUltima("guardar");
+        setEnviado({ titulo, contenido });
+        setRestauracion(null);
+      }}
       className="space-y-4"
     >
       {error && (
@@ -122,13 +152,13 @@ export function EscritoEditor({
         </Alert>
       )}
 
-      {guardado && !error && (
+      {guardado && (
         <Alert>
           <AlertDescription>Escrito guardado.</AlertDescription>
         </Alert>
       )}
 
-      {restaurado && !error && (
+      {restaurado && (
         <Alert>
           <AlertDescription>
             Texto restaurado desde la plantilla. El título no cambió.

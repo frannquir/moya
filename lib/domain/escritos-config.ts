@@ -275,8 +275,8 @@ export type Genero = "F" | "M";
 
 /**
  * The treatment that precedes a name in section IX. Two axes, because the source
- * demanda uses both: "la Dra. María Victoria Iñurrieta" is a female lawyer,
- * "Sr. Lautaro Moyano" is a man who is not one.
+ * demanda uses both: "la Dra. María Laura Fernández" is a female lawyer,
+ * "Sr. Julián Ortega" is a man who is not one.
  *
  *   abogado + F -> Dra.      abogado + M -> Dr.
  *      otro + F -> Sra.         otro + M -> Sr.
@@ -294,11 +294,11 @@ export function tratamientoDe(
 
 /**
  * The definite article the treatment needs in running text: section IX reads
- * "…con las presentes actuaciones la Dra. María Victoria Iñurrieta…", and
+ * "…con las presentes actuaciones la Dra. María Laura Fernández…", and
  * without it the sentence is ungrammatical.
  *
  * The source demanda is inconsistent about this — it writes "la Dra. …" but then
- * a bare "Sr. Lautaro Moyano". Applied uniformly here (gotcha #35: read the
+ * a bare "Sr. Julián Ortega". Applied uniformly here (gotcha #35: read the
  * firm's models for sense, do not carry their defects forward).
  */
 export function articuloDe(genero: string | null | undefined): string {
@@ -307,7 +307,7 @@ export function articuloDe(genero: string | null | undefined): string {
   return "";
 }
 
-/** "la Dra. María Victoria Iñurrieta", or a bare name when genero is unknown. */
+/** "la Dra. María Laura Fernández", or a bare name when genero is unknown. */
 export function nombreConTratamiento(m: MiembroAutorizado): string {
   const nombre = (m.nombre ?? "").trim();
   if (nombre === "") return "";
@@ -380,6 +380,26 @@ export function resolveAutorizados(
  */
 export const AUTORIZADOS_DERIVADO = "derivado";
 
+/**
+ * A row with nothing in it: no name, no gender, not marked as abogado.
+ *
+ * The parser DROPS these instead of rejecting the save — "Agregar autorizado"
+ * appends a blank row, and leaving it blank is a change of mind, not a mistake.
+ * Exported so the editor warns with the same rule the parser applies: it used
+ * to say "sin nombre no se puede guardar" on exactly the rows that DO save
+ * (silently, minus the row). "Restaurar por defecto" produces one of these for
+ * every member whose profile has no nombre, so the mismatch was not
+ * hypothetical.
+ */
+export function autorizadoVacio(row: {
+  nombre?: string | null;
+  genero?: string | null;
+  es_abogado?: boolean | null;
+}): boolean {
+  const genero = row.genero === "F" || row.genero === "M" ? row.genero : null;
+  return (row.nombre ?? "").trim() === "" && genero === null && row.es_abogado !== true;
+}
+
 export type AutorizadosParse = {
   /** `undefined` means: drop the key and go back to the derived member list. */
   autorizados: AutorizadoConfig[] | undefined;
@@ -430,7 +450,8 @@ export function parseAutorizados(raw: string): AutorizadosParse {
 
     // "Agregar autorizado" appends a blank row, so a row with nothing at all in
     // it is a change of mind rather than a mistake worth stopping the save for.
-    if (nombre === "" && genero === null && !es_abogado) continue;
+    // Same rule the editor uses to word its warning.
+    if (autorizadoVacio({ nombre, genero, es_abogado })) continue;
 
     if (nombre === "") {
       errors.push(
