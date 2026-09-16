@@ -173,3 +173,76 @@ export function formatArsExacto(ars: number): string {
 export function formatJus(jus: number): string {
   return `${jus.toLocaleString("es-AR", { maximumFractionDigits: 2 })} JUS`;
 }
+
+// ---------------------------------------------------------------------------
+// What the lawyer actually perceives
+//
+// The JUS is the unit the arancel is written in, and the arancel is the fee
+// BEFORE tax. The juzgado withholds IVA and aportes when it transfers, so
+// dividing a gross transfer by the JUS value denominates nothing anybody
+// receives: $213.909,90 at a JUS of $53.232 is 3,06 JUS of fee, not 4,02 JUS.
+//
+// The rule (Fran, 2026-09-15): a JUS figure is always a base figure. IVA and
+// aportes are shown in pesos only. Nothing below changes what is stored or what
+// the ceiling is — check_honorario_pago_cap(), grossCapJus(), techoHonorario()
+// and honorarios_pagos.monto_jus all keep working in gross JUS.
+// ---------------------------------------------------------------------------
+
+// Cut to two decimals instead of rounded: 163.290 / 53.232 is 3,0675 and the
+// firm reads that as 3,06 — a fee is not rounded up in its own favour.
+// PRESENTATION ONLY. arsToJus() still rounds, and it is what feeds the ceiling
+// the DB trigger mirrors; never compute a stored amount through this.
+export function truncJus(jus: number): number {
+  if (!(jus > 0)) return 0;
+  // 3.06 * 100 is 305.99999999999994 in binary floating point, and cutting that
+  // raw would print 3,05. Settle the dust before taking the floor.
+  return Math.floor(Number((jus * 100).toFixed(6))) / 100;
+}
+
+// The fee inside a gross peso amount, in JUS. Every "what is this worth in JUS"
+// on screen goes through here — there is no second converter.
+export function arsToBaseJus(grossArs: number, jusValue: number): number {
+  if (!(jusValue > 0)) return 0;
+  return truncJus(splitGross(grossArs).base / jusValue);
+}
+
+// Pesos to the centavo. jusToArs() rounds to the peso, which is right for a
+// glanceable estimate; this is for the figures the card adds up and for the
+// amount a pago is actually posted with.
+export function jusToArsExacto(jus: number, jusValue: number): number {
+  return roundCentavos(jus * jusValue);
+}
+
+// The inverse of arsToBaseJus(): what the juzgado has to transfer for a fee of
+// `baseJus` to be perceived, tax included.
+//
+// grossCapJus() is the same arithmetic — base x 1.31 at 2-dp JUS — and reusing
+// it keeps one multiplier in the app. Rounded to the nearest centésima of JUS,
+// never up: the ceiling the trigger enforces is rounded too, and a gross rounded
+// up would be refused as "excede lo pendiente" on a honorario paid in full. The
+// cost is that a base recovered from these pesos can read one centésima low.
+export function baseJusToArs(baseJus: number, jusValue: number): number {
+  return jusToArsExacto(grossCapJus(baseJus), jusValue);
+}
+
+export type HonorarioComposicionArs = {
+  base: number;
+  iva: number;
+  aportes: number;
+  total: number;
+};
+
+// The card's four lines in pesos, reconciling to the centavo. IVA and aportes
+// are peso-only now, so the three parts are read as an addition; converting each
+// line independently can drift a centavo off the total. Aportes absorbs the
+// residue, same convention as composeGross() and splitGross().
+export function composeGrossArs(
+  baseJus: number,
+  jusValue: number,
+): HonorarioComposicionArs {
+  const comp = composeGross(baseJus);
+  const base = jusToArsExacto(comp.base, jusValue);
+  const iva = jusToArsExacto(comp.iva, jusValue);
+  const total = jusToArsExacto(comp.total, jusValue);
+  return { base, iva, aportes: roundCentavos(total - base - iva), total };
+}

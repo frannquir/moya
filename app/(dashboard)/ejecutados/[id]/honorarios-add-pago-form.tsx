@@ -9,11 +9,10 @@ import { DateField } from "@/components/date-field";
 import {
   IVA_RATE,
   APORTES_RATE,
-  formatArs,
   formatArsExacto,
   formatJus,
-  jusToArs,
-  arsToJus,
+  arsToBaseJus,
+  baseJusToArs,
   splitGross,
 } from "@/lib/domain/honorarios";
 import { addPago } from "./honorarios-actions";
@@ -32,24 +31,24 @@ export function HonorariosAddPagoForm({
   const [monto, setMonto] = useState("");
 
   const n = Number(monto || 0);
-  const montoArs = unidad === "ars" ? n : jusToArs(n, jusValue);
-  const preview =
-    unidad === "jus"
-      ? `≈ ${formatArs(jusToArs(n, jusValue))}`
-      : `≈ ${formatJus(arsToJus(n, jusValue))}`;
-
-  // What the lawyer is actually charging vs. what is tax they collect and remit.
-  // Split in pesos: the same 1.31 applies either way, and this way the parts
-  // reconcile to the amount actually banked.
-  const split = splitGross(montoArs > 0 ? montoArs : 0);
+  // The two fields are reciprocal with the 1.31 inside: ARS is what the juzgado
+  // transfers, JUS is the fee that reaches the account. Whichever was typed, the
+  // gross pesos are what gets posted — one format on the wire, one conversion,
+  // no base -> gross -> JUS -> pesos round trip to lose a centavo the trigger
+  // would then reject.
+  const montoArs = unidad === "ars" ? n : baseJusToArs(n, jusValue);
   const excede = montoArs > pendienteArs;
+
+  // What the lawyer is actually charging vs. what is tax the juzgado withholds
+  // and remits. In pesos: an IVA expressed in JUS is the figure that means
+  // nothing, and this way the parts reconcile to the amount actually banked.
+  const split = splitGross(montoArs > 0 ? montoArs : 0);
 
   return (
     <form
       action={addPago.bind(null, honorarioId)}
       className="space-y-3 rounded-md border p-4"
     >
-      <input type="hidden" name="unidad" value={unidad} />
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium">Registrar pago</h3>
         <div className="flex gap-1">
@@ -74,35 +73,46 @@ export function HonorariosAddPagoForm({
 
       <div className="@container grid grid-cols-1 gap-3 @xs:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="monto">Monto ({unidad.toUpperCase()})</Label>
+          <Label htmlFor="monto">
+            {unidad === "ars" ? "Monto transferido (ARS)" : "Honorario (JUS)"}
+          </Label>
           {/* Dual-unit field, so the peso mask applies only in ARS mode: a JUS
-              figure is a small decimal like 4,59 and thousands grouping plus a
-              "$" would misread it as pesos. Both branches write the same state
-              and only one is mounted, so `name="monto"` posts once either way. */}
+              figure is a small decimal like 3,06 and thousands grouping plus a
+              "$" would misread it as pesos. Only the ARS branch posts what was
+              typed; the JUS branch types a fee and posts the gross pesos it
+              comes to, through a hidden sibling (same shape as DateField). */}
           {unidad === "ars" ? (
             <ArsInput
               id="monto"
-              name="monto"
+              name="monto_ars"
               min={0}
               value={monto === "" ? null : Number(monto)}
               onValueChange={(v) => setMonto(v === null ? "" : String(v))}
             />
           ) : (
-            <Input
-              id="monto"
-              name="monto"
-              type="number"
-              step="0.01"
-              min="0"
-              value={monto}
-              onChange={(e) => setMonto(e.target.value)}
-            />
+            <>
+              <Input
+                id="monto"
+                type="number"
+                step="0.01"
+                min="0"
+                value={monto}
+                onChange={(e) => setMonto(e.target.value)}
+              />
+              <input
+                type="hidden"
+                name="monto_ars"
+                value={montoArs > 0 ? String(montoArs) : ""}
+              />
+            </>
           )}
         </div>
         <div className="space-y-2">
-          <Label>Equivalente</Label>
+          <Label>{unidad === "ars" ? "Honorario" : "Monto transferido"}</Label>
           <div className="h-9 rounded-md border bg-muted px-3 flex items-center text-sm tabular-nums">
-            {preview}
+            {unidad === "ars"
+              ? `≈ ${formatJus(arsToBaseJus(n, jusValue))}`
+              : `≈ ${formatArsExacto(montoArs)}`}
           </div>
         </div>
       </div>

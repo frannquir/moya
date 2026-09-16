@@ -15,10 +15,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatArDate } from "@/lib/domain/dates";
-import { formatJus, jusToArs } from "@/lib/domain/honorarios";
+import { formatJus } from "@/lib/domain/honorarios";
 import { formatMonedaAr } from "@/lib/domain/moneda-ar";
 import { textoDeAtraso, urgencia, DIAS_PARA_RECLAMAR } from "@/lib/domain/estadisticas";
-import { getJusValue } from "@/lib/data/honorarios";
 import {
   getResumenEstudio,
   listCobrosRecientes,
@@ -33,13 +32,12 @@ export const metadata: Metadata = { title: "Inicio" };
 export default async function InicioPage() {
   const supabase = await createClient();
 
-  const [resumen, reclamar, recientes, movimientos, cobros, jusValue] = await Promise.all([
+  const [resumen, reclamar, recientes, movimientos, cobros] = await Promise.all([
     getResumenEstudio(supabase),
     listParaReclamar(supabase, { limit: 60 }),
     listEjecutadosRecientes(supabase),
     listMovimientosRecientes(supabase),
     listCobrosRecientes(supabase),
-    getJusValue(supabase),
   ]);
 
   // Sixty rows would bury every other panel below the fold.
@@ -67,11 +65,14 @@ export default async function InicioPage() {
           value={`$${formatMonedaAr(resumen.cobrado)}`}
           tone={resumen.cobrado > 0 ? "cobrado" : undefined}
         />
+        {/* In pesos, like the two figures beside it: what is still owed is the
+            fee plus the IVA and aportes the juzgado withholds, and only the fee
+            underneath it is a number of JUS. */}
         <Figura
           label="Honorarios pendientes"
-          value={formatJus(resumen.honorariosPendientesJus)}
-          sub={`≈ $${formatMonedaAr(jusToArs(resumen.honorariosPendientesJus, jusValue))}`}
-          tone={resumen.honorariosPendientesJus > 0 ? "pendiente" : undefined}
+          value={`$${formatMonedaAr(resumen.honorariosPendientesArs)}`}
+          sub={`${formatJus(resumen.honorariosPendientesBaseJus)} de honorario`}
+          tone={resumen.honorariosPendientesArs > 0 ? "pendiente" : undefined}
         />
       </div>
 
@@ -119,7 +120,7 @@ export default async function InicioPage() {
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="text-sm tabular-nums">
-                            {formatJus(r.pendienteJus)}
+                            {`$${formatMonedaAr(r.pendienteArs)}`}
                           </span>
                           <Badge variant={u === "media" ? "warning" : "destructive"}>
                             {textoDeAtraso(r.diasDesdeUltimoPago)}

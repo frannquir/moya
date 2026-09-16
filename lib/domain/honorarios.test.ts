@@ -16,6 +16,12 @@ import {
   formatArsExacto,
   arsToJus,
   jusToArs,
+  roundCentavos,
+  truncJus,
+  arsToBaseJus,
+  baseJusToArs,
+  jusToArsExacto,
+  composeGrossArs,
 } from "./honorarios";
 
 describe("tax constants", () => {
@@ -331,5 +337,102 @@ describe("formato de pesos", () => {
   it("las cifras convertidas desde JUS van redondeadas", () => {
     // An estimate printed to the centavo is a lie about its own precision.
     expect(formatArs(488_137.44)).not.toContain(",");
+  });
+});
+
+describe("el JUS denomina el honorario base, nunca el bruto", () => {
+  const JUS = 53232; // vigente desde 2026-08-01
+
+  // The case the client wrote in about: a transfer of $213.909,90 against a
+  // 7 JUS honorario. What he perceives is the fee inside it, not the transfer —
+  // the juzgado withholds IVA and aportes before the money moves.
+  it("un pago de $213.909,90 son 3,06 JUS de honorario y no 4,02", () => {
+    expect(arsToBaseJus(213_909.9, JUS)).toBe(3.06);
+    // What the form used to print, kept here on purpose: the gross over the JUS
+    // value, a number that denominates nothing anybody receives.
+    expect(arsToJus(213_909.9, JUS)).toBe(4.02);
+  });
+
+  it("el desglose de ese pago suma exactamente lo transferido", () => {
+    const s = splitGross(213_909.9);
+    expect(s).toEqual({ base: 163_290, iva: 34_290.9, aportes: 16_329 });
+    expect(roundCentavos(s.base + s.iva + s.aportes)).toBe(213_909.9);
+  });
+
+  it("163.290 / 53.232 se trunca a 3,06 — no se redondea a 3,07", () => {
+    // Decided with Fran on 2026-09-16: the firm writes 3,06, and a fee is not
+    // rounded up in its own favour. Display only — arsToJus() still rounds.
+    expect(163_290 / JUS).toBeCloseTo(3.0675, 4);
+    expect(truncJus(163_290 / JUS)).toBe(3.06);
+    expect(arsToJus(163_290, JUS)).toBe(3.07);
+  });
+
+  it("truncJus no pierde un centésimo por el ruido del binario", () => {
+    // 3.06 * 100 is 305.99999999999994; cutting that raw would print 3,05.
+    expect(truncJus(3.06)).toBe(3.06);
+    expect(truncJus(9.17)).toBe(9.17);
+    expect(truncJus(0.07)).toBe(0.07);
+    expect(truncJus(7)).toBe(7);
+    expect(truncJus(0)).toBe(0);
+  });
+
+  it("sin valor JUS configurado no inventa un honorario", () => {
+    expect(arsToBaseJus(213_909.9, 0)).toBe(0);
+  });
+
+  it("la card imprime cuatro cifras en pesos que suman el techo", () => {
+    const c = composeGrossArs(7, JUS);
+    expect(c).toEqual({
+      base: 372_624,
+      iva: 78_251.04,
+      aportes: 37_262.4,
+      total: 488_137.44,
+    });
+    expect(roundCentavos(c.base + c.iva + c.aportes)).toBe(c.total);
+  });
+
+  it("reconcilia para cualquier honorario y cualquier valor JUS", () => {
+    for (const jusValue of [53_232, 49_000.5, 1, 12_345.67]) {
+      for (const monto of [0.5, 3.5, 7, 8.25, 12, 33.33]) {
+        const c = composeGrossArs(monto, jusValue);
+        expect(roundCentavos(c.base + c.iva + c.aportes)).toBe(c.total);
+      }
+    }
+  });
+
+  it("el techo no se movió: sigue siendo base x 1,31 al valor del día", () => {
+    // 7 JUS -> 9,17 gross -> $488.137,44. This is a presentation change; the
+    // ceiling check_honorario_pago_cap() enforces is the same one as before.
+    expect(grossCapJus(7)).toBe(9.17);
+    expect(composeGrossArs(7, JUS).total).toBe(jusToArsExacto(grossCapJus(7), JUS));
+    expect(composeGrossArs(7, JUS).total).toBe(488_137.44);
+  });
+
+  it("los pesos que se postean llevan centavos", () => {
+    // jusToArs() rounds to the peso, and the ceiling would land $0,44 under the
+    // one the card prints — enough for the base to read a centésima low.
+    expect(baseJusToArs(7, JUS)).toBe(488_137.44);
+    expect(jusToArs(9.17, JUS)).toBe(488_137);
+  });
+
+  it("ida y vuelta: el honorario vuelve igual o un centésimo abajo, nunca arriba", () => {
+    // Truncating costs at most one centésima, and only when the gross rounds
+    // down on the way to pesos. What must never happen is the other direction:
+    // a fee that grows just by being displayed.
+    for (const baseJus of [1, 3.06, 7, 9.17, 0.5, 12.34]) {
+      const vuelta = arsToBaseJus(baseJusToArs(baseJus, JUS), JUS);
+      expect(vuelta).toBeLessThanOrEqual(baseJus);
+      expect(roundJus(baseJus - vuelta)).toBeLessThanOrEqual(0.01);
+    }
+  });
+
+  it("un pago escrito en JUS no se pasa del techo por redondeo", () => {
+    // The gross is rounded to the nearest centésima of JUS rather than up: the
+    // ceiling is rounded too, and a gross rounded up would be refused as
+    // "excede lo pendiente" on a honorario the lawyer meant to settle in full.
+    for (const base of [3.5, 3.53, 7, 9.17, 12.34]) {
+      const grossJus = arsToJus(baseJusToArs(base, JUS), JUS);
+      expect(grossJus).toBeLessThanOrEqual(grossCapJus(base));
+    }
   });
 });

@@ -9,7 +9,7 @@ import {
   archiveHonorarioPago,
   getJusValue,
 } from "@/lib/data/honorarios";
-import { jusToArs } from "@/lib/domain/honorarios";
+import { baseJusToArs } from "@/lib/domain/honorarios";
 
 export type MontoState = { ok: string | null; error: string | null };
 
@@ -29,8 +29,8 @@ export async function setMonto(
   if (!ej) return { ok: null, error: "No se encontró el ejecutado." };
 
   // The negotiated ceiling is a peso figure — it is what was agreed with the
-  // debtor — so pesos are stored as typed. A JUS entry converts here rather than
-  // trusting the client's arithmetic.
+  // debtor — so pesos are stored as typed. A JUS entry names the fee, tax
+  // excluded, and converts here rather than trusting the client's arithmetic.
   const maxOn = String(formData.get("max_on") ?? "") === "1";
   let maxAcordadoArs: number | null = null;
   if (maxOn) {
@@ -43,7 +43,7 @@ export async function setMonto(
           error: "No hay valor JUS configurado para convertir JUS a pesos.",
         };
       }
-      maxAcordadoArs = jusToArs(raw, jusValue);
+      maxAcordadoArs = baseJusToArs(raw, jusValue);
     } else {
       maxAcordadoArs = raw;
     }
@@ -79,9 +79,12 @@ export async function addPago(honorarioId: string, formData: FormData) {
     .single();
   if (!hon) throw new Error("honorario not found");
 
-  const unidad = String(formData.get("unidad") ?? "jus");
   const saldar = String(formData.get("intent") ?? "") === "saldar";
-  const monto = Number(formData.get("monto") ?? 0);
+  // Always the gross pesos. The form's JUS field holds the fee the lawyer
+  // perceives and the client converts it before posting, so a pago crosses
+  // units once, here, and no round trip can lose the centavo the trigger would
+  // then reject.
+  const montoArs = Number(formData.get("monto_ars") ?? 0);
 
   await addHonorarioPago(supabase, {
     honorarioId,
@@ -90,8 +93,7 @@ export async function addPago(honorarioId: string, formData: FormData) {
     fecha: String(formData.get("fecha") || new Date().toISOString().slice(0, 10)),
     nota: String(formData.get("nota") ?? ""),
     saldar,
-    montoJus: !saldar && unidad === "jus" ? monto : undefined,
-    montoArs: !saldar && unidad === "ars" ? monto : undefined,
+    montoArs: saldar ? undefined : montoArs,
   });
 
   revalidatePath(`/ejecutados/${hon.ejecutado_id}`);
