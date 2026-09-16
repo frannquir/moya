@@ -12,6 +12,7 @@ import {
   Item,
   ItemActions,
   ItemContent,
+  ItemDescription,
   ItemGroup,
   ItemSeparator,
   ItemTitle,
@@ -21,10 +22,10 @@ import {
   IVA_RATE,
   APORTES_RATE,
   composeGross,
+  composeGrossArs,
   formatJus,
   formatArs,
   formatArsExacto,
-  jusToArs,
   techoHonorario,
 } from "@/lib/domain/honorarios";
 import { formatArDate } from "@/lib/domain/dates";
@@ -37,10 +38,12 @@ import { HonorariosAddPagoForm } from "./honorarios-add-pago-form";
  * What the firm may charge on this case, and what has come in against it.
  *
  * Four lines and a total: the regulated fee, the two taxes on top of it, the
- * ceiling. Each in JUS — the unit the arancel is written in — and in pesos at
- * today's value, which is the figure anyone actually acts on. Everything else
- * the card used to carry (progress bar, pendiente split, per-pago breakdowns)
- * was arithmetic nobody read; the two knobs moved into the Editar dialog.
+ * ceiling. Only the first line carries a JUS figure — the JUS is the unit the
+ * arancel is written in and the arancel is the fee before tax, so IVA, aportes
+ * and the ceiling are pesos and nothing else. Nobody perceives 9,17 JUS.
+ * Everything else the card used to carry (progress bar, pendiente split,
+ * per-pago breakdowns) was arithmetic nobody read; the two knobs moved into the
+ * Editar dialog.
  */
 export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
   const supabase = await createClient();
@@ -61,6 +64,9 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
   const pagadoArs = honorario?.pagado_ars ?? 0;
 
   const comp = composeGross(base);
+  // The same four figures in pesos, reconciling to the centavo: the three lines
+  // are read as an addition now that only the first one carries a JUS number.
+  const pesos = composeGrossArs(base, jusValue);
   // The ceiling that actually applies: the arancel's, or the peso figure settled
   // with the debtor. Mirrors check_honorario_pago_cap().
   const techo = techoHonorario({
@@ -98,29 +104,24 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
 
       <CardContent className="space-y-4">
         <ItemGroup className="rounded-lg border">
-          <Fila label="Honorario" jus={comp.base} jusValue={jusValue} />
-          <Fila
-            label={`IVA ${Math.round(IVA_RATE * 100)}%`}
-            jus={comp.iva}
-            jusValue={jusValue}
-          />
+          <Fila label="Honorario" baseJus={comp.base} ars={pesos.base} />
+          <Fila label={`IVA ${Math.round(IVA_RATE * 100)}%`} ars={pesos.iva} />
           <Fila
             label={`Aportes ${Math.round(APORTES_RATE * 100)}%`}
-            jus={comp.aportes}
-            jusValue={jusValue}
+            ars={pesos.aportes}
           />
           <ItemSeparator className="my-0" />
           {/* A settled figure replaces the arancel's ceiling outright, including
-              below it (a quita). It is exact pesos, so it prints to the centavo
-              and carries no JUS equivalent — converting one back would invent
-              precision the agreement never had. */}
+              below it (a quita). Both ceilings print in pesos: one is the exact
+              amount agreed, the other is the fee plus the tax the juzgado
+              withholds, and neither is a number of JUS anybody collects. */}
           {techo.tipo === "acordado" ? (
-            <Fila label="Máximo acordado" ars={techo.capArs} exacto strong />
+            <Fila label="Máximo acordado" ars={techo.capArs} strong />
           ) : (
             <Fila
               label="Máximo a cobrar"
-              jus={comp.total}
-              jusValue={jusValue}
+              nota="IVA y aportes incluidos"
+              ars={pesos.total}
               strong
             />
           )}
@@ -150,45 +151,41 @@ export async function HonorariosCard({ ejecutadoId }: { ejecutadoId: string }) {
 }
 
 /**
- * One line of the breakdown: label, the JUS figure muted, the pesos.
+ * One line of the breakdown: label, the pesos, and a JUS figure only where one
+ * means something.
  *
- * Pass `jus` for anything the arancel denominates, and the pesos are derived at
- * today's value; pass `ars` for a figure that is natively pesos. The peso column
- * is fixed-width so the four lines align whether or not a JUS figure sits beside
- * them.
+ * `baseJus` is the regulated fee and nothing else — never a total, never a tax.
+ * The peso column is fixed-width so the lines align whether or not a JUS figure
+ * sits beside them, and every figure prints to the centavo because the three
+ * lines have to visibly add up to the ceiling below them.
  */
 function Fila({
   label,
-  jus,
-  jusValue,
+  nota,
+  baseJus,
   ars,
   strong,
-  // Exact when the figure is a real peso amount; rounded when it is JUS
-  // converted at today's value, which is an estimate however many decimals it
-  // is printed with.
-  exacto,
 }: {
   label: string;
-  jus?: number;
-  jusValue?: number;
-  ars?: number;
+  nota?: string;
+  baseJus?: number;
+  ars: number;
   strong?: boolean;
-  exacto?: boolean;
 }) {
-  const pesos = ars ?? jusToArs(jus ?? 0, jusValue ?? 0);
   return (
     <Item>
       <ItemContent>
         <ItemTitle className={strong ? "font-semibold" : "font-normal"}>
           {label}
         </ItemTitle>
+        {nota && <ItemDescription>{nota}</ItemDescription>}
       </ItemContent>
       <ItemActions className="tabular-nums">
-        {jus !== undefined && (
-          <span className="text-xs text-muted-foreground">{formatJus(jus)}</span>
+        {baseJus !== undefined && (
+          <span className="text-xs text-muted-foreground">{formatJus(baseJus)}</span>
         )}
         <span className={`w-32 text-right ${strong ? "font-semibold" : ""}`}>
-          {exacto ? formatArsExacto(pesos) : formatArs(pesos)}
+          {formatArsExacto(ars)}
         </span>
       </ItemActions>
     </Item>

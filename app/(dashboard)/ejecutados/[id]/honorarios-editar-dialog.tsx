@@ -18,13 +18,14 @@ import {
 import { ArsInput } from "@/components/ars-input";
 import {
   composeGross,
+  composeGrossArs,
   techoHonorario,
   formatArs,
   formatArsExacto,
-  formatJus,
   roundCentavos,
   jusToArs,
-  arsToJus,
+  arsToBaseJus,
+  baseJusToArs,
 } from "@/lib/domain/honorarios";
 import { setMonto, type MontoState } from "./honorarios-actions";
 
@@ -39,8 +40,9 @@ const EMPTY: MontoState = { ok: null, error: null };
  * the debtor, which is a PESO amount — an agreement is a fixed number of pesos,
  * not a number of JUS that moves when the JUS does.
  *
- * Only the resulting ceiling is previewed while typing; the full breakdown is on
- * the card behind this dialog and does not need repeating.
+ * Every JUS field here names the fee, tax excluded, and the ceiling prints in
+ * pesos whichever of the two applies. Only that ceiling is previewed while
+ * typing; the full breakdown is on the card behind this dialog.
  */
 export function HonorariosEditarDialog({
   ejecutadoId,
@@ -77,24 +79,27 @@ export function HonorariosEditarDialog({
 
   const base = Number(monto) || 0;
   const comp = composeGross(base);
+  // The legal ceiling in pesos, to the centavo, exactly as the card prints it.
+  const compArs = composeGrossArs(base, jusValue);
 
   // Seeded from the legal ceiling in pesos, so switching the override on shows
   // the figure being negotiated away from rather than an empty box.
   const [acordado, setAcordado] = useState(
     maxAcordadoArs != null
       ? String(maxAcordadoArs)
-      : String(jusToArs(comp.total, jusValue)),
+      : String(composeGrossArs(montoJus, jusValue).total),
   );
 
   const acordadoRaw = Number(acordado) || 0;
   // Centavos, not whole pesos: the action stores the peso figure as typed and
   // techoHonorario() keeps it to the centavo, so rounding here would preview a
-  // ceiling one peso off from the one that ends up in the DB.
+  // ceiling one peso off from the one that ends up in the DB. A JUS entry names
+  // the fee, so the tax the juzgado withholds is added on the way to pesos.
   const acordadoArs = !acordadoOn
     ? null
     : unidad === "ars"
       ? roundCentavos(acordadoRaw)
-      : jusToArs(acordadoRaw, jusValue);
+      : baseJusToArs(acordadoRaw, jusValue);
 
   const techo = techoHonorario({
     baseJus: base,
@@ -103,7 +108,7 @@ export function HonorariosEditarDialog({
     pagadoArs,
     jusValue,
   });
-  const topeLegalArs = jusToArs(comp.total, jusValue);
+  const topeLegalArs = compArs.total;
   const diffArs = techo.capArs - topeLegalArs;
   const quedaCorto =
     techo.tipo === "acordado" ? pagadoArs > techo.capArs : pagadoJus > (techo.capJus ?? 0);
@@ -168,12 +173,13 @@ export function HonorariosEditarDialog({
                       htmlFor="max_acordado"
                       className="text-xs text-muted-foreground"
                     >
-                      Monto ({unidad.toUpperCase()})
+                      {unidad === "ars" ? "Monto (ARS)" : "Honorario (JUS)"}
                     </Label>
                     {/* Same dual-unit pattern as the pago form: the peso mask
-                        would misread a small JUS decimal like 9,17 as pesos.
-                        Only one of the two is mounted, so name="max_acordado"
-                        posts once. */}
+                        would misread a small JUS decimal as pesos, and a JUS
+                        entry names the fee, never the ceiling with its tax
+                        inside. Only one of the two is mounted, so
+                        name="max_acordado" posts once. */}
                     {unidad === "ars" ? (
                       <ArsInput
                         id="max_acordado"
@@ -201,7 +207,7 @@ export function HonorariosEditarDialog({
                       variant={unidad === "jus" ? "default" : "outline"}
                       onClick={() => {
                         if (unidad === "ars")
-                          setAcordado(String(arsToJus(acordadoRaw, jusValue)));
+                          setAcordado(String(arsToBaseJus(acordadoRaw, jusValue)));
                         setUnidad("jus");
                       }}
                     >
@@ -213,7 +219,7 @@ export function HonorariosEditarDialog({
                       variant={unidad === "ars" ? "default" : "outline"}
                       onClick={() => {
                         if (unidad === "jus")
-                          setAcordado(String(jusToArs(acordadoRaw, jusValue)));
+                          setAcordado(String(baseJusToArs(acordadoRaw, jusValue)));
                         setUnidad("ars");
                       }}
                     >
@@ -238,17 +244,18 @@ export function HonorariosEditarDialog({
                 Máximo a cobrar
               </span>
               <span className="text-right tabular-nums">
-                {/* An agreed figure is exact pesos and the card prints it to the
-                    centavo — rounding it here would show two different ceilings
-                    for the same honorario. */}
+                {/* Pesos, to the centavo, whichever ceiling applies: an agreed
+                    figure is exact by definition and the legal one is the fee
+                    plus the tax the juzgado withholds. The card prints the same
+                    number, and neither is a number of JUS anybody perceives. */}
                 <span className="text-base font-bold">
-                  {techo.tipo === "acordado"
-                    ? formatArsExacto(techo.capArs)
-                    : formatArs(techo.capArs)}
+                  {formatArsExacto(
+                    techo.tipo === "acordado" ? techo.capArs : compArs.total,
+                  )}
                 </span>
-                {techo.capJus !== null && (
+                {techo.tipo === "legal" && (
                   <span className="block text-xs text-muted-foreground">
-                    {formatJus(techo.capJus)}
+                    IVA y aportes incluidos
                   </span>
                 )}
               </span>

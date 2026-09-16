@@ -3,7 +3,7 @@ import { type Database } from "@/lib/supabase/types";
 import { type Tables } from "@/lib/supabase/db-helpers";
 import {
   arsToJus,
-  jusToArs,
+  jusToArsExacto,
   techoHonorario,
   formatArs,
 } from "@/lib/domain/honorarios";
@@ -87,7 +87,8 @@ export async function setHonorarioMonto(
     if (techo.tipo === "legal" && (existing.pagado_jus ?? 0) > (techo.capJus ?? 0)) {
       throw new Error(
         `No se puede fijar el honorario en ${input.montoJus} JUS: ` +
-          `el máximo con IVA y aportes queda en ${techo.capJus} JUS y ya se cobraron ${existing.pagado_jus} JUS.`,
+          `el máximo con IVA y aportes queda en ${formatArs(techo.capArs)} ` +
+          `y ya se cobraron ${formatArs(existing.pagado_ars ?? 0)}.`,
       );
     }
   }
@@ -120,10 +121,13 @@ export async function listHonorarioPagos(
   return data ?? [];
 }
 
-// Add a pago entered in JUS, in ARS, or via "saldar" (fill exact remaining). JUS is
-// canonical (the cap is JUS); ARS converts at the current jus value. Both are stored.
-// Amounts are GROSS — what actually came in, fee plus IVA plus aportes — so the
-// ceiling is the gross cap, not the regulated base.
+// Add a pago in ARS, or via "saldar" (fill the exact remaining), storing both
+// units. The amount on the wire is always the GROSS pesos — what the juzgado
+// actually transferred, fee plus IVA plus aportes — so the ceiling checked is
+// the gross cap and monto_jus stays the gross JUS the trigger compares against.
+// The form's JUS field names the fee and is converted client-side: there is
+// deliberately no gross-JUS entry point left here, because a figure in JUS with
+// tax inside is the defect this layer used to invite.
 export async function addHonorarioPago(
   supabase: Client,
   input: {
@@ -132,7 +136,6 @@ export async function addHonorarioPago(
     estudioId: string;
     fecha: string;
     nota: string;
-    montoJus?: number;
     montoArs?: number;
     saldar?: boolean;
   },
@@ -155,7 +158,7 @@ export async function addHonorarioPago(
     jusValue,
   });
 
-  // Resolve the (JUS, ARS) pair from whichever unit the caller provided.
+  // Resolve the (JUS, ARS) pair. Gross pesos in, gross JUS derived from them.
   let montoJus: number;
   let montoArs: number;
   if (input.saldar) {
@@ -165,18 +168,17 @@ export async function addHonorarioPago(
       montoArs = techo.pendienteArs;
       montoJus = arsToJus(montoArs, jusValue);
     } else {
+      // Centavos: the JUS side is the one the trigger checks, and the pesos are
+      // what the button offered — $488.137,44, not $488.137.
       montoJus = techo.pendienteJus ?? 0;
-      montoArs = jusToArs(montoJus, jusValue);
+      montoArs = jusToArsExacto(montoJus, jusValue);
     }
-  } else if (input.montoJus != null) {
-    montoJus = input.montoJus;
-    montoArs = jusToArs(montoJus, jusValue);
   } else if (input.montoArs != null) {
     if (!(jusValue > 0)) throw new Error("No hay valor JUS configurado para convertir ARS.");
     montoArs = input.montoArs;
     montoJus = arsToJus(montoArs, jusValue);
   } else {
-    throw new Error("Ingresá un monto en JUS o en ARS.");
+    throw new Error("Ingresá el monto del pago.");
   }
 
   // A real peso amount under ~$267 converts to 0.00 JUS at a JUS of 53.232, and
@@ -199,8 +201,11 @@ export async function addHonorarioPago(
       );
     }
   } else if (montoJus > (techo.pendienteJus ?? 0)) {
+    // Quoted in pesos, both sides: what is left under the ceiling carries IVA
+    // and aportes, and a figure with tax inside is not a number of JUS.
     throw new Error(
-      `El pago de ${montoJus} JUS excede lo pendiente con IVA y aportes (${techo.pendienteJus} JUS).`,
+      `El pago de ${formatArs(montoArs)} excede lo pendiente con IVA y aportes ` +
+        `(${formatArs(techo.pendienteArs)}).`,
     );
   }
 

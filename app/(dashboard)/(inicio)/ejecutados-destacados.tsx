@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MovimientoBadge } from "@/components/movimiento-badge";
 import { formatArDate } from "@/lib/domain/dates";
-import { formatJus } from "@/lib/domain/honorarios";
 import { formatMonedaAr } from "@/lib/domain/moneda-ar";
 import { type EjecutadoReciente } from "@/lib/data/estadisticas";
 
@@ -69,17 +68,19 @@ export function EjecutadosDestacados({ items }: { items: EjecutadoReciente[] }) 
               value={e.ultimaDemanda ? formatArDate(e.ultimaDemanda.slice(0, 10)) : "Sin generar"}
               muted={!e.ultimaDemanda}
             />
+            {/* Pesos: what is left to collect carries IVA and aportes, which
+                the JUS does not denominate. */}
             <Dato
               label="Honorarios"
               value={
-                e.honorarioPendienteJus === null
+                e.honorarioPendienteArs === null
                   ? "Sin cargar"
-                  : e.honorarioPendienteJus === 0
+                  : e.honorarioPendienteArs === 0
                     ? "Cobrado"
-                    : `${formatJus(e.honorarioPendienteJus)} pend.`
+                    : `$${formatMonedaAr(e.honorarioPendienteArs)} pend.`
               }
-              muted={e.honorarioPendienteJus === null}
-              tone={e.honorarioPendienteJus === 0 ? "cobrado" : undefined}
+              muted={e.honorarioPendienteArs === null}
+              tone={e.honorarioPendienteArs === 0 ? "cobrado" : undefined}
             />
             <Dato
               label="Último pago"
