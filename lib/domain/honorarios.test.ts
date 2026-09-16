@@ -22,6 +22,7 @@ import {
   baseJusToArs,
   jusToArsExacto,
   composeGrossArs,
+  saldoHonorario,
 } from "./honorarios";
 
 describe("tax constants", () => {
@@ -236,7 +237,7 @@ describe("techoHonorario", () => {
     const t = legal(0);
     expect(t.tipo).toBe("legal");
     expect(t.capJus).toBe(9.17);
-    expect(t.capArs).toBe(488137); // 9.17 x 53232
+    expect(t.capArs).toBe(488_137.44); // 9.17 x 53232, al centavo
   });
 
   it("a settled maximum wins, below or above the legal cap", () => {
@@ -434,5 +435,117 @@ describe("el JUS denomina el honorario base, nunca el bruto", () => {
       const grossJus = arsToJus(baseJusToArs(base, JUS), JUS);
       expect(grossJus).toBeLessThanOrEqual(grossCapJus(base));
     }
+  });
+});
+
+describe("saldoHonorario — el pendiente en pesos, sin mezclar unidades", () => {
+  const JUS = 53232;
+
+  it("un honorario cobrado entero sigue en cero cuando el valor JUS se mueve", () => {
+    // Settled in full when the JUS was 50.000: 9,17 JUS entraron como $458.500.
+    // Hoy el JUS es 53.232 y el honorario está saldado — la card dice $0.
+    const fila = {
+      monto_total_jus: 7,
+      max_acordado_ars: null,
+      pagado_jus: 9.17,
+      pagado_ars: 458_500,
+    };
+    expect(saldoHonorario(fila, JUS).pendienteJus).toBe(0);
+    expect(saldoHonorario(fila, JUS).pendienteArs).toBe(0);
+    // Lo que decía /inicio leyendo pendiente_cobrable_ars de la vista: un techo
+    // convertido al JUS de hoy menos pesos recibidos al JUS de su propia fecha.
+    // Es la cifra que este test existe para que no vuelva.
+    expect(jusToArs(grossCapJus(7), JUS) - 458_500).toBe(29_637);
+  });
+
+  it("un acordado sigue siendo lo acordado menos lo cobrado, en pesos", () => {
+    // A peso ceiling never crosses units: the JUS of the day does not enter.
+    const fila = {
+      monto_total_jus: 7,
+      max_acordado_ars: 300_000,
+      pagado_jus: 4.83,
+      pagado_ars: 100_000,
+    };
+    expect(saldoHonorario(fila, JUS).pendienteArs).toBe(200_000);
+    expect(saldoHonorario(fila, JUS * 2).pendienteArs).toBe(200_000);
+    expect(saldoHonorario({ ...fila, pagado_ars: 300_000 }, JUS).pendienteArs).toBe(0);
+  });
+
+  it("coincide con el techo de la card para el mismo honorario", () => {
+    const fila = {
+      monto_total_jus: 7,
+      max_acordado_ars: null,
+      pagado_jus: 3,
+      pagado_ars: 159_696,
+    };
+    const delaCard = techoHonorario({
+      baseJus: 7,
+      maxAcordadoArs: null,
+      pagadoJus: 3,
+      pagadoArs: 159_696,
+      jusValue: JUS,
+    });
+    expect(saldoHonorario(fila, JUS)).toEqual(delaCard);
+  });
+
+  it("tolera las columnas nulas de la vista", () => {
+    // Every honorarios_with_balance column is typed nullable (gotcha #3).
+    const vacia = {
+      monto_total_jus: null,
+      max_acordado_ars: null,
+      pagado_jus: null,
+      pagado_ars: null,
+    };
+    expect(saldoHonorario(vacia, JUS).pendienteArs).toBe(0);
+    expect(saldoHonorario(vacia, JUS).tipo).toBe("legal");
+  });
+});
+
+describe("el honorario entero tipeado en JUS no excede el tope", () => {
+  const JUS = 53232;
+  const sinCobrar = techoHonorario({
+    baseJus: 7,
+    maxAcordadoArs: null,
+    pagadoJus: 0,
+    pagadoArs: 0,
+    jusValue: JUS,
+  });
+
+  it("lo que postea el formulario es exactamente lo pendiente", () => {
+    // Typing 7 in the JUS field posts $488.137,44. While the ceiling was
+    // rounded to the peso the form answered "Excede lo pendiente ($488.137,00)"
+    // to an amount the server then accepted.
+    const posteado = baseJusToArs(7, JUS);
+    expect(posteado).toBe(488_137.44);
+    expect(sinCobrar.pendienteArs).toBe(posteado);
+    expect(posteado > sinCobrar.pendienteArs).toBe(false);
+  });
+
+  it("y el JUS que se guarda cae justo en el techo que controla el trigger", () => {
+    // The peso amount is what travels; monto_jus is derived from it and has to
+    // land on the ceiling, not a centésima past it.
+    const montoJus = arsToJus(baseJusToArs(7, JUS), JUS);
+    expect(montoJus).toBe(9.17);
+    expect(montoJus).toBe(sinCobrar.capJus);
+    expect(remainingGrossJus(7, montoJus)).toBe(0);
+  });
+
+  it("Saldar vale lo mismo que el máximo que imprime la card", () => {
+    expect(sinCobrar.pendienteArs).toBe(composeGrossArs(7, JUS).total);
+    // Saldar posts jusToArsExacto(pendienteJus), which is that same figure.
+    expect(jusToArsExacto(sinCobrar.pendienteJus ?? 0, JUS)).toBe(
+      composeGrossArs(7, JUS).total,
+    );
+  });
+
+  it("un acordado sigue saldándose en pesos, al centavo", () => {
+    const t = techoHonorario({
+      baseJus: 7,
+      maxAcordadoArs: 257_102.5,
+      pagadoJus: 0,
+      pagadoArs: 0,
+      jusValue: JUS,
+    });
+    expect(t.pendienteArs).toBe(257_102.5);
   });
 });

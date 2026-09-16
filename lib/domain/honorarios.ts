@@ -67,9 +67,11 @@ export function composeGross(baseJus: number): HonorarioComposition {
 // check_honorario_pago_cap(), which enforces exactly this.
 export type TechoHonorario = {
   tipo: "acordado" | "legal";
-  // The ceiling and its remainder in pesos — what the card prints. For a
-  // negotiated honorario these are the exact agreed figures; for the arancel
-  // they are today's conversion of a JUS ceiling.
+  // The ceiling and its remainder in pesos — what the card prints, and what the
+  // pago form posts against. For a negotiated honorario these are the exact
+  // agreed figures; for the arancel they are today's conversion of a JUS
+  // ceiling, to the centavo: 7 JUS is $488.137,44 and rounding that to the peso
+  // made the form refuse the very amount it had just told the lawyer to pay.
   capArs: number;
   pendienteArs: number;
   // The same two in JUS. Null once a peso amount was agreed: converting it back
@@ -103,15 +105,51 @@ export function techoHonorario(input: {
     };
   }
 
+  // The arancel's ceiling is enforced in JUS — capJus and pendienteJus are the
+  // numbers check_honorario_pago_cap() compares, and they do not change here.
+  // Their peso equivalents carry centavos so the form, the card and "Saldar"
+  // all name the same amount.
   const capJus = grossCapJus(baseJus);
   const pendienteJus = Math.max(0, roundJus(capJus - pagadoJus));
   return {
     tipo: "legal",
-    capArs: jusToArs(capJus, jusValue),
-    pendienteArs: jusToArs(pendienteJus, jusValue),
+    capArs: jusToArsExacto(capJus, jusValue),
+    pendienteArs: jusToArsExacto(pendienteJus, jusValue),
     capJus,
     pendienteJus,
   };
+}
+
+// The same ceiling for a `honorarios_with_balance` row — how every surface other
+// than the ejecutado card reaches a honorario.
+//
+// The view has peso columns of its own, `cap_cobrable_ars` and
+// `pendiente_cobrable_ars`, and they are NOT the figures to print: the pendiente
+// one subtracts pesos received at the JUS of each payment's own date from a
+// ceiling converted at TODAY's JUS, so it mixes units. A honorario settled in
+// full at a JUS of 50.000 reads $29.637 still owing once the JUS moves to
+// 53.232, while the card reads $0 — the card is right. Going through
+// techoHonorario() keeps one answer: compared in JUS for the arancel's ceiling,
+// in pesos for a settled one, exactly as check_honorario_pago_cap() does.
+//
+// Every column is nullable because every view column is typed nullable
+// (gotcha #3), not because a honorario can lack a base.
+export function saldoHonorario(
+  fila: {
+    monto_total_jus: number | null;
+    max_acordado_ars: number | null;
+    pagado_jus: number | null;
+    pagado_ars: number | null;
+  },
+  jusValue: number,
+): TechoHonorario {
+  return techoHonorario({
+    baseJus: fila.monto_total_jus ?? 0,
+    maxAcordadoArs: fila.max_acordado_ars,
+    pagadoJus: fila.pagado_jus ?? 0,
+    pagadoArs: fila.pagado_ars ?? 0,
+    jusValue,
+  });
 }
 
 export type GrossSplit = { base: number; iva: number; aportes: number };

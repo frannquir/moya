@@ -49,6 +49,16 @@ const CON_IMPUESTOS = [
   "arsToJus(",
 ];
 
+/**
+ * The code with its comments removed. The rule is about what renders, and the
+ * comments in these files deliberately name the figures not to print — a scan
+ * that read them would flag the very notes that explain the rule. `://` is
+ * spared so a URL does not swallow the rest of its line.
+ */
+function sinComentarios(src: string): string {
+  return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
+}
+
 function leer(rel: string): string {
   const abs = join(process.cwd(), rel);
   expect(existsSync(abs), `${rel} no existe — ¿se renombró sin actualizar este test?`).toBe(
@@ -102,7 +112,7 @@ function denominaLaBase(expr: string): boolean {
 
 describe("ninguna cifra con impuestos se imprime en JUS", () => {
   it.each(SUPERFICIES)("%s", (rel) => {
-    const src = leer(rel);
+    const src = sinComentarios(leer(rel));
     const sospechosas = [
       ...expresionesTras(src, "formatJus("),
       ...propsEnJus(src),
@@ -121,7 +131,7 @@ describe("ninguna cifra con impuestos se imprime en JUS", () => {
     // A rename that empties every file of formatJus() would make the test above
     // pass by doing nothing.
     const total = SUPERFICIES.reduce(
-      (n, rel) => n + expresionesTras(leer(rel), "formatJus(").length,
+      (n, rel) => n + expresionesTras(sinComentarios(leer(rel)), "formatJus(").length,
       0,
     );
     expect(total).toBeGreaterThan(0);
@@ -140,5 +150,26 @@ describe("ninguna cifra con impuestos se imprime en JUS", () => {
     expect(denominaLaBase("splitGross(montoArs).base")).toBe(true);
     expect(denominaLaBase("h.monto_total_jus ?? 0")).toBe(true);
     expect(denominaLaBase("input.montoJus")).toBe(true);
+  });
+});
+
+// The view's own peso columns. Both are computed with jus_value() at query
+// time — cap_cobrable_ars converts the JUS ceiling at TODAY's value, and
+// pendiente_cobrable_ars then subtracts pesos that came in at the JUS of their
+// own dates. So they mix units: a honorario settled in full at a JUS of 50.000
+// reads $29.637 still owing once the JUS moves to 53.232. saldoHonorario()
+// replaces both, and the view is left alone (no migration).
+const COLUMNAS_MIXTAS = ["cap_cobrable_ars", "pendiente_cobrable_ars"];
+
+describe("las columnas de pesos de la vista no se leen", () => {
+  it.each([...SUPERFICIES, "lib/data/estadisticas.ts"])("%s", (rel) => {
+    const src = sinComentarios(leer(rel));
+    const usadas = COLUMNAS_MIXTAS.filter((c) => src.includes(c));
+    expect(
+      usadas,
+      `${rel}: honorarios_with_balance.${usadas.join(" / ")} mezcla el JUS de hoy ` +
+        `con pesos cobrados al JUS de otra fecha. Usá saldoHonorario(fila, jusValue), ` +
+        `que resuelve el techo en la unidad en que está denominado.`,
+    ).toEqual([]);
   });
 });

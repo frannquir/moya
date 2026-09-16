@@ -3,7 +3,7 @@ import { type Database } from "@/lib/supabase/types";
 import { type Tables } from "@/lib/supabase/db-helpers";
 import {
   arsToJus,
-  jusToArs,
+  jusToArsExacto,
   techoHonorario,
   formatArs,
 } from "@/lib/domain/honorarios";
@@ -168,8 +168,10 @@ export async function addHonorarioPago(
       montoArs = techo.pendienteArs;
       montoJus = arsToJus(montoArs, jusValue);
     } else {
+      // Centavos: the JUS side is the one the trigger checks, and the pesos are
+      // what the button offered — $488.137,44, not $488.137.
       montoJus = techo.pendienteJus ?? 0;
-      montoArs = jusToArs(montoJus, jusValue);
+      montoArs = jusToArsExacto(montoJus, jusValue);
     }
   } else if (input.montoArs != null) {
     if (!(jusValue > 0)) throw new Error("No hay valor JUS configurado para convertir ARS.");

@@ -16,6 +16,7 @@ import {
   formatJus,
   formatArs,
   jusToArs,
+  saldoHonorario,
 } from "@/lib/domain/honorarios";
 
 export const metadata: Metadata = { title: "Honorarios" };
@@ -36,21 +37,26 @@ export default async function HonorariosPage() {
       .single(),
   ]);
 
-  // Hide honorarios whose ejecutado is archived.
-  const rows = (honorarios ?? []).filter((h) => !h.ejecutado?.archived_at);
-
   const jusValue = (jusRow?.value as { value: number })?.value ?? 0;
+
+  // Hide honorarios whose ejecutado is archived, and resolve the ceiling the
+  // same way the ejecutado card does. Not from the view's cap_cobrable_ars /
+  // pendiente_cobrable_ars: those mix a ceiling converted at today's JUS with
+  // pesos received at the JUS of their own dates (see saldoHonorario).
+  const rows = (honorarios ?? [])
+    .filter((h) => !h.ejecutado?.archived_at)
+    .map((h) => ({ ...h, techo: saldoHonorario(h, jusValue) }));
+
   // "Pendiente" means there is still something collectable — measured against
   // the gross cap, since IVA + aportes are collected on top of the fee.
-  const pendingCount =
-    rows?.filter((h) => (h.pendiente_cobrable_ars ?? 0) > 0).length ?? 0;
+  const pendingCount = rows.filter((h) => h.techo.pendienteArs > 0).length;
 
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-semibold">Honorarios</h1>
         <p className="text-sm text-muted-foreground">
-          {rows?.length ?? 0} honorarios · {pendingCount} pendientes · Valor JUS:{" "}
+          {rows.length} honorarios · {pendingCount} pendientes · Valor JUS:{" "}
           {formatArs(jusValue)} · Máximo a cobrar = honorario + IVA{" "}
           {Math.round(IVA_RATE * 100)}% + aportes {Math.round(APORTES_RATE * 100)}%, o
           lo acordado con el ejecutado
@@ -70,12 +76,11 @@ export default async function HonorariosPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows && rows.length > 0 ? (
+            {rows.length > 0 ? (
               rows.map((h) => {
-                // Read from the same column the "Restante" cell prints, so the
+                // Read from the same figure the "Restante" cell prints, so the
                 // badge can never say Pendiente next to a $0.
-                const isPaid =
-                  (h.monto_total_jus ?? 0) > 0 && (h.pendiente_cobrable_ars ?? 0) <= 0;
+                const isPaid = (h.monto_total_jus ?? 0) > 0 && h.techo.pendienteArs <= 0;
                 // Fee covered but the tax on it not yet — a real intermediate state.
                 const baseCubierto =
                   !isPaid &&
@@ -109,7 +114,7 @@ export default async function HonorariosPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {formatArs(h.cap_cobrable_ars ?? 0)}
+                      {formatArs(h.techo.capArs)}
                       <div className="text-xs text-muted-foreground">
                         {h.max_acordado_ars != null
                           ? "acordado"
@@ -121,12 +126,10 @@ export default async function HonorariosPage() {
                     </TableCell>
                     <TableCell
                       className={`text-right tabular-nums ${
-                        (h.pendiente_cobrable_ars ?? 0) > 0
-                          ? "text-warning font-medium"
-                          : ""
+                        h.techo.pendienteArs > 0 ? "text-warning font-medium" : ""
                       }`}
                     >
-                      {formatArs(h.pendiente_cobrable_ars ?? 0)}
+                      {formatArs(h.techo.pendienteArs)}
                     </TableCell>
                   </TableRow>
                 );

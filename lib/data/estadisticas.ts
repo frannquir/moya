@@ -1,8 +1,9 @@
 import { type SupabaseClient } from "@supabase/supabase-js";
 import { type Database } from "@/lib/supabase/types";
 import { type Via } from "@/lib/domain/ejecutado";
-import { splitGross } from "@/lib/domain/honorarios";
+import { arsToBaseJus, roundCentavos, saldoHonorario } from "@/lib/domain/honorarios";
 import { DIAS_PARA_RECLAMAR, diasDesde } from "@/lib/domain/estadisticas";
+import { getJusValue } from "@/lib/data/honorarios";
 import { DEMANDA_CLAVE } from "@/lib/data/escrito-render";
 
 type Client = SupabaseClient<Database>;
@@ -32,16 +33,21 @@ export async function listParaReclamar(
   supabase: Client,
   { limit = 25 }: { limit?: number } = {},
 ): Promise<ParaReclamar[]> {
-  const { data: honorarios, error } = await supabase
-    .from("honorarios_with_balance")
-    .select("id, ejecutado_id, pendiente_gross_jus, pendiente_cobrable_ars")
-    .is("archived_at", null);
+  const [{ data: honorarios, error }, jusValue] = await Promise.all([
+    supabase
+      .from("honorarios_with_balance")
+      .select("id, ejecutado_id, monto_total_jus, max_acordado_ars, pagado_jus, pagado_ars")
+      .is("archived_at", null),
+    getJusValue(supabase),
+  ]);
   if (error) throw error;
 
-  // Owing is decided in JUS and printed in pesos: the JUS column is the one the
-  // ceiling is enforced in, and the peso column is the exact agreed figure when
-  // a max was settled rather than a conversion of it.
-  const owing = (honorarios ?? []).filter((h) => Number(h.pendiente_gross_jus ?? 0) > 0);
+  // Resolved through saldoHonorario(), never from the view's pendiente_cobrable_ars:
+  // that column mixes a ceiling converted at today's JUS with pesos received at
+  // the JUS of their own dates, so a settled honorario can read as still owing.
+  const owing = (honorarios ?? [])
+    .map((h) => ({ ...h, pendienteArs: saldoHonorario(h, jusValue).pendienteArs }))
+    .filter((h) => h.pendienteArs > 0);
   if (owing.length === 0) return [];
 
   const ids = owing.map((h) => h.id!).filter(Boolean);
@@ -76,7 +82,7 @@ export async function listParaReclamar(
       return {
         ejecutadoId: h.ejecutado_id!,
         nombre: nombres.get(h.ejecutado_id!) ?? "",
-        pendienteArs: Number(h.pendiente_cobrable_ars ?? 0),
+        pendienteArs: h.pendienteArs,
         ultimoPago: fecha,
         diasDesdeUltimoPago: fecha ? diasDesde(fecha) : null,
       };
@@ -131,7 +137,7 @@ export async function listEjecutadosRecientes(
     .eq("clave", DEMANDA_CLAVE)
     .maybeSingle();
 
-  const [{ data: demandas }, { data: honorarios }] = await Promise.all([
+  const [{ data: demandas }, { data: honorarios }, jusValue] = await Promise.all([
     tpl
       ? supabase
           .from("escritos")
@@ -143,9 +149,10 @@ export async function listEjecutadosRecientes(
       : Promise.resolve({ data: [] as { ejecutado_id: string; created_at: string }[] }),
     supabase
       .from("honorarios_with_balance")
-      .select("id, ejecutado_id, pendiente_cobrable_ars")
+      .select("id, ejecutado_id, monto_total_jus, max_acordado_ars, pagado_jus, pagado_ars")
       .in("ejecutado_id", ids)
       .is("archived_at", null),
+    getJusValue(supabase),
   ]);
 
   // Ordered desc, so the first hit per ejecutado is the latest.
@@ -181,7 +188,7 @@ export async function listEjecutadosRecientes(
       deudaInicial: Number(e.deuda_inicial ?? 0),
       createdAt: e.created_at,
       ultimaDemanda: ultimaDemanda.get(e.id) ?? null,
-      honorarioPendienteArs: h ? Number(h.pendiente_cobrable_ars ?? 0) : null,
+      honorarioPendienteArs: h ? saldoHonorario(h, jusValue).pendienteArs : null,
       ultimoPagoHonorario: h ? (ultimoPago.get(h.id!) ?? null) : null,
     };
   });
@@ -281,7 +288,7 @@ export type ResumenEstudio = {
 };
 
 export async function getResumenEstudio(supabase: Client): Promise<ResumenEstudio> {
-  const [ejRes, cobrosRes, honRes] = await Promise.all([
+  const [ejRes, cobrosRes, honRes, jusValue] = await Promise.all([
     supabase
       .from("ejecutados")
       .select("deuda_inicial, via")
@@ -290,8 +297,9 @@ export async function getResumenEstudio(supabase: Client): Promise<ResumenEstudi
     supabase.from("cobros_pagos").select("monto, estado").is("archived_at", null),
     supabase
       .from("honorarios_with_balance")
-      .select("pendiente_gross_jus, pendiente_cobrable_ars")
+      .select("monto_total_jus, max_acordado_ars, pagado_jus, pagado_ars")
       .is("archived_at", null),
+    getJusValue(supabase),
   ]);
 
   // A failed query would otherwise read as an estudio with no cases.
@@ -301,11 +309,11 @@ export async function getResumenEstudio(supabase: Client): Promise<ResumenEstudi
 
   const rows = ejRes.data ?? [];
   const pagos = cobrosRes.data ?? [];
-  // Summed gross first, split once: the fee is what the JUS denominates, and
-  // 1.31 divides a total exactly as it divides each part of it.
-  const pendienteGrossJus = (honRes.data ?? []).reduce(
-    (s, h) => s + Number(h.pendiente_gross_jus ?? 0),
-    0,
+  // Per honorario through saldoHonorario(), then summed — the same figure the
+  // ejecutado card shows, so the two screens cannot disagree about whether a
+  // case still owes anything.
+  const pendienteArs = roundCentavos(
+    (honRes.data ?? []).reduce((s, h) => s + saldoHonorario(h, jusValue).pendienteArs, 0),
   );
   return {
     ejecutados: rows.length,
@@ -318,10 +326,8 @@ export async function getResumenEstudio(supabase: Client): Promise<ResumenEstudi
     aCobrar: pagos
       .filter((p) => p.estado === "Solicitado")
       .reduce((s, p) => s + Number(p.monto ?? 0), 0),
-    honorariosPendientesArs: (honRes.data ?? []).reduce(
-      (s, h) => s + Number(h.pendiente_cobrable_ars ?? 0),
-      0,
-    ),
-    honorariosPendientesBaseJus: splitGross(pendienteGrossJus).base,
+    honorariosPendientesArs: pendienteArs,
+    // Truncated like every JUS figure on screen, and through the one converter.
+    honorariosPendientesBaseJus: arsToBaseJus(pendienteArs, jusValue),
   };
 }
