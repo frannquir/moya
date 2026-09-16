@@ -8,8 +8,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   CUENTA_HONORARIOS_DEFAULT,
   type AbogadoConfig,
+  type AutorizadoConfig,
   type CuentaHonorariosConfig,
+  type MiembroAutorizado,
 } from "@/lib/domain/escritos-config";
+import { AutorizadosEditor } from "./autorizados-editor";
 import { DomiciliosEditor } from "./domicilios-editor";
 import { EmpresasEditor } from "./empresas-editor";
 import { EncargadoEditor } from "./encargado-editor";
@@ -45,6 +48,8 @@ export function EscritosConfigForm({
   domicilios,
   recusados,
   courtIndex,
+  autorizados,
+  miembros,
 }: {
   cuenta: CuentaHonorariosConfig;
   encargado: Partial<AbogadoConfig>;
@@ -52,6 +57,9 @@ export function EscritosConfigForm({
   domicilios: { departamento: string; domicilio: string }[];
   recusados: RecusadoRow[];
   courtIndex: CourtEntry[];
+  /** null = no list of its own; the estudio's members are used. */
+  autorizados: AutorizadoConfig[] | null;
+  miembros: MiembroAutorizado[];
 }) {
   const [state, formAction] = useActionState<EscritosConfigState, FormData>(
     updateEstudioEscritosConfig,
@@ -100,6 +108,18 @@ export function EscritosConfigForm({
               </p>
             </div>
             <EncargadoEditor initial={encargado} />
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <div className="text-sm font-medium">Autorizados</div>
+              <p className="text-xs text-muted-foreground">
+                Quiénes quedan autorizados a hacer trámites en la demanda. No
+                hace falta que tengan cuenta en Moya: el procurador o el
+                empleado de mesa de entradas van acá.
+              </p>
+            </div>
+            <AutorizadosEditor initial={autorizados} miembros={miembros} />
           </div>
 
           <div className="space-y-3">

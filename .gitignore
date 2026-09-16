@@ -46,3 +46,6 @@ scripts/**/*.csv
 next-env.d.ts
 
 scripts/out/
+
+# Local agent/session files, qué mirás bobo?
+.claude/

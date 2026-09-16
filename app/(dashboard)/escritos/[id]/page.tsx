@@ -10,7 +10,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { EscritoEditor } from "./escrito-editor";
-import { updateEscrito, archiveEscrito } from "./actions";
+import { updateEscrito, archiveEscrito, restaurarEscrito } from "./actions";
 import { getById as getJuzgadoById } from "@/lib/data/juzgados";
 import { requireUser } from "@/lib/data/auth";
 import { getMembership } from "@/lib/data/estudio";
@@ -49,6 +49,7 @@ export default async function EscritoDetailPage({
 
   const saveAction = updateEscrito.bind(null, id);
   const archiveAction = archiveEscrito.bind(null, id);
+  const restaurarAction = restaurarEscrito.bind(null, id);
 
   return (
     <div className="space-y-4">
@@ -109,6 +110,8 @@ export default async function EscritoDetailPage({
               initialTitulo={escrito.titulo}
               initialContenido={escrito.contenido}
               saveAction={saveAction}
+              restaurarAction={restaurarAction}
+              puedeRestaurar={escrito.template_id !== null}
             />
           </CardContent>
         </Card>

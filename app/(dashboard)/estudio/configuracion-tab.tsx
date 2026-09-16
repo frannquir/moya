@@ -11,6 +11,7 @@ import {
 import {
   cuentaHonorariosPartes,
   type EstudioEscritosConfig,
+  type MiembroAutorizado,
 } from "@/lib/domain/escritos-config";
 import { EscritosConfigForm } from "./escritos-config-form";
 import { type CourtEntry } from "@/lib/data/juzgados";
@@ -29,6 +30,7 @@ export function ConfiguracionTab({
   jus,
   tasas,
   historial,
+  miembros,
 }: {
   nombre: string;
   config: EstudioEscritosConfig;
@@ -37,6 +39,12 @@ export function ConfiguracionTab({
   jus: JusConfig | null;
   tasas: TasaRowFull[];
   historial: ConfigHistorialEntry[];
+  /**
+   * Passed down rather than fetched in the client, the same way courtIndex is:
+   * the autorizados editor seeds and restores from the member list, and
+   * get_estudio_members() is a server-side RPC.
+   */
+  miembros: MiembroAutorizado[];
 }) {
   if (!isHead) {
     return <SoloDueno />;
@@ -63,6 +71,12 @@ export function ConfiguracionTab({
   const initialRecusados = Object.entries(config.jueces_recusados ?? {}).map(
     ([juzgadoId, nombreJuez]) => ({ juzgadoId, nombre: String(nombreJuez ?? "") }),
   );
+
+  // null, not [], when the key is absent: no list of its own is a different
+  // state from an empty one, and only the second prints [AUTORIZADOS].
+  const initialAutorizados = Array.isArray(config.autorizados)
+    ? config.autorizados
+    : null;
 
   return (
     <div className="space-y-4">
@@ -145,6 +159,8 @@ export function ConfiguracionTab({
             domicilios={initialDomicilios}
             recusados={initialRecusados}
             courtIndex={courtIndex}
+            autorizados={initialAutorizados}
+            miembros={miembros}
           />
         </CardContent>
       </Card>

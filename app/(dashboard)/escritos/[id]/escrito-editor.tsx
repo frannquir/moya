@@ -1,14 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { destinoDe, hrefDe } from "@/lib/domain/token-destino";
 import { extractUnresolved } from "@/lib/domain/template-engine";
+import { type EscritoState, type RestaurarResult } from "./actions";
 
 /**
  * One entry per distinct label, keeping the first token that carries it. Every
@@ -33,22 +43,49 @@ export function EscritoEditor({
   initialTitulo,
   initialContenido,
   saveAction,
+  restaurarAction,
+  puedeRestaurar,
 }: {
   /** For linking a per-case gap straight to the field that fixes it. */
   ejecutadoId?: string | null;
   isHead?: boolean;
   initialTitulo: string;
   initialContenido: string;
-  saveAction: (formData: FormData) => Promise<void>;
+  saveAction: (prev: EscritoState, formData: FormData) => Promise<EscritoState>;
+  restaurarAction: () => Promise<RestaurarResult>;
+  /** false when template_id is NULL: there is nothing to re-render from. */
+  puedeRestaurar: boolean;
 }) {
   const [titulo, setTitulo] = useState(initialTitulo);
   const [contenido, setContenido] = useState(initialContenido);
   const [copied, setCopied] = useState(false);
 
+  // Errors are RETURNED by the action and shown here. Before this the form just
+  // posted and the page looked identical either way — and because `contenido`
+  // is controlled state, React kept showing what the user typed whether or not
+  // a single byte reached the database.
+  const [state, formAction, guardando] = useActionState<EscritoState, FormData>(
+    saveAction,
+    null,
+  );
+
+  const [confirmando, setConfirmando] = useState(false);
+  const [restaurando, startRestaurar] = useTransition();
+  const [restauracion, setRestauracion] = useState<RestaurarResult | null>(null);
+
   // Collapsed by LABEL, not by token: ABOGADO_CUIT and ABOGADO_DNI both go
   // missing the moment the encargado has no CUIT, and two identical badges read
   // as two separate problems.
   const pending = dedupePorLabel(extractUnresolved(contenido));
+
+  const guardado = state !== null && "ok" in state;
+  const restaurado = restauracion !== null && "contenido" in restauracion;
+  const error =
+    state !== null && "error" in state
+      ? state.error
+      : restauracion !== null && "error" in restauracion
+        ? restauracion.error
+        : null;
 
   const handleCopy = async () => {
     try {
@@ -61,8 +98,44 @@ export function EscritoEditor({
     }
   };
 
+  // The action hands the re-rendered text back and the editor adopts it, rather
+  // than relying on revalidatePath: React does not reset useState when a prop
+  // changes, so a restore that only refreshed the server tree would leave the
+  // textarea showing the old edited text over a database that no longer has it.
+  const handleRestaurar = () =>
+    startRestaurar(async () => {
+      const resultado = await restaurarAction();
+      setRestauracion(resultado);
+      if ("contenido" in resultado) setContenido(resultado.contenido);
+      setConfirmando(false);
+    });
+
   return (
-    <form action={saveAction} className="space-y-4">
+    <form
+      action={formAction}
+      onSubmit={() => setRestauracion(null)}
+      className="space-y-4"
+    >
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {guardado && !error && (
+        <Alert>
+          <AlertDescription>Escrito guardado.</AlertDescription>
+        </Alert>
+      )}
+
+      {restaurado && !error && (
+        <Alert>
+          <AlertDescription>
+            Texto restaurado desde la plantilla. El título no cambió.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="titulo">Título</Label>
         <Input
@@ -128,12 +201,61 @@ export function EscritoEditor({
         />
       </div>
 
-      <div className="flex items-center gap-2">
-        <Button type="submit">Guardar</Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="submit" disabled={guardando}>
+          {guardando ? "Guardando…" : "Guardar"}
+        </Button>
         <Button type="button" variant="outline" onClick={handleCopy}>
           {copied ? "Copiado" : "Copiar texto"}
         </Button>
+        {/* Destructive, so it asks first — but never with window.confirm, which
+            blocks the whole browser. Disabled instead of hidden when there is no
+            template, with the reason in the title. */}
+        <Button
+          type="button"
+          variant="outline"
+          disabled={!puedeRestaurar || restaurando}
+          title={
+            puedeRestaurar
+              ? undefined
+              : "Este escrito no tiene plantilla asociada."
+          }
+          onClick={() => setConfirmando(true)}
+        >
+          {restaurando ? "Restaurando…" : "Restaurar original"}
+        </Button>
       </div>
+
+      <Dialog open={confirmando} onOpenChange={setConfirmando}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Restaurar el texto original</DialogTitle>
+            <DialogDescription>
+              Se reemplaza todo el contenido por el de la plantilla y se pierden
+              los cambios que hayas hecho. El título no cambia.
+            </DialogDescription>
+          </DialogHeader>
+          {/* Said out loud because a lawyer who expects a byte-for-byte undo and
+              gets a different document will report it as a bug. */}
+          <p className="text-sm text-muted-foreground">
+            Se genera con los datos de hoy, así que puede no ser idéntico al
+            texto original si desde entonces cambiaron el caso o la configuración
+            del estudio.
+          </p>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmando(false)}
+            >
+              Cancelar
+            </Button>
+            <Button type="button" onClick={handleRestaurar} disabled={restaurando}>
+              {restaurando ? "Restaurando…" : "Restaurar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }

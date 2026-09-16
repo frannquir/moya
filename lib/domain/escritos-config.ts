@@ -163,7 +163,65 @@ export type EstudioEscritosConfig = {
    * recused.
    */
   jueces_recusados?: Record<string, string>;
+  /**
+   * The estudio's own autorizados for section IX, in printed order — an ARRAY,
+   * because the order is what the document prints and an object would not keep
+   * it.
+   *
+   * ABSENT and EMPTY mean different things. Absent is "no override": the list
+   * is derived from the estudio's members exactly as it was before this key
+   * existed, so every estudio keeps working with no migration and no data
+   * entry. An empty array is a head who emptied the list on purpose, and prints
+   * the [AUTORIZADOS] marker rather than quietly bringing the members back.
+   */
+  autorizados?: AutorizadoConfig[];
 };
+
+/**
+ * Every key of EstudioEscritosConfig, exhaustively.
+ *
+ * Typed as a Record so the compiler enforces BOTH directions: a key added to
+ * the type but not listed here fails the build, and a key listed here that the
+ * type does not have fails too. That is the whole point — the settings action
+ * used to rebuild the entire column from a hand-written spread, so a key the
+ * form did not render was deleted on every save, and nothing but a comment
+ * stood between the sixth key and a repeat of that bug.
+ */
+const CLAVES_DE_CONFIG: Record<keyof Required<EstudioEscritosConfig>, true> = {
+  cuenta_honorarios: true,
+  encargado: true,
+  domicilios_procesales: true,
+  empresas: true,
+  jueces_recusados: true,
+  autorizados: true,
+};
+
+export const ESCRITOS_CONFIG_KEYS = Object.keys(
+  CLAVES_DE_CONFIG,
+) as (keyof EstudioEscritosConfig)[];
+
+/**
+ * Apply one form's worth of changes to the stored escritos_config.
+ *
+ * A key ABSENT from the patch is left exactly as it was, which is what makes a
+ * form that does not render a given editor harmless. A key PRESENT with
+ * `undefined` is removed — that is how the autorizados override goes back to
+ * the derived member list. Anything already in the column that this version of
+ * the app does not know about is carried through untouched.
+ */
+export function mergeEscritosConfig(
+  previa: EstudioEscritosConfig | null | undefined,
+  patch: Partial<EstudioEscritosConfig>,
+): EstudioEscritosConfig {
+  const out: Record<string, unknown> = { ...(previa ?? {}) };
+  for (const key of ESCRITOS_CONFIG_KEYS) {
+    if (!Object.hasOwn(patch, key)) continue;
+    const value = patch[key];
+    if (value === undefined) delete out[key];
+    else out[key] = value;
+  }
+  return out as EstudioEscritosConfig;
+}
 
 /**
  * The recused judge for a court, or "" when that court is not on the list.
@@ -280,6 +338,118 @@ export function formatAutorizados(miembros: MiembroAutorizado[]): string {
     .map(nombreConTratamiento)
     .filter((n) => n !== "")
     .join(" y/o ");
+}
+
+/**
+ * One line of the estudio's own autorizados list.
+ *
+ * Deliberately NOT MiembroAutorizado: that type describes a row of
+ * get_estudio_members(), and the entire reason this list exists is that an
+ * autorizado usually has no Moya account at all — a procurador, an empleado de
+ * mesa de entradas, a paralegal. Those are the people who actually do the
+ * trámites section IX authorises, and none of them can be invited to the
+ * estudio just to be named in a demanda.
+ */
+export type AutorizadoConfig = {
+  nombre: string;
+  genero: Genero | null;
+  es_abogado: boolean;
+};
+
+/**
+ * The autorizados line for section IX: the estudio's own list when it has one,
+ * otherwise derived from its members exactly as before this key existed.
+ *
+ * Both halves go through nombreConTratamiento, so the treatment printed in a
+ * filing can never drift from the one the members list shows.
+ */
+export function resolveAutorizados(
+  config: EstudioEscritosConfig | null | undefined,
+  miembros: MiembroAutorizado[],
+): string {
+  const propios = config?.autorizados;
+  return formatAutorizados(Array.isArray(propios) ? propios : miembros);
+}
+
+/**
+ * What the editor posts when the estudio wants no list of its own.
+ *
+ * A sentinel rather than an empty string, because "" is also what an emptied
+ * field posts and the two must not collapse into one meaning: one is "go back
+ * to the members", the other would be "the head deliberately removed everyone".
+ */
+export const AUTORIZADOS_DERIVADO = "derivado";
+
+export type AutorizadosParse = {
+  /** `undefined` means: drop the key and go back to the derived member list. */
+  autorizados: AutorizadoConfig[] | undefined;
+  errors: string[];
+};
+
+/**
+ * Parse the autorizados editor's hidden field.
+ *
+ * Parsing and validation are separate passes on purpose (gotcha #40): a
+ * rejection thrown inside the JSON catch would be swallowed, and the list would
+ * vanish from the config instead of reporting why.
+ */
+export function parseAutorizados(raw: string): AutorizadosParse {
+  const texto = String(raw ?? "").trim();
+  if (texto === "" || texto === AUTORIZADOS_DERIVADO) {
+    return { autorizados: undefined, errors: [] };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(texto);
+  } catch {
+    parsed = null;
+  }
+  if (!Array.isArray(parsed)) {
+    // NOT silently "no override": that would delete a list the head still has
+    // on screen. An error means the caller writes nothing at all.
+    return {
+      autorizados: undefined,
+      errors: [
+        "No se pudo leer la lista de autorizados. Recargá la página y volvé a cargarla.",
+      ],
+    };
+  }
+
+  const errors: string[] = [];
+  const autorizados: AutorizadoConfig[] = [];
+  const vistos = new Set<string>();
+
+  for (const row of parsed) {
+    const o = (row ?? {}) as Record<string, unknown>;
+    const nombre = String(o.nombre ?? "").trim();
+    const generoRaw = String(o.genero ?? "");
+    const genero: Genero | null =
+      generoRaw === "F" || generoRaw === "M" ? generoRaw : null;
+    const es_abogado = o.es_abogado === true;
+
+    // "Agregar autorizado" appends a blank row, so a row with nothing at all in
+    // it is a change of mind rather than a mistake worth stopping the save for.
+    if (nombre === "" && genero === null && !es_abogado) continue;
+
+    if (nombre === "") {
+      errors.push(
+        "Falta el nombre de un autorizado. Sin nombre no se puede imprimir en el escrito.",
+      );
+      continue;
+    }
+
+    const clave = normalizeKey(nombre);
+    if (vistos.has(clave)) {
+      errors.push(`"${nombre}" está dos veces en los autorizados. Dejá uno solo.`);
+      continue;
+    }
+    vistos.add(clave);
+
+    autorizados.push({ nombre, genero, es_abogado });
+  }
+
+  return { autorizados, errors };
 }
 
 export function resolveEmpresa(
