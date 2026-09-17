@@ -128,11 +128,19 @@ BEGIN
     RAISE EXCEPTION 'demanda body still carries a literal section numeral; corrections not applied';
   END IF;
 
-  -- Eleven headings live in the body; the twelfth (the cautelar) comes in with
-  -- the spliced fragment.
+  -- TWELVE headings live in the body: the eleven step 1 tokenised, plus the
+  -- recusacion that step 2 did. The THIRTEENTH is the cautelar's own, and that
+  -- one arrives with the spliced fragment rather than living here.
+  --
+  -- Corrected 2026-09-17 (Fran): this read 11, so the block raised and the whole
+  -- file aborted on any database that actually ran it. The live database has the
+  -- right body - it was brought there by hand - and lists this version as
+  -- applied, so it is never re-run and the mistake stayed invisible. It is still
+  -- load-bearing for a `supabase db reset` or a brand new environment, which is
+  -- why the number is fixed in place instead of being left as history.
   secciones := (length(cuerpo) - length(replace(cuerpo, '{{SECCION}}', ''))) / length('{{SECCION}}');
-  IF secciones <> 11 THEN
-    RAISE EXCEPTION 'expected 11 {{SECCION}} tokens in the demanda body, found %', secciones;
+  IF secciones <> 12 THEN
+    RAISE EXCEPTION 'expected 12 {{SECCION}} tokens in the demanda body, found %', secciones;
   END IF;
 
   IF cuerpo NOT LIKE '%{{#if HAY_RECUSACION}}%' OR cuerpo NOT LIKE '%{{JUEZ_RECUSADO}}%' THEN
