@@ -5,6 +5,7 @@ import { formatCurrency } from "@/lib/domain/liquidaciones";
 import { parseLocalDate } from "@/lib/domain/dates";
 import { renderTemplate, type TemplateRecord, type TemplateScope } from "@/lib/domain/template-engine";
 import {
+  ABOGADO_DEFAULT,
   buildEncabezado,
   resolveAutorizados,
   resolveCuentaHonorarios,
@@ -376,7 +377,7 @@ async function convenioScope(
   const cuotas = Number(ej.cuotas ?? 1);
   const fechaVencimiento = ej.fecha_vencimiento ?? "";
 
-  const [honorario, jusValue] = await Promise.all([
+  const [honorario, jusValue, codemandados] = await Promise.all([
     supabase
       .from("honorarios")
       .select("monto_total_jus, max_acordado_ars")
@@ -385,6 +386,10 @@ async function convenioScope(
       .maybeSingle()
       .then((r) => r.data),
     getJusValue(supabase),
+    // Only for the carátula: the convenio names one deudor and that is
+    // deliberate, so this decides whether the caption reads "… C/ FULANO Y
+    // OTRO/A S/ COBRO EJECUTIVO" like the expediente does, and nothing else.
+    listByEjecutado(supabase, ej.id),
   ]);
 
   const scope: TemplateScope = {
@@ -393,7 +398,25 @@ async function convenioScope(
     // so it must name the estudio's apoderado and not whoever clicked generate.
     // Empty, never a default: this function's own contract above is that an
     // unfilled value arrives as "" so the engine prints a [TOKEN] marker.
+    //
+    // Since 20260917120000 the opening paragraph carries the same identification
+    // every other escrito's encabezado does — matrícula, legajo, CUIT, IBM, IVA,
+    // domicilio electrónico and teléfono — and identifies him by CUIT rather
+    // than by D.N.I. (Fran, 2026-09-17). Deliberately NOT buildEncabezado(): a
+    // convenio is signed by a debtor, so it reads "Entre X … convienen celebrar"
+    // and splicing in a sentence that ends "ante V.S. respetuosamente digo"
+    // would produce a broken opening.
     ABOGADO_NOMBRE: abogado.nombre ?? "",
+    ABOGADO_MATRICULA: abogado.matricula ?? "",
+    ABOGADO_LEGAJO: abogado.legajo ?? "",
+    ABOGADO_CUIT: abogado.cuit ?? "",
+    ABOGADO_IBM: abogado.ibm ?? "",
+    // The one field with a legitimate default rather than a marker, exactly as
+    // buildEncabezado treats it: "Responsable Inscripto" is the ordinary case,
+    // not a 0000 placeholder standing in for something nobody entered.
+    ABOGADO_IVA:
+      String(abogado.ivaCondicion ?? "").trim() || ABOGADO_DEFAULT.ivaCondicion,
+    ABOGADO_DOMICILIO_ELECTRONICO: abogado.domicilioElectronico ?? "",
     ABOGADO_TELEFONO: abogado.telefono ?? "",
     ABOGADO_EMAIL: abogado.email ?? "",
     // The estudio's physical address for this departamento. The source convenio
@@ -403,6 +426,7 @@ async function convenioScope(
 
     DEMANDADO: ej.nombre ?? "",
     DEMANDADO_MAYUSCULA: (ej.nombre ?? "").toUpperCase(),
+    HAY_CODEMANDADOS: codemandados.length > 0,
     DOMICILIO: ej.domicilio ?? "",
     DNI_DEMANDADO: ej.cuil ? formatDni(cuilToDni(ej.cuil)) : formatDni(ej.documento ?? ""),
     EXPEDIENTE: ej.numero_expediente ?? "",
@@ -430,6 +454,10 @@ async function convenioScope(
   // The DNI comes off the encargado's own CUIT (gotcha #36: strip the prefix,
   // the check digit AND the zero pad). Only when one is actually configured —
   // ABOGADO_DEFAULT's placeholder CUIT would otherwise print "D.N.I. N° 0".
+  //
+  // No template asks for {{ABOGADO_DNI}} since 20260917120000 moved the convenio
+  // to the CUIT. Kept resolving anyway: it costs nothing, and an escrito whose
+  // body was edited by hand before that migration still restores cleanly.
   const encargadoCuit = config?.encargado?.cuit ?? "";
   if (isValidCuil(encargadoCuit)) {
     scope.ABOGADO_DNI = formatDni(cuilToDni(encargadoCuit));

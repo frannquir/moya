@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,10 +69,23 @@ export function EscritosConfigForm({
   const errors = state && "errors" in state ? state.errors : [];
   const saved = state !== null && "ok" in state;
 
+  // The alert is at the top of a form long enough that its last editor — jueces
+  // recusados — is a screenful below the fold, and a rejected save leaves the
+  // page exactly where it was. A head who added a judge, pressed Guardar and saw
+  // nothing happen concluded the recusación feature was broken; nothing was
+  // stored because ONE unrelated invalid CUIT rejects the whole config (package A
+  // diagnosis, 2026-09-17). So the alert comes to the reader.
+  const alerta = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (errors.length > 0) {
+      alerta.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [state, errors.length]);
+
   return (
     <form action={formAction} className="space-y-6">
       {errors.length > 0 && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" ref={alerta}>
           <AlertDescription>
             <p className="font-medium">
               No se guardó la configuración. Lo que cargaste sigue en el
@@ -224,7 +237,22 @@ export function EscritosConfigForm({
         </div>
       </div>
 
-      <Button type="submit">Guardar configuración</Button>
+      {/* The same news as the alert, at the other end of the form: this button
+          is what the head is looking at when the save is rejected, and the alert
+          is far enough away that it used to read as "nothing happened". */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit">Guardar configuración</Button>
+        {errors.length > 0 && (
+          <span className="text-sm font-medium text-destructive">
+            No se guardó nada:{" "}
+            {errors.length === 1 ? "hay 1 error" : `hay ${errors.length} errores`}{" "}
+            arriba.
+          </span>
+        )}
+        {saved && (
+          <span className="text-sm text-muted-foreground">Guardado.</span>
+        )}
+      </div>
     </form>
   );
 }

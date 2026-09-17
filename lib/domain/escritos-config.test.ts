@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { renderTemplate, extractUnresolved } from "./template-engine";
 import {
   ABOGADO_DEFAULT,
   CUENTA_HONORARIOS,
@@ -600,5 +601,109 @@ describe("mergeEscritosConfig", () => {
       "encargado",
       "jueces_recusados",
     ]);
+  });
+});
+
+// The chain the recusación actually travels: a court on the estudio's list ->
+// resolveJuezRecusado -> scope.HAY_RECUSACION -> the section renders and the
+// numbering closes over it. Nothing asserted this end to end, which is why
+// "the recusación never appears" took a full diagnosis to place (package A,
+// 2026-09-17) — every link was fine and no test said so.
+//
+// The fixture is the demanda's real section sequence after 20260917120000
+// removed the copias clause, condensed to its headings. The cautelar sits at
+// VII because escrito-render splices its fragment in before the single render.
+describe("la recusación, de la config al documento numerado", () => {
+  const CUERPO = [
+    "{{SECCION}}.- PERSONERIA.-",
+    "{{SECCION}}.- OBJETO.-",
+    "{{SECCION}}.- ANTECEDENTES.-",
+    "{{SECCION}}.- PREPARACION DE LA VIA EJECUTIVA.-",
+    "{{SECCION}}.- PRUEBA.-",
+    "{{SECCION}}.- MANIFIESTA RESPECTO A LA DOCUMENTACION ACOMPAÑADA.-",
+    "{{SECCION}}.- MEDIDA CAUTELAR:",
+    "{{SECCION}}.- SE EXIMA DE PRESTAR CAUCION.-",
+    "{{SECCION}}.- AUTORIZADOS.-",
+    "{{SECCION}}.- DERECHO.-",
+    "{{#if HAY_RECUSACION}}",
+    "{{SECCION}}.- RECUSA SIN EXPRESIÓN DE CAUSA.-",
+    "vengo a recusar sin expresión de causa a {{JUEZ_RECUSADO}}.-",
+    "{{/if}}",
+    "{{SECCION}}.- PETICIÓN.-",
+  ].join("\n");
+
+  const JUZGADO_RECUSADO = "aaaaaaaa-0000-0000-0000-000000000001";
+  const config: EstudioEscritosConfig = {
+    jueces_recusados: { [JUZGADO_RECUSADO]: "Dra. Marta Lopez" },
+  };
+
+  /** What buildEscritoScope does at lib/data/escrito-render.ts, in one line. */
+  function render(juzgadoId: string | null) {
+    const juez = resolveJuezRecusado(config, juzgadoId);
+    return renderTemplate(CUERPO, {
+      HAY_RECUSACION: juez !== "",
+      ...(juez !== "" ? { JUEZ_RECUSADO: juez } : {}),
+    });
+  }
+
+  it("imprime el apartado, con el nombre cargado, para un juzgado de la lista", () => {
+    const out = render(JUZGADO_RECUSADO);
+    expect(out).toContain("XI.- RECUSA SIN EXPRESIÓN DE CAUSA.-");
+    expect(out).toContain("a Dra. Marta Lopez.-");
+    // Y lo que sigue corre detrás, sin saltear numeral.
+    expect(out).toContain("XII.- PETICIÓN.-");
+  });
+
+  it("omite el apartado para un juzgado que no está en la lista, y cierra la numeración", () => {
+    const out = render("aaaaaaaa-0000-0000-0000-00000000ffff");
+    expect(out).not.toContain("RECUSA SIN EXPRESIÓN DE CAUSA");
+    // PETICIÓN sube de XII a XI: sin esto el escrito saldría X, XII.
+    expect(out).toContain("XI.- PETICIÓN.-");
+    expect(out).not.toContain("XII.-");
+  });
+
+  it("omite el apartado para un caso sin juzgado cargado", () => {
+    // Siete casos activos no tienen juzgado_id (medido 2026-09-17). Correcto,
+    // y silencioso: no es un dato faltante del escrito.
+    expect(render(null)).not.toContain("RECUSA SIN EXPRESIÓN DE CAUSA");
+    expect(render(null)).toContain("XI.- PETICIÓN.-");
+  });
+
+  it("nunca deja un [JUEZ_RECUSADO] a la vista cuando no hay recusación", () => {
+    // Un juzgado sin recusar no es un dato faltante: es un apartado que no va.
+    expect(extractUnresolved(render(null))).toEqual([]);
+    expect(extractUnresolved(render(JUZGADO_RECUSADO))).toEqual([]);
+  });
+
+  it("numera el mismo cuerpo igual en dos renders seguidos", () => {
+    expect(render(JUZGADO_RECUSADO)).toBe(render(JUZGADO_RECUSADO));
+  });
+});
+
+// La carátula del convenio, desde 20260917120000. El espacio va ADENTRO del
+// bloque: "{{DEMANDADO_MAYUSCULA}}{{#if …}} Y OTRO/A{{/if}} S/ …". Afuera
+// dejaría un espacio doble en todo convenio sin codemandados.
+describe("la carátula del convenio con codemandados", () => {
+  const CARATULA =
+    '"{{EMPRESA}} C/ {{DEMANDADO_MAYUSCULA}}{{#if HAY_CODEMANDADOS}} Y OTRO/A{{/if}} S/ COBRO EJECUTIVO"';
+
+  it("agrega Y OTRO/A cuando el caso tiene codemandados", () => {
+    expect(
+      renderTemplate(CARATULA, {
+        EMPRESA: "EMPRESA S.A.",
+        DEMANDADO_MAYUSCULA: "APELLIDO NOMBRE",
+        HAY_CODEMANDADOS: true,
+      }),
+    ).toBe('"EMPRESA S.A. C/ APELLIDO NOMBRE Y OTRO/A S/ COBRO EJECUTIVO"');
+  });
+
+  it("no deja espacio doble cuando el demandado está solo", () => {
+    expect(
+      renderTemplate(CARATULA, {
+        EMPRESA: "EMPRESA S.A.",
+        DEMANDADO_MAYUSCULA: "APELLIDO NOMBRE",
+        HAY_CODEMANDADOS: false,
+      }),
+    ).toBe('"EMPRESA S.A. C/ APELLIDO NOMBRE S/ COBRO EJECUTIVO"');
   });
 });
