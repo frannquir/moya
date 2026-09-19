@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import { EmpresasEditor } from "./empresas-editor";
 import { EncargadoEditor } from "./encargado-editor";
 import { JuecesRecusadosEditor, type RecusadoRow } from "./jueces-recusados-editor";
 import { type CourtEntry } from "@/lib/data/juzgados";
+import { CampoError, type ErroresPorCampo } from "./campo-error";
 import {
   updateEstudioEscritosConfig,
   type EscritosConfigState,
@@ -66,42 +67,67 @@ export function EscritosConfigForm({
     null,
   );
 
-  const errors = state && "errors" in state ? state.errors : [];
-  const saved = state !== null && "ok" in state;
+  // Gotcha #47: a useActionState result outlives the text it describes. Once the
+  // head starts typing again, last save's verdict is about something that is no
+  // longer on screen, so it goes away. `onChange` on the form catches every text
+  // input; a Radix Select writes through a hidden field and does not bubble one,
+  // which is the known edge of this.
+  //
+  // Adjusted during render rather than in an effect (React's own "adjusting
+  // state when a prop changes" pattern): a new action result IS the news, so
+  // clearing the flag in an effect would render the stale verdict once first.
+  const [editadoDesdeGuardar, setEditadoDesdeGuardar] = useState(false);
+  const [ultimoResultado, setUltimoResultado] = useState(state);
+  if (ultimoResultado !== state) {
+    setUltimoResultado(state);
+    setEditadoDesdeGuardar(false);
+  }
+
+  const vigente = state !== null && !editadoDesdeGuardar;
+  const errores = vigente ? state.errores : [];
+  const guardadoLimpio = vigente && errores.length === 0;
+
+  /** The message for one input, by the anchor the action gave it. */
+  const errorDe: ErroresPorCampo = (campo) =>
+    errores.find((e) => e.campo === campo)?.mensaje;
 
   // The alert is at the top of a form long enough that its last editor — jueces
-  // recusados — is a screenful below the fold, and a rejected save leaves the
-  // page exactly where it was. A head who added a judge, pressed Guardar and saw
-  // nothing happen concluded the recusación feature was broken; nothing was
-  // stored because ONE unrelated invalid CUIT rejects the whole config (package A
-  // diagnosis, 2026-09-17). So the alert comes to the reader.
+  // recusados — is a screenful below the fold, and a save leaves the page exactly
+  // where it was. A head who added a judge, pressed Guardar and saw nothing
+  // happen concluded the recusación feature was broken (package A diagnosis,
+  // 2026-09-17). So the summary comes to the reader; the detail is next to each
+  // input.
   const alerta = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (errors.length > 0) {
+    if (state !== null && state.errores.length > 0) {
       alerta.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, [state, errors.length]);
+  }, [state]);
 
   return (
-    <form action={formAction} className="space-y-6">
-      {errors.length > 0 && (
+    <form
+      action={formAction}
+      onChange={() => setEditadoDesdeGuardar(true)}
+      className="space-y-6"
+    >
+      {errores.length > 0 && (
         <Alert variant="destructive" ref={alerta}>
           <AlertDescription>
             <p className="font-medium">
-              No se guardó la configuración. Lo que cargaste sigue en el
-              formulario: corregí {errors.length === 1 ? "esto" : "estos puntos"}{" "}
-              y volvé a guardar.
+              Se guardó todo menos{" "}
+              {errores.length === 1 ? "un campo" : `${errores.length} campos`}.
+              Cada uno tiene el detalle al lado, y quedó como estaba:
             </p>
             <ul className="list-disc space-y-1 pl-4 text-sm">
-              {errors.map((e) => (
-                <li key={e}>{e}</li>
+              {errores.map((e) => (
+                <li key={e.campo}>{e.mensaje}</li>
               ))}
             </ul>
           </AlertDescription>
         </Alert>
       )}
 
-      {saved && (
+      {guardadoLimpio && (
         <Alert>
           <AlertDescription>Configuración guardada.</AlertDescription>
         </Alert>
@@ -120,7 +146,7 @@ export function EscritosConfigForm({
                 de todos los escritos, sin importar quién los genere.
               </p>
             </div>
-            <EncargadoEditor initial={encargado} />
+            <EncargadoEditor initial={encargado} errorDe={errorDe} />
           </div>
 
           <div className="space-y-3">
@@ -139,8 +165,8 @@ export function EscritosConfigForm({
             <div>
               <div className="text-sm font-medium">Cuenta de honorarios</div>
               <p className="text-xs text-muted-foreground">
-                Adónde se transfieren los honorarios regulados. Los escritos la
-                arman en una sola línea.
+                Adónde se transfieren los honorarios regulados. El CUIT y el
+                titular salen del Encargado.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -154,7 +180,7 @@ export function EscritosConfigForm({
                 name="cuenta_banco"
                 label="Banco"
                 defaultValue={cuenta.banco}
-                placeholder="Banco de la Nación Argentina"
+                placeholder="Galicia"
               />
               <CampoCuenta
                 name="cuenta_numero"
@@ -168,6 +194,7 @@ export function EscritosConfigForm({
                 defaultValue={cuenta.cbu}
                 placeholder="22 dígitos"
                 inputMode="numeric"
+                error={errorDe("cuenta.cbu")}
               />
               <CampoCuenta
                 name="cuenta_alias"
@@ -175,21 +202,9 @@ export function EscritosConfigForm({
                 defaultValue={cuenta.alias}
                 placeholder={CUENTA_HONORARIOS_DEFAULT.alias}
               />
-              <CampoCuenta
-                name="cuenta_dni"
-                label="DNI del titular"
-                defaultValue={cuenta.dni}
-                placeholder={CUENTA_HONORARIOS_DEFAULT.dni}
-                inputMode="numeric"
-              />
-              <div className="sm:col-span-2">
-                <CampoCuenta
-                  name="cuenta_titular"
-                  label="Titular"
-                  defaultValue={cuenta.titular}
-                  placeholder={CUENTA_HONORARIOS_DEFAULT.titular}
-                />
-              </div>
+              {/* Ni DNI ni titular: los dos salen del Encargado de arriba. Un
+                  CUIT y un nombre tipeados dos veces son un CUIT y un nombre que
+                  pueden no coincidir, y esto se imprime en un escrito. */}
             </div>
             {/* Keeps a value written before the split from being dropped. */}
             <input type="hidden" name="cuenta_texto" defaultValue={cuenta.texto ?? ""} />
@@ -206,7 +221,7 @@ export function EscritosConfigForm({
                 se usan en el encabezado.
               </p>
             </div>
-            <EmpresasEditor initial={empresas} />
+            <EmpresasEditor initial={empresas} errorDe={errorDe} />
           </div>
 
           <div className="space-y-3">
@@ -232,7 +247,11 @@ export function EscritosConfigForm({
                 juzgados civiles y comerciales.
               </p>
             </div>
-            <JuecesRecusadosEditor initial={recusados} courtIndex={courtIndex} />
+            <JuecesRecusadosEditor
+              initial={recusados}
+              courtIndex={courtIndex}
+              errorDe={errorDe}
+            />
           </div>
         </div>
       </div>
@@ -242,14 +261,13 @@ export function EscritosConfigForm({
           is far enough away that it used to read as "nothing happened". */}
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit">Guardar configuración</Button>
-        {errors.length > 0 && (
+        {errores.length > 0 && (
           <span className="text-sm font-medium text-destructive">
-            No se guardó nada:{" "}
-            {errors.length === 1 ? "hay 1 error" : `hay ${errors.length} errores`}{" "}
-            arriba.
+            Se guardó todo menos{" "}
+            {errores.length === 1 ? "1 campo" : `${errores.length} campos`}.
           </span>
         )}
-        {saved && (
+        {guardadoLimpio && (
           <span className="text-sm text-muted-foreground">Guardado.</span>
         )}
       </div>
@@ -263,12 +281,14 @@ function CampoCuenta({
   defaultValue,
   placeholder,
   inputMode,
+  error,
 }: {
   name: string;
   label: string;
   defaultValue: string;
   placeholder?: string;
   inputMode?: "numeric";
+  error?: string;
 }) {
   return (
     <div className="space-y-2">
@@ -279,7 +299,9 @@ function CampoCuenta({
         defaultValue={defaultValue}
         placeholder={placeholder}
         inputMode={inputMode}
+        aria-invalid={error ? true : undefined}
       />
+      <CampoError mensaje={error} />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { formatDni } from "@/lib/domain/cuil";
 import { viaOf } from "@/lib/domain/ejecutado";
 import { textoDeInactividad, urgenciaDeCaso } from "@/lib/domain/urgencia";
 import { type Tables } from "@/lib/supabase/db-helpers";
-import { type Juzgado } from "@/lib/data/juzgados";
+import { formatOrganismo, type Juzgado } from "@/lib/data/juzgados";
 
 /** Read-only identity strip, sticky under the app header (h-14). */
 export function EjecutadoHeader({
@@ -21,7 +21,7 @@ export function EjecutadoHeader({
 }) {
   const via = viaOf(ejecutado.via);
   const dni = ejecutado.documento ? formatDni(ejecutado.documento) : "";
-  const foro = juzgado?.organismo ?? ejecutado.juzgado ?? "";
+  const foro = formatOrganismo(juzgado?.organismo) || ejecutado.juzgado || "";
   const inactividad = textoDeInactividad(ejecutado.updated_at);
 
   return (

@@ -9,10 +9,13 @@ import { requireUser } from "@/lib/data/auth";
 import { archiveGmailConnection } from "@/lib/data/mail";
 import { updateEscritosConfig } from "@/lib/data/estudio";
 import {
+  aplicarConfigParcial,
   mergeEscritosConfig,
   parseAutorizados,
+  validarDomicilioElectronico,
   type AbogadoConfig,
   type CuentaHonorariosConfig,
+  type ErrorDeConfig,
   type EstudioEscritosConfig,
 } from "@/lib/domain/escritos-config";
 import { formatCuil, isValidCuil } from "@/lib/domain/cuil";
@@ -141,8 +144,15 @@ export async function updateEstudio(formData: FormData) {
  *
  * Every problem is collected in one pass, so a second mistake is not discovered
  * only after retyping the form to fix the first.
+ *
+ * Since 2026-09-17 a save ALWAYS happens: `errores` lists what was left out and
+ * where, and `rechazadas` names the keys that kept their stored value. There is
+ * no "nothing was written" result any more — one bad CUIT used to block a
+ * recused judge, an autorizado and a phone number with it (gotcha #51).
  */
-export type EscritosConfigState = { ok: true } | { errors: string[] } | null;
+export type EscritosConfigState =
+  | { ok: true; errores: ErrorDeConfig[]; rechazadas: string[] }
+  | null;
 
 type EmpresaRow = {
   clave: string;
@@ -223,7 +233,10 @@ export async function updateEstudioEscritosConfig(
     .maybeSingle();
   if (!estudio) throw new Error("Only the head can edit estudio settings");
 
-  const errors: string[] = [];
+  // Each problem carries the config key it blocks and the form field that caused
+  // it, so aplicarConfigParcial can leave that key alone and the editor can put
+  // the message next to the right input.
+  const errores: ErrorDeConfig[] = [];
 
   const domicilios_procesales: Record<string, string> = {};
   try {
@@ -254,27 +267,39 @@ export async function updateEstudioEscritosConfig(
   > = {};
   const vistas = new Set<string>();
   for (const fila of filas) {
+    const indice = filas.indexOf(fila);
     if (fila.clave === "") {
       // A row with data but no clave is the retype accident: the empresa used to
       // be dropped here and the save still said "Configuración guardada".
       if (empresaTieneDatos(fila)) {
         const nombre = fila.razonSocial !== "" ? `"${fila.razonSocial}"` : "una empresa";
-        errors.push(
-          `Falta la clave de ${nombre}. La clave es lo que se guarda en el ejecutado; sin ella la empresa no se puede guardar.`,
-        );
+        errores.push({
+          clave: "empresas",
+          campo: `empresa.${indice}.clave`,
+          fila: { empresa: "" },
+          mensaje: `Falta la clave de ${nombre}. La clave es lo que se guarda en el ejecutado; sin ella la empresa no se puede guardar.`,
+        });
       }
       continue;
     }
     if (vistas.has(fila.clave)) {
-      errors.push(
-        `La clave "${fila.clave}" está repetida. Cada empresa necesita una clave distinta.`,
-      );
+      errores.push({
+        clave: "empresas",
+        campo: `empresa.${indice}.clave`,
+        fila: { empresa: fila.clave },
+        mensaje: `La clave "${fila.clave}" está repetida. Cada empresa necesita una clave distinta.`,
+      });
       continue;
     }
     vistas.add(fila.clave);
 
     if (fila.cuit !== "" && !isValidCuil(fila.cuit)) {
-      errors.push(`El CUIT de "${fila.clave}" no es válido. Revisá el dígito verificador.`);
+      errores.push({
+        clave: "empresas",
+        campo: `empresa.${indice}.cuit`,
+        fila: { empresa: fila.clave },
+        mensaje: `El CUIT de "${fila.clave}" no es válido. Revisá el dígito verificador.`,
+      });
     }
 
     empresas[fila.clave] = {
@@ -297,11 +322,17 @@ export async function updateEstudioEscritosConfig(
       if (clave in empresas) continue;
       const casos = await contarCasosPorEmpresa(supabase, clave);
       if (casos > 0) {
-        errors.push(
-          `La empresa "${clave}" la usan ${casos} caso${casos === 1 ? "" : "s"}. ` +
+        // No `fila`: this one blocks the whole empresas key on purpose. A rename
+        // spans two rows, so keeping the stored one AND writing the new one
+        // would leave the estudio with two empresas where it wanted one.
+        errores.push({
+          clave: "empresas",
+          campo: "empresas",
+          mensaje:
+            `La empresa "${clave}" la usan ${casos} caso${casos === 1 ? "" : "s"}. ` +
             "Si la borrás o le cambiás la clave, esos escritos quedan sin razón social, " +
             "CUIT ni domicilio legal.",
-        );
+        });
       }
     }
   }
@@ -317,23 +348,35 @@ export async function updateEstudioEscritosConfig(
       for (const row of parsed) {
         const juzgadoId = String(row?.juzgadoId ?? "").trim();
         const nombreJuez = String(row?.nombre ?? "").trim();
+        const indice = parsed.indexOf(row);
         if (juzgadoId === "" && nombreJuez === "") continue;
+        // A bad row is dropped and named; the judges that ARE complete still
+        // save. The form keeps every row on screen either way, so nothing the
+        // head typed is lost by the drop.
         if (juzgadoId === "") {
-          errors.push(
-            `Falta el juzgado del juez recusado "${nombreJuez}". Elegí el departamento y el juzgado.`,
-          );
+          errores.push({
+            clave: "jueces_recusados",
+            campo: `juez.${indice}.juzgado`,
+            mensaje: `Falta el juzgado del juez recusado "${nombreJuez}". Elegí el departamento y el juzgado.`,
+          });
           continue;
         }
         if (nombreJuez === "") {
-          errors.push(
-            "Falta el nombre de un juez recusado. Sin nombre la demanda no puede imprimir la recusación.",
-          );
+          errores.push({
+            clave: "jueces_recusados",
+            campo: `juez.${indice}.nombre`,
+            mensaje:
+              "Falta el nombre de un juez recusado. Sin nombre la demanda no puede imprimir la recusación.",
+          });
           continue;
         }
         if (juzgadoId in jueces_recusados) {
-          errors.push(
-            "Un mismo juzgado aparece dos veces en los jueces recusados. Dejá uno solo.",
-          );
+          errores.push({
+            clave: "jueces_recusados",
+            campo: `juez.${indice}.juzgado`,
+            mensaje:
+              "Un mismo juzgado aparece dos veces en los jueces recusados. Dejá uno solo.",
+          });
           continue;
         }
         jueces_recusados[juzgadoId] = nombreJuez;
@@ -349,7 +392,9 @@ export async function updateEstudioEscritosConfig(
   const { autorizados, errors: erroresAutorizados } = parseAutorizados(
     String(formData.get("autorizados_json") ?? ""),
   );
-  errors.push(...erroresAutorizados);
+  for (const mensaje of erroresAutorizados) {
+    errores.push({ clave: "autorizados", campo: "autorizados", mensaje });
+  }
 
   // The apoderado every escrito is presented by. Stored verbatim; each field
   // falls back to a visible placeholder at render time.
@@ -374,7 +419,25 @@ export async function updateEstudioEscritosConfig(
   }
 
   if (encargado.cuit && !isValidCuil(encargado.cuit)) {
-    errors.push("El CUIT del encargado no es válido. Revisá el dígito verificador.");
+    errores.push({
+      clave: "encargado",
+      campo: "encargado.cuit",
+      mensaje: "El CUIT del encargado no es válido. Revisá el dígito verificador.",
+    });
+  }
+
+  // The SCBA notification address is printed in the encabezado of every escrito
+  // the firm files, and until now nothing looked at it at all — which is how a
+  // value with "scva" for "scba" reached a real estudio and stayed there.
+  const errorDomicilioElectronico = validarDomicilioElectronico(
+    encargado.domicilioElectronico,
+  );
+  if (errorDomicilioElectronico) {
+    errores.push({
+      clave: "encargado",
+      campo: "encargado.domicilioElectronico",
+      mensaje: errorDomicilioElectronico,
+    });
   }
 
   const campo = (k: string) => String(formData.get(k) ?? "").trim();
@@ -385,8 +448,6 @@ export async function updateEstudioEscritosConfig(
     numero: campo("cuenta_numero"),
     cbu: campo("cuenta_cbu").replace(/\D/g, ""),
     alias: campo("cuenta_alias"),
-    dni: campo("cuenta_dni"),
-    titular: campo("cuenta_titular"),
   };
   // Carried from the hidden field so a value written before the split is not
   // dropped by a save that leaves the parts empty.
@@ -396,14 +457,12 @@ export async function updateEstudioEscritosConfig(
   // Length only. A CBU has its own check digits, but a validator that rejects a
   // correct number is worse than none — and 22 digits cannot false-positive.
   if (cuenta_honorarios.cbu !== "" && cuenta_honorarios.cbu.length !== 22) {
-    errors.push(
-      `El CBU tiene que tener 22 dígitos y tiene ${cuenta_honorarios.cbu.length}.`,
-    );
+    errores.push({
+      clave: "cuenta_honorarios",
+      campo: "cuenta.cbu",
+      mensaje: `El CBU tiene que tener 22 dígitos y tiene ${cuenta_honorarios.cbu.length}.`,
+    });
   }
-
-  // Nothing is written while anything is wrong: a half-saved config is harder to
-  // reason about than a rejected one. The form keeps every value either way.
-  if (errors.length > 0) return { errors };
 
   // Only the keys this form actually rendered, each gated on the field that
   // carries it. mergeEscritosConfig carries the rest of the column through
@@ -414,20 +473,25 @@ export async function updateEstudioEscritosConfig(
   // was the only thing stopping it, and `autorizados` would have been the sixth
   // key to depend on someone reading it. Now a key can only be lost by removing
   // it from EstudioEscritosConfig, which does not compile.
-  const patch: Partial<EstudioEscritosConfig> = {};
-  if (formData.has("cuenta_texto")) patch.cuenta_honorarios = cuenta_honorarios;
-  if (formData.has("encargado_json")) patch.encargado = encargado;
+  const candidatos: Partial<EstudioEscritosConfig> = {};
+  if (formData.has("cuenta_texto")) candidatos.cuenta_honorarios = cuenta_honorarios;
+  if (formData.has("encargado_json")) candidatos.encargado = encargado;
   if (formData.has("domicilios_json")) {
-    patch.domicilios_procesales = domicilios_procesales;
+    candidatos.domicilios_procesales = domicilios_procesales;
   }
-  if (formData.has("empresas_json")) patch.empresas = empresas;
+  if (formData.has("empresas_json")) candidatos.empresas = empresas;
   if (formData.has("jueces_recusados_json")) {
-    patch.jueces_recusados = jueces_recusados;
+    candidatos.jueces_recusados = jueces_recusados;
   }
   // Assigning `undefined` is deliberate and is NOT the same as skipping the
   // line: mergeEscritosConfig reads Object.hasOwn, so this removes the override
   // and puts the list back to the estudio's members.
-  if (formData.has("autorizados_json")) patch.autorizados = autorizados;
+  if (formData.has("autorizados_json")) candidatos.autorizados = autorizados;
+
+  // Everything that validated is written; a key with a problem keeps its stored
+  // value and says so. The decision itself is a pure function so it is covered
+  // by Vitest rather than only by clicking through a form.
+  const { patch, rechazadas } = aplicarConfigParcial(configPrevia, candidatos, errores);
 
   await updateEscritosConfig(
     supabase,
@@ -436,7 +500,7 @@ export async function updateEstudioEscritosConfig(
   );
 
   revalidatePath("/estudio");
-  return { ok: true };
+  return { ok: true, errores, rechazadas };
 }
 
 // --- Valores de referencia (JUS, tasas BCRA) --------------------------------

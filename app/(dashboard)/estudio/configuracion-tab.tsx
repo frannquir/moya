@@ -10,9 +10,11 @@ import {
 } from "@/components/ui/card";
 import {
   cuentaHonorariosPartes,
+  faltantesDeConfig,
   type EstudioEscritosConfig,
   type MiembroAutorizado,
 } from "@/lib/domain/escritos-config";
+import { FaltantesConfig } from "./faltantes-config";
 import { EscritosConfigForm } from "./escritos-config-form";
 import { type CourtEntry } from "@/lib/data/juzgados";
 import { SoloDueno } from "./solo-dueno";
@@ -30,6 +32,7 @@ export function ConfiguracionTab({
   jus,
   tasas,
   historial,
+  departamentosSinDomicilio,
   miembros,
 }: {
   nombre: string;
@@ -39,6 +42,8 @@ export function ConfiguracionTab({
   jus: JusConfig | null;
   tasas: TasaRowFull[];
   historial: ConfigHistorialEntry[];
+  /** Con casos activos y sin domicilio procesal: lo único que no sale del JSONB. */
+  departamentosSinDomicilio: { departamento: string; casos: number }[];
   /**
    * Passed down rather than fetched in the client, the same way courtIndex is:
    * the autorizados editor seeds and restores from the member list, and
@@ -80,6 +85,13 @@ export function ConfiguracionTab({
 
   return (
     <div className="space-y-4">
+      {/* Arriba de todo: lo que va a salir entre corchetes en los escritos, en
+          la pantalla donde se completa. */}
+      <FaltantesConfig
+        faltantes={faltantesDeConfig(config)}
+        departamentosSinDomicilio={departamentosSinDomicilio}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>Nombre del estudio</CardTitle>

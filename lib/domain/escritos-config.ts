@@ -1,6 +1,7 @@
 
 
 import { type Empresa } from "./escritos";
+import { formatCuil, isValidCuil } from "./cuil";
 
 /**
  * The IVA conditions a lawyer can be under, in the order the forms show them.
@@ -59,49 +60,87 @@ export type CuentaHonorariosConfig = {
   numero: string;
   cbu: string;
   alias: string;
-  dni: string;
-  titular: string;
   texto?: string;
 };
 
+/**
+ * Placeholders for the form's inputs ONLY — never a fallback for a document.
+ *
+ * There used to be a `CUENTA_HONORARIOS` built from these, which is what an
+ * unconfigured estudio printed into a filing: "CBU: 0000000000000000000000,
+ * DNI: 00000000, Alias de CBU: ALIAS.CBU, de titularidad de NOMBRE Y APELLIDO",
+ * with nothing warning about it. That is the same defect buildEncabezado already
+ * removed for "CUIT Nº 00-00000000-0" — a visible marker is ugly, a plausible
+ * false account number in a court filing is not recoverable. It is gone; an
+ * unconfigured account resolves to "" so [CUENTA_HONORARIOS] shows.
+ */
 export const CUENTA_HONORARIOS_DEFAULT: CuentaHonorariosConfig = {
   tipo: "Caja de ahorro",
   banco: "__________",
   numero: "0000000-0 000-0",
   cbu: "0000000000000000000000",
   alias: "ALIAS.CBU",
-  dni: "00000000",
-  titular: "NOMBRE Y APELLIDO",
 };
 
 /**
  * The one line the templates expect. Both call sites need a noun phrase — "a la
  * {{CUENTA_HONORARIOS}}" and "en la siguiente cuenta: {{CUENTA_HONORARIOS}}" —
  * so an empty part drops its whole clause instead of leaving "CBU: ,".
+ *
+ * The holder is the APODERADO, not a second pair of fields (Fran, 2026-09-17:
+ * *"we should change dni inside honorarios for cuit, it should be the
+ * encargado's cuit"*). A CUIT and a name typed twice are a CUIT and a name that
+ * can disagree, and this one is printed into a filing — so both are read from
+ * `escritos_config.encargado` at resolve time and the form no longer asks.
+ *
+ * Their two markers are deliberate and are the one exception to "an empty part
+ * drops its clause": a configured account whose holder is unknown must say so
+ * out loud, and Part 4 lists it before the lawyer generates anything. An account
+ * with no parts of its own at all still returns "" — that is the whole
+ * [CUENTA_HONORARIOS] marker, which is louder still.
  */
 export function formatCuentaHonorarios(
   cuenta: Partial<CuentaHonorariosConfig> | null | undefined,
+  apoderado?: Partial<AbogadoConfig> | null,
 ): string {
   const v = (s: string | null | undefined) => (s ?? "").trim();
   if (!cuenta) return "";
 
-  const cabecera = [v(cuenta.tipo), v(cuenta.banco) && `del Banco ${v(cuenta.banco)}`]
-    .filter(Boolean)
-    .join(" ");
+  const banco = v(cuenta.banco);
+  // "del Banco " + "Banco Galicia" printed "del Banco Banco Galicia" in a real
+  // convenio. The stored value is whatever the estudio calls its bank, so the
+  // prefix is what gives way — accents and case included, because "BANCO
+  // NACIÓN" is the same word.
+  const conBanco =
+    banco === ""
+      ? ""
+      : /^banco\b/.test(normalizeKey(banco))
+        ? `del ${banco}`
+        : `del Banco ${banco}`;
+
+  const cabecera = [v(cuenta.tipo), conBanco].filter(Boolean).join(" ");
+  const propias = [
+    cabecera,
+    v(cuenta.numero) && `Cuenta Nro: ${v(cuenta.numero)}`,
+    v(cuenta.cbu) && `CBU: ${v(cuenta.cbu)}`,
+    v(cuenta.alias) && `Alias de CBU: ${v(cuenta.alias)}`,
+  ].filter(Boolean);
+  if (propias.length === 0) return "";
+
+  const cuit = formatCuil(v(apoderado?.cuit));
+  const titular = v(apoderado?.nombre);
 
   return [
     cabecera,
     v(cuenta.numero) && `Cuenta Nro: ${v(cuenta.numero)}`,
     v(cuenta.cbu) && `CBU: ${v(cuenta.cbu)}`,
-    v(cuenta.dni) && `DNI: ${v(cuenta.dni)}`,
+    `CUIT: ${isValidCuil(cuit) ? cuit : "[ABOGADO_CUIT]"}`,
     v(cuenta.alias) && `Alias de CBU: ${v(cuenta.alias)}`,
-    v(cuenta.titular) && `de titularidad de ${v(cuenta.titular)}`,
+    `de titularidad de ${titular !== "" ? titular : "[ABOGADO_NOMBRE]"}`,
   ]
     .filter(Boolean)
     .join(", ");
 }
-
-export const CUENTA_HONORARIOS = formatCuentaHonorarios(CUENTA_HONORARIOS_DEFAULT);
 
 export type EmpresaConfig = {
   razonSocial: string;
@@ -224,6 +263,177 @@ export function mergeEscritosConfig(
 }
 
 /**
+ * One thing wrong with a submitted config, tied to BOTH the form field that
+ * caused it and the config key it blocks.
+ *
+ * `campo` is an anchor, not a label: the editors match on it to show the message
+ * next to the offending input. Free-form by design — the action names it and the
+ * editor that renders that input matches it, and nothing else reads it.
+ */
+export type ErrorDeConfig = {
+  /** The key this problem keeps out of the patch. */
+  clave: keyof EstudioEscritosConfig;
+  /** Where the form puts the message: "encargado.cuit", "empresa.2.cuit", "cuenta.cbu"… */
+  campo: string;
+  mensaje: string;
+  /**
+   * Present only for an EMPRESA ROW problem, carrying that row's clave. The row
+   * keeps whatever was stored for it (or is dropped, when nothing was) and the
+   * rest of the empresas still save. An empresa error WITHOUT this blocks the
+   * whole `empresas` key — which is what the "empresa in use" guard needs: a
+   * rename spans rows, so keeping the old row and adding the new one would
+   * silently leave the estudio with two empresas where it wanted one.
+   */
+  fila?: { empresa: string };
+};
+
+export type ConfigParcial = {
+  /** What mergeEscritosConfig should be called with. */
+  patch: Partial<EstudioEscritosConfig>;
+  /** Keys the form posted and that were written, for the "se guardó" message. */
+  guardadas: (keyof EstudioEscritosConfig)[];
+  /** Keys the form posted and that kept their stored value. */
+  rechazadas: (keyof EstudioEscritosConfig)[];
+};
+
+/**
+ * Decide what a rejected value costs: itself, and nothing else.
+ *
+ * Until 2026-09-17 `updateEstudioEscritosConfig` wrote NOTHING when any value
+ * failed, so one empresa CUIT with a bad check digit meant the head could not
+ * save a recused judge, an autorizado or a phone number — and package A found
+ * that this is exactly what happened (gotcha #51). Fran's rule after reading
+ * that report: *"todo lo que es config no debería importar si el sistema está
+ * bien hecho"*. A bad value may be rejected and flagged; it may not take
+ * unrelated keys down with it.
+ *
+ * So: a key with an error stays out of the patch and keeps its stored value,
+ * and every other posted key is written. `empresas` goes one level finer,
+ * because a catalogue of several companies is not one value — see `fila` above.
+ *
+ * Pure on purpose: the action parses FormData, this decides, and the decision is
+ * covered by Vitest rather than only by clicking through a long form.
+ */
+export function aplicarConfigParcial(
+  previa: EstudioEscritosConfig | null | undefined,
+  candidatos: Partial<EstudioEscritosConfig>,
+  errores: ErrorDeConfig[],
+): ConfigParcial {
+  const patch: Partial<EstudioEscritosConfig> = {};
+  const guardadas: (keyof EstudioEscritosConfig)[] = [];
+  const rechazadas: (keyof EstudioEscritosConfig)[] = [];
+
+  for (const clave of ESCRITOS_CONFIG_KEYS) {
+    if (!Object.hasOwn(candidatos, clave)) continue;
+    const propios = errores.filter((e) => e.clave === clave);
+
+    if (propios.length === 0) {
+      patch[clave] = candidatos[clave] as never;
+      guardadas.push(clave);
+      continue;
+    }
+
+    if (clave !== "empresas" || propios.some((e) => !e.fila)) {
+      rechazadas.push(clave);
+      continue;
+    }
+
+    // Row by row: the offending empresa keeps its stored version — or is left
+    // out entirely when it was never stored, which is the only honest answer
+    // for a brand-new row whose CUIT does not check out.
+    const propuestas = { ...((candidatos.empresas ?? {}) as Record<string, EmpresaConfig>) };
+    const guardada = previa?.empresas ?? {};
+    for (const e of propios) {
+      const key = e.fila!.empresa;
+      if (key !== "" && Object.hasOwn(guardada, key)) propuestas[key] = guardada[key];
+      else delete propuestas[key];
+    }
+    patch.empresas = propuestas;
+    guardadas.push(clave);
+  }
+
+  return { patch, guardadas, rechazadas };
+}
+
+/** One thing the escritos will print as a [MARCADOR] until somebody fills it. */
+export type FaltanteConfig = {
+  /** In the firm's words, not the token's. */
+  label: string;
+  /** Which block of /estudio to look in. */
+  seccion: "Encargado" | "Empresas" | "Cuenta de honorarios" | "Autorizados";
+};
+
+/**
+ * Los campos del Encargado que un escrito imprime, con el nombre que tienen en
+ * el formulario. `ivaCondicion` no está porque tiene un default legítimo
+ * ("Responsable Inscripto") y nunca sale como marcador.
+ */
+const CAMPOS_ENCARGADO: [keyof AbogadoConfig, string][] = [
+  ["nombre", "Nombre y apellido"],
+  ["matricula", "Matrícula"],
+  ["legajo", "Legajo previsional"],
+  ["cuit", "CUIT"],
+  ["ibm", "IBM"],
+  ["domicilioElectronico", "Domicilio electrónico"],
+  ["telefono", "Teléfono de contacto"],
+  ["email", "Correo del estudio"],
+];
+
+const CAMPOS_EMPRESA: [keyof EmpresaConfig, string][] = [
+  ["razonSocial", "razón social"],
+  ["domicilioLegal", "domicilio legal"],
+  ["cuit", "CUIT"],
+  ["cuentaBancaria", "cuenta bancaria"],
+];
+
+/**
+ * Lo que la configuración del estudio todavía no tiene, antes de que un escrito
+ * lo imprima entre corchetes.
+ *
+ * Pura a propósito: los departamentos sin domicilio procesal necesitan una
+ * consulta y los agrega quien llama. Aquí solo vive lo que se puede decidir
+ * mirando el JSONB, que es lo que hace que esto se pueda testear.
+ *
+ * El paquete A se salteó este aviso porque la config del estudio real estaba
+ * cargada. Bajo la regla de Fran (2026-09-17) eso es el motivo equivocado: un
+ * sistema bien hecho avisa qué le va a faltar al documento, tenga los datos que
+ * tenga hoy.
+ */
+export function faltantesDeConfig(
+  config: EstudioEscritosConfig | null | undefined,
+): FaltanteConfig[] {
+  const out: FaltanteConfig[] = [];
+  const v = (x: string | null | undefined) => String(x ?? "").trim();
+
+  const enc = config?.encargado ?? {};
+  for (const [campo, label] of CAMPOS_ENCARGADO) {
+    if (v(enc[campo]) === "") out.push({ label, seccion: "Encargado" });
+  }
+
+  for (const [clave, empresa] of Object.entries(config?.empresas ?? {})) {
+    for (const [campo, label] of CAMPOS_EMPRESA) {
+      if (v(empresa?.[campo]) === "") {
+        out.push({ label: `${clave}: ${label}`, seccion: "Empresas" });
+      }
+    }
+  }
+
+  // La misma función que arma el token: si resuelve a "", el escrito imprime
+  // [CUENTA_HONORARIOS]. No se repite la regla, se pregunta.
+  if (resolveCuentaHonorarios(config) === "") {
+    out.push({ label: "Sin cargar", seccion: "Cuenta de honorarios" });
+  }
+
+  // Una lista propia VACÍA es distinta de no tener lista: la segunda deriva de
+  // los miembros, la primera imprime [AUTORIZADOS].
+  if (Array.isArray(config?.autorizados) && config.autorizados.length === 0) {
+    out.push({ label: "La lista quedó vacía", seccion: "Autorizados" });
+  }
+
+  return out;
+}
+
+/**
  * The recused judge for a court, or "" when that court is not on the list.
  * An empty result means section XII is omitted entirely — not that a name is
  * missing, so it is never a [TOKEN] and never a warning.
@@ -234,6 +444,24 @@ export function resolveJuezRecusado(
 ): string {
   if (!juzgadoId) return "";
   return String(config?.jueces_recusados?.[juzgadoId] ?? "").trim();
+}
+
+/**
+ * A free-text config line, ready to be interpolated mid-sentence.
+ *
+ * `cuentaBancaria`, `domicilioLegal` and each `domicilios_procesales` value are
+ * dropped into templates that supply their own punctuation, so a value stored
+ * with a trailing comma printed "…CBU 2990…0006,, de titularidad de" in a real
+ * convenio. The template cannot know, and there are thirty of them; the value is
+ * cleaned where it is resolved instead.
+ *
+ * Commas and semicolons only — a trailing PERIOD is left alone on purpose. It is
+ * how a Spanish address ends an abbreviation ("… Prov. de Bs. As."), and
+ * stripping it would silently corrupt the text to fix punctuation that reads
+ * fine either way. The doubling that actually happens is the comma.
+ */
+export function sinPuntuacionFinal(valor: string | null | undefined): string {
+  return String(valor ?? "").trim().replace(/[\s,;]+$/u, "");
 }
 
 function nonEmpty(value: string | null | undefined): boolean {
@@ -252,11 +480,13 @@ export function resolveCuentaHonorarios(
   config: EstudioEscritosConfig | null | undefined,
 ): string {
   const v = config?.cuenta_honorarios;
-  if (typeof v === "string") return nonEmpty(v) ? v : CUENTA_HONORARIOS;
-  const compuesta = formatCuentaHonorarios(v);
+  if (typeof v === "string") return nonEmpty(v) ? sinPuntuacionFinal(v) : "";
+  const compuesta = formatCuentaHonorarios(v, config?.encargado);
   if (compuesta !== "") return compuesta;
-  if (nonEmpty(v?.texto)) return v!.texto as string;
-  return CUENTA_HONORARIOS;
+  if (nonEmpty(v?.texto)) return sinPuntuacionFinal(v!.texto as string);
+  // "" and not a placeholder account: an unconfigured estudio prints the
+  // [CUENTA_HONORARIOS] marker, which the Demanda card and /estudio both list.
+  return "";
 }
 
 /** The stored value as parts, whichever shape it is in, for the settings form. */
@@ -264,7 +494,7 @@ export function cuentaHonorariosPartes(
   config: EstudioEscritosConfig | null | undefined,
 ): CuentaHonorariosConfig {
   const vacia: CuentaHonorariosConfig = {
-    tipo: "", banco: "", numero: "", cbu: "", alias: "", dni: "", titular: "",
+    tipo: "", banco: "", numero: "", cbu: "", alias: "",
   };
   const v = config?.cuenta_honorarios;
   if (typeof v === "string") return { ...vacia, texto: v };
@@ -480,11 +710,13 @@ export function resolveEmpresa(
   if (!key) return null;
   const override = config?.empresas?.[key];
   if (!override) return null;
+  // Every one of these is interpolated mid-sentence by some template, so the
+  // template's own punctuation is what follows them.
   return {
-    razonSocial: override.razonSocial ?? "",
-    domicilioLegal: override.domicilioLegal ?? "",
+    razonSocial: sinPuntuacionFinal(override.razonSocial),
+    domicilioLegal: sinPuntuacionFinal(override.domicilioLegal),
     cuit: override.cuit ?? "",
-    cuentaBancaria: override.cuentaBancaria ?? "",
+    cuentaBancaria: sinPuntuacionFinal(override.cuentaBancaria),
   };
 }
 
@@ -497,13 +729,48 @@ export function resolveDomicilioProcesal(
   const target = normalizeKey(departamento);
   if (!target) return "";
   const direct = map[departamento.trim()];
-  if (nonEmpty(direct)) return direct as string;
+  if (nonEmpty(direct)) return sinPuntuacionFinal(direct);
   for (const [key, value] of Object.entries(map)) {
-    if (normalizeKey(key) === target && nonEmpty(value)) return value;
+    if (normalizeKey(key) === target && nonEmpty(value)) return sinPuntuacionFinal(value);
   }
   return "";
 }
 
+
+/**
+ * The apoderado's SCBA notification address, or a message saying what is wrong.
+ *
+ * Nothing validated this until 2026-09-17, and it is printed in the encabezado of
+ * every escrito the firm files — which is how a value carrying "scva" for "scba"
+ * reached a real estudio and stayed there.
+ *
+ * The rule is Fran's (2026-09-17): the domain has to be the SCBA's, and nothing
+ * else is checked. Deliberately NOT stricter — the local part is the eleven
+ * digits of a CUIT today, but that is a convention of the portal and not
+ * something this app should refuse a filing over, and both `notificacion` and
+ * `notificaciones` subdomains are accepted because the constituted address is
+ * whatever the portal issued.
+ *
+ * Empty returns null: an unfilled address is a [ABOGADO_DOMICILIO_ELECTRONICO]
+ * marker, not an error.
+ */
+export function validarDomicilioElectronico(
+  valor: string | null | undefined,
+): string | null {
+  const v = String(valor ?? "").trim();
+  if (v === "") return null;
+
+  const at = v.lastIndexOf("@");
+  const dominio = at === -1 ? "" : v.slice(at + 1).toLowerCase();
+  if (dominio === "scba.gov.ar" || dominio.endsWith(".scba.gov.ar")) return null;
+
+  // The typo that actually happened, named outright — "revisá el dominio" sent
+  // a reader looking at the number instead.
+  if (dominio.includes("scva")) {
+    return "El domicilio electrónico dice scva y el dominio de la SCBA es scba.";
+  }
+  return "El domicilio electrónico tiene que terminar en scba.gov.ar.";
+}
 
 export type EncabezadoInput = {
   /**

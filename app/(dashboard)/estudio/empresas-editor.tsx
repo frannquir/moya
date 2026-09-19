@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CuilInput } from "@/components/cuil-input";
+import { CampoError, type ErroresPorCampo } from "./campo-error";
 
 type Row = {
   clave: string;
@@ -24,7 +25,17 @@ function emptyRow(): Row {
   };
 }
 
-export function EmpresasEditor({ initial }: { initial: Row[] }) {
+export function EmpresasEditor({
+  initial,
+  errorDe,
+}: {
+  initial: Row[];
+  /**
+   * Per-row messages from the last save, anchored "empresa.<índice>.<campo>".
+   * A row that failed kept whatever was stored for it; the others saved.
+   */
+  errorDe?: ErroresPorCampo;
+}) {
   const [rows, setRows] = useState<Row[]>(initial.length ? initial : [emptyRow()]);
 
   const update = (i: number, field: keyof Row, value: string) =>
@@ -49,7 +60,9 @@ export function EmpresasEditor({ initial }: { initial: Row[] }) {
                 value={row.clave}
                 onChange={(e) => update(i, "clave", e.target.value)}
                 placeholder="Tartan"
+                aria-invalid={errorDe?.(`empresa.${i}.clave`) ? true : undefined}
               />
+              <CampoError mensaje={errorDe?.(`empresa.${i}.clave`)} />
             </div>
             <Button
               type="button"
@@ -84,7 +97,9 @@ export function EmpresasEditor({ initial }: { initial: Row[] }) {
                 value={row.cuit}
                 onValueChange={(next) => update(i, "cuit", next)}
                 placeholder="30-70123456-8"
+                aria-invalid={errorDe?.(`empresa.${i}.cuit`) ? true : undefined}
               />
+              <CampoError mensaje={errorDe?.(`empresa.${i}.cuit`)} />
             </div>
           </div>
           <div className="space-y-1">

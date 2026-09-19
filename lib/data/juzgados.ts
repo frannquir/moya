@@ -38,6 +38,24 @@ function titleCaseEs(s: string): string {
     .join(" ");
 }
 
+/**
+ * The court's name as the firm writes it in a filing.
+ *
+ * The SCBA publishes "Juzgado en lo Civil y Comercial Nº 2 - Azul" with a
+ * masculine ordinal (º, U+00BA); every escrito the estudio files uses the degree
+ * sign (°, U+00B0). The two look almost identical on screen and are different
+ * characters in the filed text, so the raw string went straight into {{JUZGADO}}
+ * until 2026-09-17 (Fran picked this rendering over the raw one and over
+ * rebuilding the name from tipo + número + localidad — that third option prints
+ * the seat city, and some courts are seated in a city other than the one their
+ * own name carries).
+ *
+ * Nothing else about the string is touched: it is the court's official name.
+ */
+export function formatOrganismo(organismo: string | null | undefined): string {
+  return String(organismo ?? "").replace(/º/g, "°");
+}
+
 function pazPartido(organismo: string): string {
   const after = organismo.split(" - ").slice(1).join(" - ").trim();
   return titleCaseEs(after || organismo);

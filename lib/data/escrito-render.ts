@@ -33,7 +33,7 @@ import {
 import { techoHonorario } from "@/lib/domain/honorarios";
 import { getJusValue } from "@/lib/data/honorarios";
 import { cuilToDni, formatDni, isValidCuil } from "@/lib/domain/cuil";
-import { getById as getJuzgadoById } from "@/lib/data/juzgados";
+import { formatOrganismo, getById as getJuzgadoById } from "@/lib/data/juzgados";
 import { listByEjecutado } from "@/lib/data/codemandados";
 import { listMembers } from "@/lib/data/estudio";
 
@@ -255,7 +255,8 @@ export async function buildEscritoScope(
 
   // Court data (available to any template via {{JUZGADO_*}} / {{JUEZ}}).
   if (juzgado) {
-    scope.JUZGADO = juzgado.organismo ?? "";
+    // The firm's own escritos use N°, the SCBA publishes Nº (Fran, 2026-09-17).
+    scope.JUZGADO = formatOrganismo(juzgado.organismo);
     scope.JUZGADO_DOMICILIO = juzgado.direccion ?? "";
     scope.JUZGADO_LOCALIDAD = juzgado.localidad ?? "";
     scope.JUZGADO_TELEFONO = juzgado.telefono ?? "";

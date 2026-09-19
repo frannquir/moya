@@ -4,7 +4,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { type Juzgado } from "@/lib/data/juzgados";
+import { formatOrganismo, type Juzgado } from "@/lib/data/juzgados";
 
 // Read-only court details for a linked ejecutado. Renders nothing when unlinked.
 export function JuzgadoInfoCard({ juzgado }: { juzgado: Juzgado | null }) {
@@ -22,7 +22,7 @@ export function JuzgadoInfoCard({ juzgado }: { juzgado: Juzgado | null }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{juzgado.organismo}</CardTitle>
+        <CardTitle className="text-base">{formatOrganismo(juzgado.organismo)}</CardTitle>
       </CardHeader>
       <CardContent>
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
