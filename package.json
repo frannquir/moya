@@ -12,6 +12,7 @@
     "db:push": "supabase db push && supabase gen types typescript --linked > lib/supabase/types.ts",
     "migrate": "tsx scripts/migrate-from-old.ts",
     "import-juzgados": "tsx scripts/import-juzgados.ts",
+    "match-juzgados": "tsx scripts/match-juzgados.ts",
     "rematch-emails": "tsx scripts/rematch-emails.ts"
   },
   "dependencies": {

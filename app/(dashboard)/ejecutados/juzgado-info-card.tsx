@@ -6,9 +6,20 @@ import {
 } from "@/components/ui/card";
 import { formatOrganismo, type Juzgado } from "@/lib/data/juzgados";
 
-// Read-only court details for a linked ejecutado. Renders nothing when unlinked.
+// Read-only court details for a linked ejecutado. An unlinked case says so
+// rather than rendering nothing: the convenio prints [JUZGADO] and the recusación
+// cannot fire without a court, and that has to be visible on the case itself. The
+// case's own free text, if any, is already in the header strip.
 export function JuzgadoInfoCard({ juzgado }: { juzgado: Juzgado | null }) {
-  if (!juzgado) return null;
+  if (!juzgado) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base text-muted-foreground">Sin juzgado</CardTitle>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   const rows: Array<[string, string]> = [
     ["Domicilio", juzgado.direccion],

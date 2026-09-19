@@ -516,7 +516,16 @@ function EjecutadoRow({ e }: { e: Ejecutado }) {
         </div>
       </TableCell>
       <TableCell>{e.numero_expediente || "—"}</TableCell>
-      <TableCell>{e.juzgado || "—"}</TableCell>
+      {/* The free text is the firm's own shorthand ("JCYC Nº2") and stays the
+          label; what the column has to expose is the cases with no juzgado_id,
+          which are the ones whose convenio would print [JUZGADO]. */}
+      <TableCell>
+        {e.juzgado_id === null ? (
+          <span className="text-muted-foreground">Sin juzgado</span>
+        ) : (
+          e.juzgado || "—"
+        )}
+      </TableCell>
       {/* Deuda inicial is what is claimed, not what came in, so it stays
           neutral — green is reserved for money actually collected. */}
       <TableCell className="text-right tabular-nums">

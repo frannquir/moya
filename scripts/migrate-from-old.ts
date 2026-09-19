@@ -92,7 +92,7 @@ const EJECUTADOS_HEADERS = [
   "updated_at", "codemandado", "diligenciada", "is_draft", "fecha_mora",
   "empresa", "medida_cautelar", "fecha_deuda", "medida_cautelar_nota",
   "practica_liquidacion", "medida_cautelar_estado", "medida_cautelar_diligenciada",
-  "documento", "domicilio", "dinero_en_cuenta",
+  "documento", "domicilio", "dinero_en_cuenta", "fecha_gastos", "interes_gastos",
 ];
 const COBROS_HEADERS = [
   "id", "user_id", "ejecutado_id", "monto", "estado", "nota", "fecha",
@@ -403,6 +403,12 @@ export function migrateEjecutados(
       numero_expediente: numeroExpediente,
       deuda_inicial: numOrZero(old.deuda_inicial),
       gastos: numOrZero(old.gastos),
+      fecha_gastos: dateOrNull(old.fecha_gastos),
+      // num, NOT numOrZero: the column is nullable and "not entered" must stay
+      // NULL. generateLiquidacion() and the liquidación snapshot both preserve
+      // that distinction on purpose (20260807140000_gastos_interes.sql), so a 0
+      // here would make an un-entered interés look like a decided zero.
+      interes_gastos: num(old.interes_gastos),
       movimiento,
       observaciones: textOr(old.observaciones),
       fecha_mora: dateOrNull(old.fecha_mora),
