@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { type EstudioEscritosConfig } from "@/lib/domain/escritos-config";
 import { requireUser } from "@/lib/data/auth";
-import { getMembership, listMembers } from "@/lib/data/estudio";
+import { departamentosSinDomicilio, getMembership, listMembers } from "@/lib/data/estudio";
 import { getGmailConnection } from "@/lib/data/mail";
 import { getCourtIndex } from "@/lib/data/juzgados";
 import { getJusConfig, listTasas, listConfigHistorial } from "@/lib/data/config";
@@ -55,6 +55,9 @@ export default async function EstudioPage({
   const members = (await listMembers(supabase)) as EstudioMember[];
 
   const connection = await getGmailConnection(supabase);
+
+  // Solo para el head: es el único que ve (y puede completar) la configuración.
+  const sinDomicilio = isHead ? await departamentosSinDomicilio(supabase, config) : [];
 
   // Only the head can edit the config, and only that tab needs the courts or the
   // global reference values.
@@ -130,6 +133,7 @@ export default async function EstudioPage({
             jus={jus}
             tasas={tasas}
             historial={historial}
+            departamentosSinDomicilio={sinDomicilio}
             miembros={members.map((m) => ({
               nombre: m.nombre,
               genero: m.genero,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,6 +17,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { type FaltanteEscrito } from "./escritos-actions";
 import { CuilInput } from "@/components/cuil-input";
 import { onlyDigits, type DemandadoExtraFields } from "@/lib/domain/demanda";
 import { formatArDate } from "@/lib/domain/dates";
@@ -40,6 +49,7 @@ export function DemandaCard({
   initial,
   updateAction,
   regenerarAction,
+  revisarAction,
   ultimaDemanda,
   avisos = [],
   juezRecusado = "",
@@ -50,6 +60,12 @@ export function DemandaCard({
   updateAction: Action;
   /** "Generar de nuevo": recomposes section VII from the current party list. */
   regenerarAction: Action;
+  /**
+   * Renders the demanda without writing it and returns what it would print as a
+   * [MARCADOR]. Runs on click, never on mount — this is the heaviest page in the
+   * app and the answer is only needed when somebody is about to generate.
+   */
+  revisarAction: () => Promise<FaltanteEscrito[]>;
   /** The most recent generated demanda, if there is one. */
   ultimaDemanda?: { id: string; contenido: string } | null;
   /** Parties missing a CUIL or a domicilio — they render as holes in section VII. */
@@ -68,6 +84,25 @@ export function DemandaCard({
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [extra, setExtra] = useState<DemandadoExtraFields>(initial);
+
+  // The pre-generation check. `null` = no dialog; a list = the dialog is open,
+  // and it is always non-empty because an empty answer generates straight away.
+  const [faltantes, setFaltantes] = useState<FaltanteEscrito[] | null>(null);
+  const [revisando, startRevision] = useTransition();
+  const generarRef = useRef<HTMLFormElement>(null);
+
+  const revisarYGenerar = () => {
+    startRevision(async () => {
+      const gaps = await revisarAction();
+      if (gaps.length === 0) generarRef.current?.requestSubmit();
+      else setFaltantes(gaps);
+    });
+  };
+
+  const generarIgual = () => {
+    setFaltantes(null);
+    generarRef.current?.requestSubmit();
+  };
 
   const handleCopy = async () => {
     if (!ultimaDemanda) return;
@@ -196,9 +231,17 @@ export function DemandaCard({
         )}
 
         <div className="flex flex-wrap items-center gap-2">
-          <form action={regenerarAction}>
-            <Button type="submit" size="sm">
-              Generar de nuevo
+          {/* The form is what generates; the button asks first. Kept as a form
+              so generation still goes through the server action that redirects
+              to the new escrito, exactly as before. */}
+          <form action={regenerarAction} ref={generarRef}>
+            <Button
+              type="button"
+              size="sm"
+              disabled={revisando}
+              onClick={revisarYGenerar}
+            >
+              {revisando ? "Revisando…" : "Generar de nuevo"}
             </Button>
           </form>
           {ultimaDemanda ? (
@@ -216,6 +259,62 @@ export function DemandaCard({
             </span>
           )}
         </div>
+
+        {/* Un Dialog y no window.confirm: hay que poder leer la lista y tocar
+            el link que lleva al campo que falta. */}
+        <Dialog
+          open={faltantes !== null}
+          onOpenChange={(abierto) => !abierto && setFaltantes(null)}
+        >
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>
+                La demanda va a salir con{" "}
+                {faltantes?.length === 1 ? "un dato" : `${faltantes?.length ?? 0} datos`}{" "}
+                sin completar
+              </DialogTitle>
+              <DialogDescription>
+                Se imprimen entre corchetes, tal cual, en el escrito.
+              </DialogDescription>
+            </DialogHeader>
+
+            <ul className="space-y-2 text-sm">
+              {(faltantes ?? []).map((f) => (
+                <li key={f.label} className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{f.label}</span>
+                  {f.href ? (
+                    <Link
+                      href={f.href}
+                      className="text-xs underline underline-offset-2"
+                    >
+                      {f.donde === "caso" ? "Cargar en el caso" : "Cargar en el estudio"}
+                    </Link>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">
+                      {f.donde === "estudio"
+                        ? "Lo carga el dueño del estudio"
+                        : "No se puede cargar desde acá"}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setFaltantes(null)}
+              >
+                Cancelar
+              </Button>
+              <Button type="button" size="sm" onClick={generarIgual}>
+                Generar igual
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Collapsible open={open} onOpenChange={setOpen}>
           <CollapsibleTrigger asChild>

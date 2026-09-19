@@ -7,8 +7,20 @@
  * Scope: ejecutados (incl. drafts) + cobros_pagos for Estudio Galante only (two old
  * users). Liquidaciones are NOT copied from the old DB — they're regenerated (execute
  * mode only) with the SAME generateLiquidacion() the app calls on create/update, so the
- * interest math has one source of truth. Honorarios are NOT migrated — Fran enters his
- * handful manually after the redesign.
+ * interest math has one source of truth.
+ *
+ * Honorarios (added 2026-09-19, Fran): the BASE is never copied. Every non-archived
+ * ejecutado gets one at 7 JUS from trg_ejecutado_default_honorario, and per Fran the
+ * two old rows at 2.5 / 3.5 JUS collapse into that same default — so there is nothing
+ * to transfer for 24 of the 26 old honorarios. What IS copied is the collection
+ * history: honorarios_pagos. Two consequences drive the code below:
+ *   - honorarios has UNIQUE(ejecutado_id), so a honorario is never INSERTed for a live
+ *     case (the trigger already made it) — its id is looked up instead.
+ *   - the trigger SKIPS archived cases, so a Cancelado case that was actually paid has
+ *     no honorario to hang its pagos on. Those, and only those, are inserted here.
+ * Old monto_total_ars is dropped on purpose: the new schema has no peso column on
+ * honorarios, and max_acordado_ars means a ceiling negotiated with the debtor — writing
+ * an old arancel-in-pesos there would silently switch the pago trigger to peso units.
  *
  * Idempotent: every new row id is uuidv5(oldId, NAMESPACE); upserts onConflict "id".
  * Child FKs (cobro.ejecutado_id) are recomputed with the same function, so re-runs
@@ -30,6 +42,7 @@ import { v5 as uuidv5 } from "uuid";
 import { config as loadEnv } from "dotenv";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { generateLiquidacion } from "@/lib/data/liquidaciones";
+import { normalizeNumeroExpediente } from "@/lib/domain/ejecutado";
 
 // --- Load env from .env.local (new project URL + service-role key) ----------
 loadEnv({ path: ".env.local" });
@@ -85,9 +98,24 @@ const COBROS_HEADERS = [
   "id", "user_id", "ejecutado_id", "monto", "estado", "nota", "fecha",
   "created_at", "updated_at",
 ];
+const HONORARIOS_HEADERS = [
+  "id", "user_id", "ejecutado_id", "monto_total_jus", "monto_total_ars",
+  "created_at", "updated_at",
+];
+const HONORARIOS_PAGOS_HEADERS = [
+  "id", "user_id", "honorario_id", "monto_jus", "monto_ars", "nota", "fecha",
+  "created_at",
+];
+
+// Mirrors create_default_honorario() in 20260905120000_honorarios_max_acordado.sql.
+// If the trigger's default ever changes, an inserted honorario for an archived case
+// must change with it or the two creation paths disagree.
+const DEFAULT_HONORARIO_JUS = 7;
+// CHECK (monto_jus > 0), from 20260604120000_honorarios_redesign.sql.
+const MIN_PAGO_JUS = 0;
 
 // --- CLI --------------------------------------------------------------------
-type Only = "ejecutados" | "cobros" | "liquidaciones" | "both";
+type Only = "ejecutados" | "cobros" | "honorarios" | "liquidaciones" | "both";
 
 interface Cli {
   execute: boolean;
@@ -105,8 +133,8 @@ function parseCli(argv: string[]): Cli {
     else if (arg === "--dry-run") execute = false; // explicit alias of the default
     else if (arg.startsWith("--only=")) {
       const v = arg.slice("--only=".length);
-      if (v === "ejecutados" || v === "cobros" || v === "liquidaciones") only = v;
-      else fail(`--only must be ejecutados|cobros|liquidaciones (got "${v}")`);
+      if (v === "ejecutados" || v === "cobros" || v === "honorarios" || v === "liquidaciones") only = v;
+      else fail(`--only must be ejecutados|cobros|honorarios|liquidaciones (got "${v}")`);
     } else if (arg.startsWith("--csv-dir=")) {
       csvDir = arg.slice("--csv-dir=".length);
     } else {
@@ -254,16 +282,17 @@ async function upsert(
   table: string,
   rows: Record<string, unknown>[],
   execute: boolean,
+  onConflict = "id",
 ) {
   if (!execute) {
-    console.log(`  [DRY RUN] would upsert ${rows.length} rows into ${table} (onConflict id)`);
+    console.log(`  [DRY RUN] would upsert ${rows.length} rows into ${table} (onConflict ${onConflict})`);
     return;
   }
   // Chunk to keep payloads reasonable.
   const CHUNK = 500;
   for (let i = 0; i < rows.length; i += CHUNK) {
     const slice = rows.slice(i, i + CHUNK);
-    const { error } = await admin.from(table).upsert(slice, { onConflict: "id" });
+    const { error } = await admin.from(table).upsert(slice, { onConflict });
     if (error) fail(`upsert into ${table} failed at chunk ${i}: ${error.message}`);
   }
   console.log(`  [EXECUTE] upserted ${rows.length} rows into ${table}`);
@@ -292,6 +321,7 @@ export function migrateEjecutados(
   const unmappedMedida = new Set<string>();
   const unmappedEstado = new Set<string>();
   const unknownEmpresa = new Set<string>();
+  const badExpediente = new Set<string>();
 
   for (const old of csv) {
     counters.read++;
@@ -341,6 +371,17 @@ export function migrateEjecutados(
     const empresa = nullIfEmpty(old.empresa);
     if (empresa && !EMPRESA_KNOWN.has(empresa)) unknownEmpresa.add(empresa);
 
+    // Expediente: run the inherited free-text mess through the SAME normalizer the
+    // form and the mail matcher use, so migrated rows land in the canonical shape
+    // ("TD1436 2021" -> "TD-1436-2021", "3815 2021" -> "3815/2021") instead of
+    // re-importing a format the UI would now reject. Input with no causa number is
+    // kept verbatim and reported below: it is data for Fran, not a reason to abort.
+    const rawExpediente = textOr(old.numero_expediente);
+    const numeroExpediente = normalizeNumeroExpediente(rawExpediente);
+    if (rawExpediente.trim() !== "" && !/\d/.test(numeroExpediente)) {
+      badExpediente.add(`${old.id}: ${rawExpediente.trim()}`);
+    }
+
     const isDraft = boolOrNull(old.is_draft) ?? false;
     if (isDraft) drafts++;
 
@@ -359,7 +400,7 @@ export function migrateEjecutados(
       nombre: textOr(old.demandado),
       juzgado: textOr(old.juzgado),
       departamento: textOr(old.departamento),
-      numero_expediente: textOr(old.numero_expediente),
+      numero_expediente: numeroExpediente,
       deuda_inicial: numOrZero(old.deuda_inicial),
       gastos: numOrZero(old.gastos),
       movimiento,
@@ -410,6 +451,12 @@ export function migrateEjecutados(
   if (unmappedEstado.size) problems.push(`medida_cautelar_estado: ${[...unmappedEstado].join(", ")}`);
   if (problems.length) {
     fail(`Unmapped values found (would lose data — ask Fran):\n  ${problems.join("\n  ")}`);
+  }
+  if (badExpediente.size) {
+    console.warn(
+      `  ! expediente sin número de causa (guardado verbatim, el form lo rechazaría): ` +
+        `${[...badExpediente].join("; ")}`,
+    );
   }
   if (unknownEmpresa.size) {
     console.warn(`  ! empresa values outside Tartan/Contar/Promaq (kept verbatim): ${[...unknownEmpresa].join(", ")}`);
@@ -474,6 +521,157 @@ export function migrateCobros(
   }
 
   return { rows, counters, orphans };
+}
+
+// --- 27.5 honorarios + honorarios_pagos -------------------------------------
+// Read both CSVs and work out what actually has to be written. The base amount is
+// never carried over (see the header): the only honorarios built here are the ones
+// the trigger will not build, i.e. archived cases that hold a real payment.
+export function migrateHonorarios(
+  dir: string,
+  targets: Record<string, Target>,
+  ejecutadoRows: Record<string, unknown>[],
+): {
+  honorarioRows: Record<string, unknown>[];
+  pagos: { oldEjecutadoId: string; row: Record<string, unknown> }[];
+  counters: Counters;
+  rejectedPagos: string[];
+  orphanPagos: number;
+  overCap: string[];
+} {
+  const honCsv = loadCsv(dir, "honorarios.csv");
+  assertHeaders(honCsv, HONORARIOS_HEADERS, "honorarios.csv");
+  const pagoCsv = loadCsv(dir, "honorarios_pagos.csv");
+  assertHeaders(pagoCsv, HONORARIOS_PAGOS_HEADERS, "honorarios_pagos.csv");
+
+  // archived_at is set by migrateEjecutados for movimiento='Cancelado'; those are
+  // exactly the cases trg_ejecutado_default_honorario declines to serve.
+  const archivedEjecutados = new Set(
+    ejecutadoRows.filter((r) => r.archived_at != null).map((r) => r.id as string),
+  );
+  const migratedEjecutados = new Set(ejecutadoRows.map((r) => r.id as string));
+
+  const counters = newCounters();
+  const rejectedPagos: string[] = [];
+  const overCap: string[] = [];
+  let orphanPagos = 0;
+
+  // old honorario id -> its old ejecutado id, so a pago can find its case.
+  const honToEjecutado = new Map<string, string>();
+  const honBase = new Map<string, number>();
+  for (const h of honCsv) {
+    honToEjecutado.set(h.id, h.ejecutado_id);
+    honBase.set(h.id, num(h.monto_total_jus) ?? 0);
+  }
+
+  // Pass 1 — the pagos, because they decide which honorarios are worth creating.
+  const pagos: { oldEjecutadoId: string; row: Record<string, unknown> }[] = [];
+  const paidByHonorario = new Map<string, number>();
+  for (const old of pagoCsv) {
+    counters.read++;
+    const target = targets[old.user_id];
+    if (!target) {
+      counters.skippedOtherUser++;
+      continue;
+    }
+    counters.byUser[old.user_id] = (counters.byUser[old.user_id] ?? 0) + 1;
+
+    const montoJus = num(old.monto_jus) ?? 0;
+    if (!(montoJus > MIN_PAGO_JUS)) {
+      // CHECK (monto_jus > 0) would reject the INSERT outright. Reported, not fatal:
+      // it is one miskeyed row, not a reason to withhold the other fourteen.
+      rejectedPagos.push(`${old.id} (monto_jus=${old.monto_jus}, monto_ars=${old.monto_ars})`);
+      continue;
+    }
+
+    const oldEjecutadoId = honToEjecutado.get(old.honorario_id);
+    if (!oldEjecutadoId) {
+      orphanPagos++;
+      console.warn(`  ! pago ${old.id} references unknown honorario ${old.honorario_id} — skipped`);
+      continue;
+    }
+    if (!migratedEjecutados.has(newId(oldEjecutadoId))) {
+      orphanPagos++;
+      console.warn(`  ! pago ${old.id} hangs off un-migrated ejecutado ${oldEjecutadoId} — skipped`);
+      continue;
+    }
+
+    paidByHonorario.set(old.honorario_id, (paidByHonorario.get(old.honorario_id) ?? 0) + montoJus);
+
+    pagos.push({
+      oldEjecutadoId,
+      row: {
+        id: newId(old.id),
+        estudio_id: target.estudioId,
+        created_by_user_id: target.createdBy,
+        monto_jus: montoJus,
+        monto_ars: numOrZero(old.monto_ars),
+        nota: textOr(old.nota),
+        fecha: dateOrNull(old.fecha),
+        created_at: nullIfEmpty(old.created_at),
+        // honorario_id is resolved against the DB once the ejecutados are in.
+      },
+    });
+    counters.migrated++;
+  }
+
+  // check_honorario_pago_cap() rejects a pago above base x 1.31. Every case lands at
+  // the 7 JUS default, so the ceiling is 9.17 — pre-checked here to turn a mid-run
+  // Postgres exception into a line of output before anything is written.
+  const cap = Math.round(DEFAULT_HONORARIO_JUS * 1.31 * 100) / 100;
+  for (const [honId, paid] of paidByHonorario) {
+    if (paid > cap) overCap.push(`${honId}: ${paid} JUS > ${cap} JUS`);
+  }
+
+  // Pass 2 — honorarios for archived cases that hold at least one importable pago.
+  // A closed case with nothing collected gets nothing, matching the trigger's own
+  // reasoning ("a fee nobody will collect is noise on /honorarios").
+  const honorarioRows: Record<string, unknown>[] = [];
+  for (const h of honCsv) {
+    const target = targets[h.user_id];
+    if (!target) continue;
+    const newEjecutadoId = newId(h.ejecutado_id);
+    if (!archivedEjecutados.has(newEjecutadoId)) continue; // trigger already made it
+    if (!(paidByHonorario.get(h.id) ?? 0)) continue; // closed and unpaid — skip
+    const base = honBase.get(h.id) ?? 0;
+    if (base !== DEFAULT_HONORARIO_JUS) {
+      console.warn(
+        `  ! honorario ${h.id} (archivado) tenía ${base} JUS; se inserta a ` +
+          `${DEFAULT_HONORARIO_JUS} JUS como el resto (decisión Fran 2026-09-19)`,
+      );
+    }
+    honorarioRows.push({
+      id: newId(h.id),
+      estudio_id: target.estudioId,
+      ejecutado_id: newEjecutadoId,
+      created_by_user_id: target.createdBy,
+      monto_total_jus: DEFAULT_HONORARIO_JUS,
+      created_at: nullIfEmpty(h.created_at),
+      updated_at: nullIfEmpty(h.updated_at),
+    });
+  }
+
+  return { honorarioRows, pagos, counters, rejectedPagos, orphanPagos, overCap };
+}
+
+// honorarios.id is gen_random_uuid() when the trigger writes it, so it cannot be
+// derived — it has to be read back per ejecutado_id (which is UNIQUE).
+async function resolveHonorarioIds(
+  admin: SupabaseClient,
+  ejecutadoIds: string[],
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  const CHUNK = 200;
+  for (let i = 0; i < ejecutadoIds.length; i += CHUNK) {
+    const slice = ejecutadoIds.slice(i, i + CHUNK);
+    const { data, error } = await admin
+      .from("honorarios")
+      .select("id, ejecutado_id")
+      .in("ejecutado_id", slice);
+    if (error) fail(`reading honorarios: ${error.message}`);
+    for (const row of data ?? []) map.set(row.ejecutado_id as string, row.id as string);
+  }
+  return map;
 }
 
 async function generateLiquidaciones(
@@ -545,7 +743,7 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  console.log("\n[1/5] Resolving targets in the NEW DB by email...");
+  console.log("\n[1/6] Resolving targets in the NEW DB by email...");
   const targets = await resolveTargets(admin);
 
   const summary: { table: string; read: number; migrated: number; skipped: number }[] = [];
@@ -554,7 +752,7 @@ async function main() {
   let ejecutadoRows: Record<string, unknown>[] = [];
   let ejecutadoIds = new Set<string>();
   if (cli.only === "both" || cli.only === "ejecutados") {
-    console.log("\n[2/5] ejecutados...");
+    console.log("\n[2/6] ejecutados...");
     const { rows, codemandadoRows, counters, drafts, archived } = migrateEjecutados(cli.csvDir, targets);
     ejecutadoRows = rows;
     ejecutadoIds = new Set(rows.map((r) => r.id as string));
@@ -570,15 +768,16 @@ async function main() {
     await upsert(admin, "codemandados", codemandadoRows, cli.execute);
     summary.push({ table: "codemandados", read: codemandadoRows.length, migrated: codemandadoRows.length, skipped: 0 });
   } else {
-    // cobros-only / liquidaciones-only still need the transformed ejecutado set —
-    // cobros for FK validation, liquidaciones to know which rows are eligible.
+    // cobros / honorarios / liquidaciones-only still need the transformed ejecutado
+    // set — cobros for FK validation, honorarios to know which cases arrive archived,
+    // liquidaciones to know which rows are eligible.
     const { rows } = migrateEjecutados(cli.csvDir, targets);
     ejecutadoRows = rows;
     ejecutadoIds = new Set(rows.map((r) => r.id as string));
   }
 
   if (cli.only === "both" || cli.only === "cobros") {
-    console.log("\n[3/5] cobros_pagos...");
+    console.log("\n[3/6] cobros_pagos...");
     const { rows, counters, orphans } = migrateCobros(cli.csvDir, targets, ejecutadoIds);
     printCounters("cobros_pagos", counters);
     if (orphans) console.log(`    orphans skipped (FK): ${orphans}`);
@@ -588,10 +787,81 @@ async function main() {
     summary.push({ table: "cobros_pagos", read: counters.read, migrated: counters.migrated, skipped: counters.skippedOtherUser });
   }
 
+  // honorarios AFTER ejecutados: the default honorario is written by an AFTER INSERT
+  // trigger on ejecutados, so the rows this step reads back do not exist until the
+  // ejecutados upsert above has actually run.
+  if (cli.only === "both" || cli.only === "honorarios") {
+    console.log("\n[4/6] honorarios (base from the trigger; pagos copied)...");
+    const { honorarioRows, pagos, counters, rejectedPagos, orphanPagos, overCap } =
+      migrateHonorarios(cli.csvDir, targets, ejecutadoRows);
+
+    if (overCap.length) {
+      fail(
+        `pagos over the 1.31x ceiling — check_honorario_pago_cap() would reject them ` +
+          `mid-run:\n  ${overCap.join("\n  ")}`,
+      );
+    }
+    if (rejectedPagos.length) {
+      console.warn(
+        `  ! ${rejectedPagos.length} pago(s) rejected by CHECK (monto_jus > 0), NOT imported:\n` +
+          `      ${rejectedPagos.join("\n      ")}`,
+      );
+    }
+    if (orphanPagos) console.log(`    orphan pagos skipped (FK): ${orphanPagos}`);
+
+    console.log(
+      `    honorarios inserted for archived cases: ${honorarioRows.length} ` +
+        `(live cases already have one from the trigger, at ${DEFAULT_HONORARIO_JUS} JUS)`,
+    );
+    await upsert(admin, "honorarios", honorarioRows, cli.execute, "ejecutado_id");
+    summary.push({
+      table: "honorarios",
+      read: honorarioRows.length,
+      migrated: honorarioRows.length,
+      skipped: 0,
+    });
+
+    let pagoRows: Record<string, unknown>[] = [];
+    let unresolved = 0;
+    if (cli.execute) {
+      const honorarioByEjecutado = await resolveHonorarioIds(
+        admin,
+        [...new Set(pagos.map((p) => newId(p.oldEjecutadoId)))],
+      );
+      for (const p of pagos) {
+        const honorarioId = honorarioByEjecutado.get(newId(p.oldEjecutadoId));
+        if (!honorarioId) {
+          unresolved++;
+          console.warn(
+            `  ! no honorario row for ejecutado ${p.oldEjecutadoId} — pago skipped`,
+          );
+          continue;
+        }
+        pagoRows.push({ ...p.row, honorario_id: honorarioId });
+      }
+    } else {
+      // Nothing was written, so the honorario ids cannot be read back yet. Count the
+      // intent rather than reporting a zero that only means "dry run".
+      pagoRows = pagos.map((p) => p.row);
+      console.log("    [DRY RUN] honorario_id is resolved from the DB in execute mode.");
+    }
+
+    printCounters("honorarios_pagos", counters);
+    console.log("    sample transformed rows:");
+    sampleRows(pagoRows, ["monto_jus", "monto_ars", "nota", "fecha"]);
+    await upsert(admin, "honorarios_pagos", pagoRows, cli.execute);
+    summary.push({
+      table: "honorarios_pagos",
+      read: counters.read,
+      migrated: pagoRows.length,
+      skipped: counters.read - pagoRows.length + unresolved,
+    });
+  }
+
   // liquidaciones LAST — generated from the migrated ejecutados (same generator the app
   // uses). Dry-run only counts; --execute calls generateLiquidacion per eligible row.
   if (cli.only === "both" || cli.only === "liquidaciones") {
-    console.log("\n[4/5] liquidaciones (generated, not copied)...");
+    console.log("\n[5/6] liquidaciones (generated, not copied)...");
     const { eligible, generated, skipped } = await generateLiquidaciones(
       admin,
       ejecutadoRows,
@@ -605,7 +875,7 @@ async function main() {
     });
   }
 
-  console.log("\n[5/5] Summary");
+  console.log("\n[6/6] Summary");
   console.log("  table          | read | migrated | skipped");
   console.log("  ---------------+------+----------+--------");
   for (const s of summary) {

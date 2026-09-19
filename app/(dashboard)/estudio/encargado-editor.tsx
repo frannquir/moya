@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { CuilInput } from "@/components/cuil-input";
 import { ABOGADO_DEFAULT, type AbogadoConfig } from "@/lib/domain/escritos-config";
+import { CampoError, type ErroresPorCampo } from "./campo-error";
 import { useState } from "react";
 
 const IVA_OPTIONS = [
@@ -28,8 +29,16 @@ const IVA_OPTIONS = [
  * Each field falls back to a visible placeholder in the generated text, so a
  * half-filled block produces "Tº __ Fº ___" rather than a hole.
  */
-export function EncargadoEditor({ initial }: { initial: Partial<AbogadoConfig> }) {
+export function EncargadoEditor({
+  initial,
+  errorDe,
+}: {
+  initial: Partial<AbogadoConfig>;
+  /** Per-field messages from the last save; the key is left as it was stored. */
+  errorDe?: ErroresPorCampo;
+}) {
   const [v, setV] = useState<Partial<AbogadoConfig>>(initial);
+  const error = (campo: string) => errorDe?.(campo);
   const set = (key: keyof AbogadoConfig, value: string) =>
     setV((prev) => ({ ...prev, [key]: value }));
 
@@ -75,7 +84,9 @@ export function EncargadoEditor({ initial }: { initial: Partial<AbogadoConfig> }
             value={v.cuit ?? ""}
             onValueChange={(next) => set("cuit", next)}
             placeholder={ABOGADO_DEFAULT.cuit}
+            aria-invalid={error("encargado.cuit") ? true : undefined}
           />
+          <CampoError mensaje={error("encargado.cuit")} />
         </div>
       </div>
 
@@ -117,7 +128,9 @@ export function EncargadoEditor({ initial }: { initial: Partial<AbogadoConfig> }
             value={v.domicilioElectronico ?? ""}
             onChange={(e) => set("domicilioElectronico", e.target.value)}
             placeholder={ABOGADO_DEFAULT.domicilioElectronico}
+            aria-invalid={error("encargado.domicilioElectronico") ? true : undefined}
           />
+          <CampoError mensaje={error("encargado.domicilioElectronico")} />
         </div>
         <div className="space-y-1">
           <Label htmlFor="enc-telefono">Teléfono de contacto</Label>

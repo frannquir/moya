@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { type CourtEntry } from "@/lib/data/juzgados";
+import { CampoError, type ErroresPorCampo } from "./campo-error";
 
 const NONE = "__none__";
 
@@ -34,9 +35,15 @@ export type RecusadoRow = {
 export function JuecesRecusadosEditor({
   initial,
   courtIndex,
+  errorDe,
 }: {
   initial: RecusadoRow[];
   courtIndex: CourtEntry[];
+  /**
+   * Per-row messages from the last save. An incomplete row is dropped from the
+   * stored map and named here; the judges that ARE complete still save.
+   */
+  errorDe?: ErroresPorCampo;
 }) {
   const [rows, setRows] = useState<RecusadoRow[]>(initial);
 
@@ -145,6 +152,7 @@ export function JuecesRecusadosEditor({
                     ))}
                   </SelectContent>
                 </Select>
+                <CampoError mensaje={errorDe?.(`juez.${i}.juzgado`)} />
               </div>
             </div>
 
@@ -154,7 +162,9 @@ export function JuecesRecusadosEditor({
                 value={row.nombre}
                 onChange={(e) => update(i, { nombre: e.target.value })}
                 placeholder="Dra. Nombre Apellido"
+                aria-invalid={errorDe?.(`juez.${i}.nombre`) ? true : undefined}
               />
+              <CampoError mensaje={errorDe?.(`juez.${i}.nombre`)} />
               <p className="text-xs text-muted-foreground">
                 Se imprime tal cual en la demanda: «vengo a recusar sin expresión
                 de causa a …». Incluí el tratamiento (Dr. / Dra.).

@@ -40,7 +40,7 @@ import { DemandaCard } from "./demanda-card";
 import { ViaCard } from "./via-card";
 import { actualizarVia } from "./via-actions";
 import { updateDemandaDatos } from "./demanda-actions";
-import { regenerarDemanda } from "./escritos-actions";
+import { regenerarDemanda, revisarDemanda } from "./escritos-actions";
 import { getUltimaDemanda, loadPartes } from "@/lib/data/escrito-render";
 import { avisosDePartes } from "@/lib/domain/cautelar";
 import { activarBorrador, moverABorrador } from "../../borradores/actions";
@@ -90,6 +90,7 @@ export default async function EjecutadoDetailPage({
   const delegateAction = delegateEjecutado.bind(null, id);
   const demandaAction = updateDemandaDatos.bind(null, id);
   const regenerarAction = regenerarDemanda.bind(null, id);
+  const revisarAction = revisarDemanda.bind(null, id);
   const viaAction = actualizarVia.bind(null, id);
 
   // Only for the Demanda card, so only loaded when there is one to render.
@@ -194,6 +195,7 @@ export default async function EjecutadoDetailPage({
             <DemandaCard
               updateAction={demandaAction}
               regenerarAction={regenerarAction}
+              revisarAction={revisarAction}
               ultimaDemanda={ultimaDemanda}
               avisos={avisosDePartes(partesDemanda)}
               juezRecusado={resolveJuezRecusado(escritosConfig, ejecutado.juzgado_id)}

@@ -22,6 +22,16 @@ export const TOKEN_DESTINO: Record<string, TokenDestino> = {
   CUIL_DEMANDADO: { label: "CUIL del demandado", donde: "caso" },
   DNI_DEMANDADO: { label: "Documento del demandado", donde: "caso" },
   DOCUMENTO: { label: "Documento del demandado", donde: "caso" },
+  // Los mismos datos dentro de {{#each PARTES}}: la medida cautelar los imprime
+  // por parte, con estos nombres (parteRecord, lib/domain/cautelar.ts). Faltaban,
+  // así que el aviso previo a generar los mostraba como "DNI" y "CUIL" pelados
+  // — lo encontró la propia revisión de la Parte 4 contra un caso real.
+  NOMBRE: { label: "Nombre de una de las partes", donde: "caso" },
+  DNI: { label: "Documento de una de las partes", donde: "caso" },
+  CUIL: { label: "CUIL de una de las partes", donde: "caso" },
+  EMPLEADOR: { label: "Empleador de una de las partes", donde: "caso" },
+  EMPLEADOR_CUIT: { label: "CUIT del empleador", donde: "caso" },
+  EMPLEADOR_DOMICILIO: { label: "Domicilio del empleador", donde: "caso" },
   EXPEDIENTE: { label: "N° de expediente", donde: "caso" },
   FECHA_MORA: { label: "Fecha de mora", donde: "caso" },
   FECHA_CONTRATO: { label: "Fecha del contrato", donde: "caso" },
