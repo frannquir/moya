@@ -7,11 +7,129 @@ import {
   techoHonorario,
   formatArs,
 } from "@/lib/domain/honorarios";
+import {
+  BORRADORES_DEFAULT,
+  OR_COBRABLE,
+  OR_SALDADO,
+  orBusquedaEjecutado,
+  type BorradoresFiltro,
+  type HonorarioEstado,
+} from "@/lib/domain/honorarios-lista";
 
 type Client = SupabaseClient<Database>;
 export type HonorarioPago = Tables<"honorarios_pagos">;
 export type HonorarioWithBalance =
   Database["public"]["Views"]["honorarios_with_balance"]["Row"];
+
+/** The ejecutado columns `/honorarios` needs: who it is, and how to find it. */
+export type HonorarioEjecutado = {
+  id: string;
+  nombre: string;
+  numero_expediente: string | null;
+  documento: string | null;
+  is_draft: boolean;
+  archived_at: string | null;
+};
+
+export type HonorarioFila = HonorarioWithBalance & {
+  ejecutado: HonorarioEjecutado | null;
+};
+
+const HONORARIOS_PAGE_SIZE = 25;
+
+/**
+ * The list behind `/honorarios`: one row per honorario, searchable by the
+ * ejecutado behind it, filtered and paged BY THE SERVER.
+ *
+ * Two things here are load-bearing:
+ *
+ * `ejecutados!inner` is an inner join, not decoration. With a plain (left)
+ * embed, PostgREST returns the parent row with `ejecutado: null` whenever the
+ * embedded row is invisible — and a filter written on that embed nulls the embed
+ * instead of dropping the row. That is what used to paint ~100 nameless rows
+ * here. With `!inner`, a honorario whose ejecutado the caller cannot read is not
+ * in the result at all, and filters on the embed (`archived_at`, `is_draft`, the
+ * search) narrow the LIST, which is what they look like they do.
+ *
+ * The estado filter goes through OR_COBRABLE / OR_SALDADO so it compares in the
+ * ceiling's own unit — see `lib/domain/honorarios-lista.ts`, where the same rule
+ * is written in TypeScript for the badge and tested against `saldoHonorario()`.
+ */
+export async function listHonorarios(
+  supabase: Client,
+  {
+    q = "",
+    estado = "",
+    borradores = BORRADORES_DEFAULT,
+    page = 1,
+    pageSize = HONORARIOS_PAGE_SIZE,
+  }: {
+    q?: string;
+    estado?: "" | HonorarioEstado;
+    borradores?: BorradoresFiltro;
+    page?: number;
+    pageSize?: number;
+  } = {},
+): Promise<{ items: HonorarioFila[]; totalCount: number; pendientesCount: number }> {
+  const term = q.trim().slice(0, 100);
+
+  const construir = (
+    columnas: string,
+    head: boolean,
+    filtroEstado: "" | HonorarioEstado,
+  ) => {
+    let query = supabase
+      .from("honorarios_with_balance")
+      .select(columnas, { count: "exact", head })
+      // An archived case keeps its honorario row until someone archives that
+      // too; either way it has no place on this screen.
+      .is("ejecutado.archived_at", null);
+
+    if (borradores === "ocultar") query = query.eq("ejecutado.is_draft", false);
+    if (borradores === "solo") query = query.eq("ejecutado.is_draft", true);
+    if (term) {
+      query = query.or(orBusquedaEjecutado(term), { referencedTable: "ejecutado" });
+    }
+
+    // The two `or=` arguments in play never collide: this one has no referenced
+    // table and the search above is scoped to `ejecutado`, so PostgREST reads
+    // them as two separate conditions and ANDs them.
+    if (filtroEstado === "pagado") query = query.or(OR_SALDADO);
+    if (filtroEstado === "pendiente") query = query.or(OR_COBRABLE).gt("pendiente_jus", 0);
+    if (filtroEstado === "cubierto") query = query.or(OR_COBRABLE).lte("pendiente_jus", 0);
+
+    return query;
+  };
+
+  const from = (Math.max(1, page) - 1) * pageSize;
+
+  const [listado, pendientes] = await Promise.all([
+    construir(
+      "*, ejecutado:ejecutados!inner(id, nombre, numero_expediente, documento, is_draft, archived_at)",
+      false,
+      estado,
+    )
+      .order("pendiente_jus", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      // Tiebreaker, so paging is stable: pendiente_jus is 7 on every case that
+      // never paid, which is most of them, and without this a row can show up
+      // on two pages or on none.
+      .order("id", { ascending: true })
+      .range(from, from + pageSize - 1),
+    // The header's second figure, over the same filtered set. head:true so it
+    // costs a count and not another page of rows.
+    construir("id, ejecutado:ejecutados!inner(id)", true, "pendiente"),
+  ]);
+
+  if (listado.error) throw listado.error;
+  if (pendientes.error) throw pendientes.error;
+
+  return {
+    items: (listado.data ?? []) as unknown as HonorarioFila[],
+    totalCount: listado.count ?? 0,
+    pendientesCount: pendientes.count ?? 0,
+  };
+}
 
 // Current JUS value from system_config.jus_config (stored as { value: number }).
 export async function getJusValue(supabase: Client): Promise<number> {

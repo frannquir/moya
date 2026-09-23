@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -18,50 +20,80 @@ import {
   jusToArs,
   saldoHonorario,
 } from "@/lib/domain/honorarios";
+import {
+  BORRADORES_DEFAULT,
+  ESTADO_LABELS,
+  borradoresFiltroDe,
+  estadoDe,
+  estadoFiltroDe,
+} from "@/lib/domain/honorarios-lista";
+import { getJusValue, listHonorarios } from "@/lib/data/honorarios";
+import { HonorariosFiltros } from "./honorarios-filtros";
 
 export const metadata: Metadata = { title: "Honorarios" };
 
-export default async function HonorariosPage() {
+const PAGE_SIZE = 25;
+
+export default async function HonorariosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    q?: string;
+    page?: string;
+    estado?: string;
+    borradores?: string;
+  }>;
+}) {
+  const { q, page, estado: estadoRaw, borradores: borradoresRaw } = await searchParams;
+  const term = (q ?? "").trim().slice(0, 100);
+  const pageNum = Math.max(1, parseInt(page ?? "1", 10) || 1);
+  // Anything unrecognised falls back rather than 500ing on a hand-typed URL.
+  const estado = estadoFiltroDe(estadoRaw);
+  const borradores = borradoresFiltroDe(borradoresRaw);
+
   const supabase = await createClient();
 
-  const [{ data: honorarios }, { data: jusRow }] = await Promise.all([
-    supabase
-      .from("honorarios_with_balance")
-      .select("*, ejecutado:ejecutados(id, nombre, archived_at)")
-      .order("pendiente_jus", { ascending: false })
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("system_config")
-      .select("value")
-      .eq("key", "jus_config")
-      .single(),
+  const [{ items, totalCount, pendientesCount }, jusValue] = await Promise.all([
+    listHonorarios(supabase, {
+      q: term,
+      estado,
+      borradores,
+      page: pageNum,
+      pageSize: PAGE_SIZE,
+    }),
+    getJusValue(supabase),
   ]);
 
-  const jusValue = (jusRow?.value as { value: number })?.value ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  if (pageNum > totalPages) {
+    redirect(hrefFor(totalPages));
+  }
 
-  // Hide honorarios whose ejecutado is archived, and resolve the ceiling the
-  // same way the ejecutado card does. Not from the view's cap_cobrable_ars /
-  // pendiente_cobrable_ars: those mix a ceiling converted at today's JUS with
-  // pesos received at the JUS of their own dates (see saldoHonorario).
-  const rows = (honorarios ?? [])
-    .filter((h) => !h.ejecutado?.archived_at)
-    .map((h) => ({ ...h, techo: saldoHonorario(h, jusValue) }));
+  function hrefFor(target: number) {
+    const p = new URLSearchParams();
+    if (term) p.set("q", term);
+    if (estado) p.set("estado", estado);
+    if (borradores !== BORRADORES_DEFAULT) p.set("borradores", borradores);
+    if (target > 1) p.set("page", String(target));
+    const qs = p.toString();
+    return qs ? `?${qs}` : "?";
+  }
 
-  // "Pendiente" means there is still something collectable — measured against
-  // the gross cap, since IVA + aportes are collected on top of the fee.
-  const pendingCount = rows.filter((h) => h.techo.pendienteArs > 0).length;
+  const filtrando = term !== "" || estado !== "" || borradores !== BORRADORES_DEFAULT;
 
   return (
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-semibold">Honorarios</h1>
         <p className="text-sm text-muted-foreground">
-          {rows.length} honorarios · {pendingCount} pendientes · Valor JUS:{" "}
+          {totalCount} honorarios · {pendientesCount} pendientes · Valor JUS:{" "}
           {formatArs(jusValue)} · Máximo a cobrar = honorario + IVA{" "}
           {Math.round(IVA_RATE * 100)}% + aportes {Math.round(APORTES_RATE * 100)}%, o
           lo acordado con el ejecutado
         </p>
       </div>
+
+      <HonorariosFiltros q={term} />
 
       <div className="rounded-md border">
         <Table>
@@ -76,36 +108,46 @@ export default async function HonorariosPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.length > 0 ? (
-              rows.map((h) => {
-                // Read from the same figure the "Restante" cell prints, so the
-                // badge can never say Pendiente next to a $0.
-                const isPaid = (h.monto_total_jus ?? 0) > 0 && h.techo.pendienteArs <= 0;
-                // Fee covered but the tax on it not yet — a real intermediate state.
-                const baseCubierto =
-                  !isPaid &&
-                  (h.monto_total_jus ?? 0) > 0 &&
-                  (h.pendiente_jus ?? 0) <= 0;
+            {items.length > 0 ? (
+              items.map((h) => {
+                const techo = saldoHonorario(h, jusValue);
+                // One rule for the badge and for the Estado filter, so the list
+                // can never say "Pendiente" next to a row the filter calls
+                // saldada (lib/domain/honorarios-lista.ts).
+                const estadoFila = estadoDe(h);
+                // A name is never expected to be missing — no ejecutado in the
+                // base has a blank one — but a row that renders blank is a bug
+                // nobody can see. This one says so out loud and still leads
+                // somewhere useful.
+                const nombre = (h.ejecutado?.nombre ?? "").trim();
+                const expediente = (h.ejecutado?.numero_expediente ?? "").trim();
                 return (
-                  <TableRow key={h.id} className={isPaid ? "opacity-60" : ""}>
+                  <TableRow
+                    key={h.id}
+                    className={estadoFila === "pagado" ? "opacity-60" : ""}
+                  >
                     <TableCell className="font-medium">
-                      <Link
-                        href={`/ejecutados/${h.ejecutado_id}`}
-                        className="hover:underline"
-                      >
-                        {h.ejecutado?.nombre ?? "—"}
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/ejecutados/${h.ejecutado_id}`}
+                          className={nombre ? "hover:underline" : "hover:underline italic text-muted-foreground"}
+                        >
+                          {nombre || "(sin nombre)"}
+                        </Link>
+                        {h.ejecutado?.is_draft && (
+                          <Badge variant="outline" className="font-normal">
+                            Borrador
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {expediente ? `Expte. ${expediente}` : "Sin expediente"}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {isPaid ? (
-                        <Badge variant="success">
-                          Pagado
-                        </Badge>
-                      ) : baseCubierto ? (
-                        <Badge variant="outline">Honorario cubierto</Badge>
-                      ) : (
-                        <Badge variant="outline">Pendiente</Badge>
-                      )}
+                      <Badge variant={estadoFila === "pagado" ? "success" : "outline"}>
+                        {ESTADO_LABELS[estadoFila]}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatJus(h.monto_total_jus ?? 0)}
@@ -114,7 +156,7 @@ export default async function HonorariosPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
-                      {formatArs(h.techo.capArs)}
+                      {formatArs(techo.capArs)}
                       <div className="text-xs text-muted-foreground">
                         {h.max_acordado_ars != null
                           ? "acordado"
@@ -126,10 +168,10 @@ export default async function HonorariosPage() {
                     </TableCell>
                     <TableCell
                       className={`text-right tabular-nums ${
-                        h.techo.pendienteArs > 0 ? "text-warning font-medium" : ""
+                        techo.pendienteArs > 0 ? "text-warning font-medium" : ""
                       }`}
                     >
-                      {formatArs(h.techo.pendienteArs)}
+                      {formatArs(techo.pendienteArs)}
                     </TableCell>
                   </TableRow>
                 );
@@ -137,13 +179,43 @@ export default async function HonorariosPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  Aún no hay honorarios. Creá el primero desde un ejecutado.
+                  {filtrando
+                    ? "Ningún honorario coincide con la búsqueda."
+                    : "Aún no hay honorarios. Creá el primero desde un ejecutado."}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            Página {pageNum} de {totalPages}
+          </span>
+          <div className="space-x-2">
+            {pageNum <= 1 ? (
+              <Button variant="outline" size="sm" disabled>
+                Anterior
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={hrefFor(pageNum - 1)}>Anterior</Link>
+              </Button>
+            )}
+            {pageNum >= totalPages ? (
+              <Button variant="outline" size="sm" disabled>
+                Siguiente
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={hrefFor(pageNum + 1)}>Siguiente</Link>
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
-} 
+}
