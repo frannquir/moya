@@ -61,22 +61,39 @@ describe("validateEjecutadoFields — interés sobre gastos", () => {
   });
 });
 
-describe("normalizeNumeroExpediente — one consistent stored shape", () => {
+describe("normalizeNumeroExpediente — the causa and nothing else", () => {
   it("bare causa stays bare", () => {
     expect(normalizeNumeroExpediente("1513")).toBe("1513");
   });
-  it("glued/spaced composite → DEPTO-causa-año", () => {
-    expect(normalizeNumeroExpediente("TD1436 2021")).toBe("TD-1436-2021");
-    expect(normalizeNumeroExpediente("OL 840 2019")).toBe("OL-840-2019");
+  it("drops the departamento and the year from a composite", () => {
+    expect(normalizeNumeroExpediente("TD1436 2021")).toBe("1436");
+    expect(normalizeNumeroExpediente("OL 840 2019")).toBe("840");
+    expect(normalizeNumeroExpediente("TD-1436-2021")).toBe("1436");
   });
-  it("causa with year but no depto → causa/año", () => {
-    expect(normalizeNumeroExpediente("16183 - 2024")).toBe("16183/2024");
+  it("drops the year when there is no departamento", () => {
+    expect(normalizeNumeroExpediente("16183 - 2024")).toBe("16183");
+    expect(normalizeNumeroExpediente("826/2021")).toBe("826");
+  });
+  it("keeps the leading number of a causa/año that looks like two years", () => {
+    // 1942/2025 and friends: the causa falls inside the range of the years, and
+    // Fran's rule is that the FIRST number is always the causa.
+    expect(normalizeNumeroExpediente("1942/2025")).toBe("1942");
+  });
+  it("strips leading zeros", () => {
+    expect(normalizeNumeroExpediente("000826/2021")).toBe("826");
   });
   it("empty stays empty", () => {
     expect(normalizeNumeroExpediente("  ")).toBe("");
   });
   it("unparseable is returned verbatim (so the validator can reject it)", () => {
     expect(normalizeNumeroExpediente("sin numero")).toBe("sin numero");
+    expect(normalizeNumeroExpediente("CCC")).toBe("CCC");
+  });
+  it("is idempotent — the stored shape normalises to itself", () => {
+    for (const raw of ["1513", "TD1436 2021", "16183 - 2024", "826/2021"]) {
+      const once = normalizeNumeroExpediente(raw);
+      expect(normalizeNumeroExpediente(once)).toBe(once);
+    }
   });
 });
 

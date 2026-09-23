@@ -160,18 +160,23 @@ export type EjecutadoFormFields = {
 
 // Formalize a free-text expediente into a consistent stored shape so the mess we
 // inherited (bare digits, "OL-840-2019", "TD1436 2021", "16183 - 2024"…) can't
-// reappear via the form. Uses the SAME extractor the matcher reads, so what we
-// store always round-trips: "TD1436 2021" → "TD-1436-2021", "16183 - 2024" →
-// "16183/2024", "1513" → "1513". Unparseable input is returned verbatim and
-// rejected by validateEjecutadoFields.
+// reappear via the form.
+//
+// The canonical shape is THE CAUSA AND NOTHING ELSE (Fran, 2026-09-21): "1436",
+// never "TD-1436-2021". The year in those old strings is when the case started,
+// not part of its identifier — a date smuggled into a number — and the
+// departamento is already a column of its own. H2 rewrote the stored rows to
+// this shape and kept each previous value in
+// `ejecutados.numero_expediente_original`, so nothing is lost and the form
+// cannot put a year back.
+//
+// Uses the SAME extractor the mail matcher reads, so what we store always
+// round-trips through it. Unparseable input is returned verbatim and rejected by
+// validateEjecutadoFields.
 export function normalizeNumeroExpediente(raw: string): string {
   const t = raw.trim();
   if (t === "") return "";
-  const { causa, depto, año } = extractCausa(t);
-  if (!causa) return t;
-  if (depto && año) return `${depto}-${causa}-${año}`;
-  if (año) return `${causa}/${año}`;
-  return causa;
+  return extractCausa(t).causa ?? t;
 }
 
 // Form-level validation shared by the create and update actions. Returns a
