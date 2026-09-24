@@ -28,6 +28,7 @@ import {
   updateEjecutadoCaso,
   updateEjecutadoCautelar,
   updateEjecutadoMontos,
+  updateEjecutadoMovimiento,
   archiveEjecutado,
   delegateEjecutado,
 } from "./actions";
@@ -86,6 +87,7 @@ export default async function EjecutadoDetailPage({
   const casoAction = updateEjecutadoCaso.bind(null, id);
   const cautelarAction = updateEjecutadoCautelar.bind(null, id);
   const montosAction = updateEjecutadoMontos.bind(null, id);
+  const movimientoAction = updateEjecutadoMovimiento.bind(null, id);
   const archiveAction = archiveEjecutado.bind(null, id);
   const delegateAction = delegateEjecutado.bind(null, id);
   const demandaAction = updateDemandaDatos.bind(null, id);
@@ -108,6 +110,7 @@ export default async function EjecutadoDetailPage({
         ejecutado={ejecutado}
         juzgado={juzgado}
         ownerName={currentOwner?.nombre?.trim() || currentOwner?.email || null}
+        updateMovimientoAction={movimientoAction}
       />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -153,6 +156,7 @@ export default async function EjecutadoDetailPage({
                   ejecutado={ejecutado}
                   courtIndex={courtIndex}
                   empresas={empresas}
+                  showMovimiento={false}
                 />
                 <NotasFields ejecutado={ejecutado} />
               </CardContent>

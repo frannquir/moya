@@ -8,6 +8,7 @@ import {
   type EjecutadoCautelarFields,
   type EjecutadoFormFields,
   type EjecutadoMontosFields,
+  type EjecutadoMovimientoFields,
   type Orden,
   type Via,
   type ViaFields,
@@ -246,6 +247,21 @@ export async function updateMontos(
   supabase: Client,
   id: string,
   fields: EjecutadoMontosFields,
+): Promise<void> {
+  const { error } = await supabase.from("ejecutados").update(fields).eq("id", id);
+  if (error) throw error;
+}
+
+/**
+ * The header's movimiento dropdown. Its own disjoint column set — see
+ * `EjecutadoMovimientoFields` (gotcha #41): the "Datos del demandado" form no
+ * longer posts these two columns, so routing them through `updateCaso()`
+ * would blank the stage on every save of that form.
+ */
+export async function updateMovimiento(
+  supabase: Client,
+  id: string,
+  fields: EjecutadoMovimientoFields,
 ): Promise<void> {
   const { error } = await supabase.from("ejecutados").update(fields).eq("id", id);
   if (error) throw error;

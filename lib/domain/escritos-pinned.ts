@@ -36,12 +36,23 @@ export const PINNED_RULES: readonly PinnedRule[] = [
     claves: ["preparar-via-cautelar", "oficio-renaper"],
   },
   // Cédula did NOT come back: re-issue it. Habilitación first (cheaper, no
-  // liability), bajo responsabilidad second, RENAPER third to chase a new
-  // address. No "Preparar vía" — there is nothing to prepare yet.
+  // liability), bajo responsabilidad second, then the two "Cumple intimación"
+  // variants for when the address itself was the problem (nuevo domicilio,
+  // then domicilio laboral), RENAPER last to chase an address nobody has yet.
+  // All five are cédula-reissue paths, not alternatives scored against each
+  // other — Fran confirmed 2026-09-24 that every one of them should always be
+  // offered together while the case sits undiligenciada. No "Preparar vía" —
+  // there is nothing to prepare yet.
   {
     movimiento: "Enviar Cédula",
     diligenciada: false,
-    claves: ["cedula-habilitacion", "cedula-bajo-responsabilidad", "oficio-renaper"],
+    claves: [
+      "cedula-habilitacion",
+      "cedula-bajo-responsabilidad",
+      "cumple-intimacion-nuevo-domicilio",
+      "cumple-intimacion-domicilio-laboral",
+      "oficio-renaper",
+    ],
   },
   {
     movimiento: "Enviar Mandamiento",

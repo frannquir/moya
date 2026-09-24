@@ -89,7 +89,18 @@ export function ExpedienteFields({
   sinTitulo,
   courtIndex,
   empresas,
-}: SectionProps & { courtIndex: CourtEntry[]; empresas: string[] }) {
+  showMovimiento = true,
+}: SectionProps & {
+  courtIndex: CourtEntry[];
+  empresas: string[];
+  /**
+   * The ejecutado detail page passes false: its header has its own
+   * movimiento dropdown (feature 7), and rendering the field in both places
+   * would give the column two writers (gotcha #41). /ejecutados/new has no
+   * header to put it in, so it keeps the default.
+   */
+  showMovimiento?: boolean;
+}) {
   // A case whose stored empresa is no longer configured keeps it selectable,
   // so opening the form cannot silently blank it on the next save.
   const empresaOptions =
@@ -133,36 +144,40 @@ export function ExpedienteFields({
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-2">
-        <LabelConInfo htmlFor="movimiento" campo="movimiento">Movimiento</LabelConInfo>
-        <Select name="movimiento" defaultValue={ejecutado?.movimiento ?? "__none__"}>
-          <SelectTrigger id="movimiento">
-            <SelectValue placeholder="Sin movimiento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__none__">Sin movimiento</SelectItem>
-            {MOVIMIENTO_OPTIONS.map((option) => (
-              <SelectItem key={option} value={option}>{option}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="space-y-2">
-        <LabelConInfo htmlFor="movimiento_diligenciada" campo="movimiento_diligenciada">Diligenciado</LabelConInfo>
-        <Select
-          name="movimiento_diligenciada"
-          defaultValue={triDefault(ejecutado?.movimiento_diligenciada)}
-        >
-          <SelectTrigger id="movimiento_diligenciada">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__unknown__">Sin definir</SelectItem>
-            <SelectItem value="si">Sí</SelectItem>
-            <SelectItem value="no">No</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {showMovimiento && (
+        <>
+          <div className="space-y-2">
+            <LabelConInfo htmlFor="movimiento" campo="movimiento">Movimiento</LabelConInfo>
+            <Select name="movimiento" defaultValue={ejecutado?.movimiento ?? "__none__"}>
+              <SelectTrigger id="movimiento">
+                <SelectValue placeholder="Sin movimiento" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sin movimiento</SelectItem>
+                {MOVIMIENTO_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <LabelConInfo htmlFor="movimiento_diligenciada" campo="movimiento_diligenciada">Diligenciado</LabelConInfo>
+            <Select
+              name="movimiento_diligenciada"
+              defaultValue={triDefault(ejecutado?.movimiento_diligenciada)}
+            >
+              <SelectTrigger id="movimiento_diligenciada">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__unknown__">Sin definir</SelectItem>
+                <SelectItem value="si">Sí</SelectItem>
+                <SelectItem value="no">No</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
     </div>
     </div>
   );

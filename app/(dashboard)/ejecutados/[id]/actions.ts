@@ -7,6 +7,7 @@ import {
   parseCasoFormData,
   parseCautelarFormData,
   parseMontosFormData,
+  parseMovimientoFormData,
   validateCasoFields,
   validateMontosFields,
 } from "@/lib/domain/ejecutado";
@@ -15,6 +16,7 @@ import {
   updateCaso,
   updateCautelar,
   updateMontos,
+  updateMovimiento,
   archive,
   unarchive,
   delegate,
@@ -40,6 +42,23 @@ export async function updateEjecutadoCaso(id: string, formData: FormData) {
   revalidatePath("/ejecutados");
   revalidatePath(`/ejecutados/${id}`);
   redirect(`/ejecutados/${id}?toast=ejecutado_guardado`);
+}
+
+/**
+ * The header's movimiento dropdown. No redirect and no toast — it lives in a
+ * small popover over the header, not a page-level form, and re-ranks the
+ * Escritos card and the list/feed pages the same way any other movimiento
+ * change does (`movimiento_historial`'s trigger also feeds /inicio's
+ * "Movimientos recientes" panel).
+ */
+export async function updateEjecutadoMovimiento(id: string, formData: FormData) {
+  const supabase = await createClient();
+  await updateMovimiento(supabase, id, parseMovimientoFormData(formData));
+
+  revalidatePath("/");
+  revalidatePath("/ejecutados");
+  revalidatePath(`/ejecutados/${id}`);
+  revalidatePath("/escritos");
 }
 
 /** The medida cautelar card. Its own disjoint set; see gotcha #41. */

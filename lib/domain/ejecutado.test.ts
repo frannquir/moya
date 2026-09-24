@@ -7,6 +7,7 @@ import {
   parseCautelarFormData,
   parseEjecutadoFormData,
   parseMontosFormData,
+  parseMovimientoFormData,
   normalizeNumeroExpediente,
   parseViaFormData,
   validateEjecutadoFields,
@@ -250,7 +251,7 @@ describe("validateViaFields", () => {
 // excluded one. If a parser reaches outside its set, or a column falls between
 // all three, a save silently blanks data.
 
-describe("the caso / cautelar / montos split", () => {
+describe("the caso / cautelar / montos / movimiento split", () => {
   // Every field the three forms can post, with values distinguishable from the
   // "absent" default.
   function fullForm(): FormData {
@@ -300,16 +301,21 @@ describe("the caso / cautelar / montos split", () => {
     "medida_cautelar_nota",
     "dinero_en_cuenta",
   ];
+  const MOVIMIENTO = ["movimiento", "movimiento_diligenciada"];
 
-  it("the three sets are disjoint — no column is written by two forms", () => {
+  it("the four sets are disjoint — no column is written by two forms", () => {
     const fd = fullForm();
     const caso = Object.keys(parseCasoFormData(fd));
     const cautelar = Object.keys(parseCautelarFormData(fd));
     const montos = Object.keys(parseMontosFormData(fd));
+    const movimiento = Object.keys(parseMovimientoFormData(fd));
 
     expect(caso.filter((k) => montos.includes(k))).toEqual([]);
     expect(caso.filter((k) => cautelar.includes(k))).toEqual([]);
+    expect(caso.filter((k) => movimiento.includes(k))).toEqual([]);
     expect(cautelar.filter((k) => montos.includes(k))).toEqual([]);
+    expect(cautelar.filter((k) => movimiento.includes(k))).toEqual([]);
+    expect(montos.filter((k) => movimiento.includes(k))).toEqual([]);
   });
 
   it("together they cover every column of EjecutadoFormFields — none falls through", () => {
@@ -319,6 +325,7 @@ describe("the caso / cautelar / montos split", () => {
       ...Object.keys(parseCasoFormData(fd)),
       ...Object.keys(parseCautelarFormData(fd)),
       ...Object.keys(parseMontosFormData(fd)),
+      ...Object.keys(parseMovimientoFormData(fd)),
     ].sort();
     expect(split).toEqual(all);
   });
@@ -327,13 +334,15 @@ describe("the caso / cautelar / montos split", () => {
     const fd = fullForm();
     expect(Object.keys(parseMontosFormData(fd)).sort()).toEqual([...MONTOS].sort());
     expect(Object.keys(parseCautelarFormData(fd)).sort()).toEqual([...CAUTELAR].sort());
+    expect(Object.keys(parseMovimientoFormData(fd)).sort()).toEqual([...MOVIMIENTO].sort());
   });
 
-  it("the caso parser never reaches into money or cautelar columns", () => {
+  it("the caso parser never reaches into money, cautelar or movimiento columns", () => {
     // Catches updateCaso spreading a montos key as undefined, which Postgres
-    // writes as NULL over a real liquidación input.
+    // writes as NULL over a real liquidación input. Same trap for movimiento
+    // (gotcha #41) now that the header dropdown owns it instead of this form.
     const caso = parseCasoFormData(fullForm()) as Record<string, unknown>;
-    for (const k of [...MONTOS, ...CAUTELAR]) {
+    for (const k of [...MONTOS, ...CAUTELAR, ...MOVIMIENTO]) {
       expect(Object.prototype.hasOwnProperty.call(caso, k)).toBe(false);
     }
   });
@@ -355,8 +364,52 @@ describe("the caso / cautelar / montos split", () => {
       medida_cautelar_nota: "Nota de prueba",
       dinero_en_cuenta: 9000,
     });
+    expect(parseMovimientoFormData(fd)).toEqual({
+      movimiento: "Enviar Cédula",
+      movimiento_diligenciada: true,
+    });
     expect(parseCasoFormData(fd).nombre).toBe("Demandado de Prueba");
     expect(parseCasoFormData(fd).observaciones).toBe("Observación de prueba");
+  });
+});
+
+describe("parseMovimientoFormData — the header dropdown", () => {
+  function fd(movimiento: string, diligenciada: string): FormData {
+    const f = new FormData();
+    f.set("movimiento", movimiento);
+    f.set("movimiento_diligenciada", diligenciada);
+    return f;
+  }
+
+  it("__none__ reads as no movimiento", () => {
+    expect(parseMovimientoFormData(fd("__none__", "__unknown__"))).toEqual({
+      movimiento: null,
+      movimiento_diligenciada: null,
+    });
+  });
+
+  it("__unknown__ reads as diligenciada: null, not false — the dropdown's third state", () => {
+    // This is the state the pinned layer (escritos-pinned.ts) treats as
+    // "we don't know which branch applies" and pins nothing for. Feature 7
+    // makes it a one-click choice rather than a value the form silently
+    // defaults to, so it should stay reachable and distinct from "no".
+    expect(parseMovimientoFormData(fd("Enviar Cédula", "__unknown__"))).toEqual({
+      movimiento: "Enviar Cédula",
+      movimiento_diligenciada: null,
+    });
+  });
+
+  it("si / no map to true / false", () => {
+    expect(parseMovimientoFormData(fd("Enviar Cédula", "si")).movimiento_diligenciada).toBe(
+      true,
+    );
+    expect(parseMovimientoFormData(fd("Enviar Cédula", "no")).movimiento_diligenciada).toBe(
+      false,
+    );
+  });
+
+  it("an unrecognised movimiento value reads as null rather than being stored verbatim", () => {
+    expect(parseMovimientoFormData(fd("Etapa Inventada", "si")).movimiento).toBeNull();
   });
 });
 

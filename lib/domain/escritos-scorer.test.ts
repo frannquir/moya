@@ -238,6 +238,18 @@ describe("rankEscritos — pinned sets (movimiento × diligenciada)", () => {
       sugerido_diligenciada: false,
     }),
     tmpl({
+      clave: "cumple-intimacion-nuevo-domicilio",
+      sugerido_movimiento: ["Enviar Cédula"],
+      sugerido_evento: ["cedula.revocada"],
+      sugerido_diligenciada: false,
+    }),
+    tmpl({
+      clave: "cumple-intimacion-domicilio-laboral",
+      sugerido_movimiento: ["Enviar Cédula"],
+      sugerido_evento: ["cedula.revocada"],
+      sugerido_diligenciada: false,
+    }),
+    tmpl({
       clave: "nuevo-mandamiento",
       sugerido_movimiento: ["Enviar Mandamiento"],
       sugerido_diligenciada: false,
@@ -258,10 +270,16 @@ describe("rankEscritos — pinned sets (movimiento × diligenciada)", () => {
     ).toEqual(["preparar-via-cautelar", "oficio-renaper"]);
   });
 
-  it("Cédula NOT diligenciada → both variants (habilitación first), RENAPER third", () => {
+  it("Cédula NOT diligenciada → all five reissue variants, habilitación first, RENAPER last", () => {
     expect(
       pinnedOf(state({ movimiento: "Enviar Cédula", diligenciada: false })),
-    ).toEqual(["cedula-habilitacion", "cedula-bajo-responsabilidad", "oficio-renaper"]);
+    ).toEqual([
+      "cedula-habilitacion",
+      "cedula-bajo-responsabilidad",
+      "cumple-intimacion-nuevo-domicilio",
+      "cumple-intimacion-domicilio-laboral",
+      "oficio-renaper",
+    ]);
   });
 
   it("Cédula NOT diligenciada does not offer Preparar vía", () => {
@@ -291,9 +309,11 @@ describe("rankEscritos — pinned sets (movimiento × diligenciada)", () => {
       LIBRARY,
       state({ movimiento: "Enviar Cédula", diligenciada: false }),
     );
-    expect(ranked.slice(0, 3).map((t) => t.clave)).toEqual([
+    expect(ranked.slice(0, 5).map((t) => t.clave)).toEqual([
       "cedula-habilitacion",
       "cedula-bajo-responsabilidad",
+      "cumple-intimacion-nuevo-domicilio",
+      "cumple-intimacion-domicilio-laboral",
       "oficio-renaper",
     ]);
   });
@@ -317,9 +337,10 @@ describe("rankEscritos — pinned sets (movimiento × diligenciada)", () => {
     expect(second.recomendado).toBe(true);
   });
 
-  it("the /escritos feed's top-3 slice is exactly the cédula pinned set", () => {
-    // The feed card renders PER_CARD = 3 recomendados; the three pins must fill
-    // it rather than being cut by an unrelated high scorer.
+  it("the /escritos feed's top-3 slice is filled by pins, not an unrelated high scorer", () => {
+    // The feed card renders PER_CARD = 3 recomendados. With five pins in this
+    // branch the card shows only the first three; the full set is on the
+    // ejecutado's own page (EscritosSection), which does not slice.
     const top3 = rankEscritos(
       LIBRARY,
       state({ movimiento: "Enviar Cédula", diligenciada: false }),
@@ -330,7 +351,7 @@ describe("rankEscritos — pinned sets (movimiento × diligenciada)", () => {
     expect(top3).toEqual([
       "cedula-habilitacion",
       "cedula-bajo-responsabilidad",
-      "oficio-renaper",
+      "cumple-intimacion-nuevo-domicilio",
     ]);
   });
 
