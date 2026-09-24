@@ -2,22 +2,24 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { CautelarBadge } from "@/components/cautelar-badge";
-import { MovimientoBadge } from "@/components/movimiento-badge";
 import { formatDni } from "@/lib/domain/cuil";
 import { viaOf } from "@/lib/domain/ejecutado";
 import { textoDeInactividad, urgenciaDeCaso } from "@/lib/domain/urgencia";
 import { type Tables } from "@/lib/supabase/db-helpers";
 import { formatOrganismo, type Juzgado } from "@/lib/data/juzgados";
+import { MovimientoDropdown } from "./movimiento-dropdown";
 
-/** Read-only identity strip, sticky under the app header (h-14). */
+/** Identity strip, sticky under the app header (h-14). Movimiento is editable. */
 export function EjecutadoHeader({
   ejecutado,
   juzgado,
   ownerName,
+  updateMovimientoAction,
 }: {
   ejecutado: Tables<"ejecutados">;
   juzgado: Juzgado | null;
   ownerName: string | null;
+  updateMovimientoAction: (formData: FormData) => void | Promise<void>;
 }) {
   const via = viaOf(ejecutado.via);
   const dni = ejecutado.documento ? formatDni(ejecutado.documento) : "";
@@ -36,15 +38,16 @@ export function EjecutadoHeader({
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
         <h1 className="font-heading text-2xl font-semibold">{ejecutado.nombre}</h1>
 
-        {/* Stage and whether it came back are one fact, so MovimientoBadge
-            renders them together — and it carries the same colour the case wears
-            in the list, so arriving here confirms rather than re-teaches. */}
-        {ejecutado.movimiento && (
-          <MovimientoBadge
-            movimiento={ejecutado.movimiento}
-            diligenciada={ejecutado.movimiento_diligenciada}
-          />
-        )}
+        {/* Stage and whether it came back are one fact, so the dropdown changes
+            them together — and it carries the same colour the case wears in the
+            list, so arriving here confirms rather than re-teaches. This is now
+            the ONLY editor for these two columns; "Datos del demandado" no
+            longer renders them (gotcha #41 — two writers for one column). */}
+        <MovimientoDropdown
+          movimiento={ejecutado.movimiento}
+          diligenciada={ejecutado.movimiento_diligenciada}
+          action={updateMovimientoAction}
+        />
         <CautelarBadge
           medida={ejecutado.medida_cautelar}
           estado={ejecutado.medida_cautelar_estado}

@@ -319,6 +319,18 @@ export function validateViaFields(f: ViaFields): string | null {
 // half (gotcha #41). It stays as it is and keeps serving creation, where every
 // field really is on one form; the types below serve editing only.
 
+/**
+ * The header's movimiento dropdown. Its own disjoint set for the same reason
+ * as the other two: `EjecutadoFormFields` is spread straight into `.update()`
+ * and the "Datos del demandado" form no longer posts these two columns once
+ * the header owns them, so folding them into that form's type would blank
+ * the stage on every save (gotcha #41).
+ */
+export type EjecutadoMovimientoFields = {
+  movimiento: Movimiento | null;
+  movimiento_diligenciada: boolean | null;
+};
+
 /** Right column: the figures and dates the liquidación is computed from. */
 export type EjecutadoMontosFields = {
   deuda_inicial: number;
@@ -350,7 +362,7 @@ export type EjecutadoCautelarFields = {
  */
 export type EjecutadoCasoFields = Omit<
   EjecutadoFormFields,
-  keyof EjecutadoMontosFields | keyof EjecutadoCautelarFields
+  keyof EjecutadoMontosFields | keyof EjecutadoCautelarFields | keyof EjecutadoMovimientoFields
 >;
 
 // The money half must name real columns of EjecutadoFormFields with the same
@@ -372,6 +384,24 @@ type _CautelarAreRealColumns =
     : never;
 const _cautelarCheck: _CautelarAreRealColumns = true;
 void _cautelarCheck;
+
+type _MovimientoAreRealColumns =
+  EjecutadoMovimientoFields extends Pick<EjecutadoFormFields, keyof EjecutadoMovimientoFields>
+    ? true
+    : never;
+const _movimientoCheck: _MovimientoAreRealColumns = true;
+void _movimientoCheck;
+
+export function parseMovimientoFormData(fd: FormData): EjecutadoMovimientoFields {
+  const movRaw = selectNullable(str(fd, "movimiento")) ?? "";
+  const movimiento = (MOVIMIENTO_OPTIONS as readonly string[]).includes(movRaw)
+    ? (movRaw as Movimiento)
+    : null;
+  return {
+    movimiento,
+    movimiento_diligenciada: triState(str(fd, "movimiento_diligenciada")),
+  };
+}
 
 export function parseMontosFormData(fd: FormData): EjecutadoMontosFields {
   return {
@@ -421,9 +451,11 @@ export function parseCasoFormData(fd: FormData): EjecutadoCasoFields {
     medida_cautelar_diligenciada: _mcd,
     medida_cautelar_nota: _mcn,
     dinero_en_cuenta: _dec,
+    movimiento: _mov,
+    movimiento_diligenciada: _movd,
     ...caso
   } = all;
-  void [_d, _g, _fg, _ig, _fm, _fd2, _mc, _mce, _mcd, _mcn, _dec];
+  void [_d, _g, _fg, _ig, _fm, _fd2, _mc, _mce, _mcd, _mcn, _dec, _mov, _movd];
   return caso;
 }
 
