@@ -364,6 +364,7 @@ export type Database = {
           nombre: string
           nombre_orden: string | null
           numero_expediente: string
+          numero_expediente_original: string | null
           observaciones: string
           origen: string
           practica_liquidacion: string | null
@@ -414,6 +415,7 @@ export type Database = {
           nombre: string
           nombre_orden?: string | null
           numero_expediente?: string
+          numero_expediente_original?: string | null
           observaciones?: string
           origen?: string
           practica_liquidacion?: string | null
@@ -464,6 +466,7 @@ export type Database = {
           nombre?: string
           nombre_orden?: string | null
           numero_expediente?: string
+          numero_expediente_original?: string | null
           observaciones?: string
           origen?: string
           practica_liquidacion?: string | null
@@ -952,6 +955,10 @@ export type Database = {
           max_acordado_ars: number | null
           monto_total_jus: number
           observaciones: string
+          plan_anticipo_ars: number | null
+          plan_cap_legal_ars: number | null
+          plan_cuotas: number | null
+          plan_fecha_primera: string | null
           updated_at: string
         }
         Insert: {
@@ -964,6 +971,10 @@ export type Database = {
           max_acordado_ars?: number | null
           monto_total_jus: number
           observaciones?: string
+          plan_anticipo_ars?: number | null
+          plan_cap_legal_ars?: number | null
+          plan_cuotas?: number | null
+          plan_fecha_primera?: string | null
           updated_at?: string
         }
         Update: {
@@ -976,6 +987,10 @@ export type Database = {
           max_acordado_ars?: number | null
           monto_total_jus?: number
           observaciones?: string
+          plan_anticipo_ars?: number | null
+          plan_cap_legal_ars?: number | null
+          plan_cuotas?: number | null
+          plan_fecha_primera?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1359,6 +1374,10 @@ export type Database = {
           pendiente_cobrable_ars: number | null
           pendiente_gross_jus: number | null
           pendiente_jus: number | null
+          plan_anticipo_ars: number | null
+          plan_cap_legal_ars: number | null
+          plan_cuotas: number | null
+          plan_fecha_primera: string | null
           updated_at: string | null
         }
         Relationships: [
