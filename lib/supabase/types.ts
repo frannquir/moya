@@ -75,6 +75,163 @@ export type Database = {
         }
         Relationships: []
       }
+      carpeta_ejecutados: {
+        Row: {
+          archived_at: string | null
+          carpeta_id: string
+          created_at: string
+          created_by_user_id: string | null
+          ejecutado_id: string
+          estudio_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          carpeta_id: string
+          created_at?: string
+          created_by_user_id?: string | null
+          ejecutado_id: string
+          estudio_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          carpeta_id?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          ejecutado_id?: string
+          estudio_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carpeta_ejecutados_carpeta_fkey"
+            columns: ["carpeta_id", "estudio_id"]
+            isOneToOne: false
+            referencedRelation: "carpetas"
+            referencedColumns: ["id", "estudio_id"]
+          },
+          {
+            foreignKeyName: "carpeta_ejecutados_ejecutado_fkey"
+            columns: ["ejecutado_id", "estudio_id"]
+            isOneToOne: false
+            referencedRelation: "ejecutados"
+            referencedColumns: ["id", "estudio_id"]
+          },
+          {
+            foreignKeyName: "carpeta_ejecutados_estudio_id_fkey"
+            columns: ["estudio_id"]
+            isOneToOne: false
+            referencedRelation: "estudios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carpeta_shares: {
+        Row: {
+          archived_at: string | null
+          carpeta_id: string
+          created_at: string
+          created_by_user_id: string | null
+          estudio_id: string
+          id: string
+          puede_editar: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          carpeta_id: string
+          created_at?: string
+          created_by_user_id?: string | null
+          estudio_id: string
+          id?: string
+          puede_editar?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          carpeta_id?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          estudio_id?: string
+          id?: string
+          puede_editar?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carpeta_shares_carpeta_fkey"
+            columns: ["carpeta_id", "estudio_id"]
+            isOneToOne: false
+            referencedRelation: "carpetas"
+            referencedColumns: ["id", "estudio_id"]
+          },
+          {
+            foreignKeyName: "carpeta_shares_estudio_id_fkey"
+            columns: ["estudio_id"]
+            isOneToOne: false
+            referencedRelation: "estudios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carpeta_shares_miembro_fkey"
+            columns: ["estudio_id", "user_id"]
+            isOneToOne: false
+            referencedRelation: "estudio_members"
+            referencedColumns: ["estudio_id", "user_id"]
+          },
+        ]
+      }
+      carpetas: {
+        Row: {
+          archived_at: string | null
+          color: string
+          created_at: string
+          created_by_user_id: string | null
+          estudio_id: string
+          id: string
+          nombre: string
+          orden: number
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          color?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          estudio_id: string
+          id?: string
+          nombre: string
+          orden?: number
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          color?: string
+          created_at?: string
+          created_by_user_id?: string | null
+          estudio_id?: string
+          id?: string
+          nombre?: string
+          orden?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carpetas_estudio_id_fkey"
+            columns: ["estudio_id"]
+            isOneToOne: false
+            referencedRelation: "estudios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cobros_pagos: {
         Row: {
           archived_at: string | null
@@ -1387,8 +1544,13 @@ export type Database = {
       }
     }
     Functions: {
+      carpetas_compartidas_conmigo: { Args: never; Returns: string[] }
       current_estudio_id: { Args: never; Returns: string }
       current_user_nombre: { Args: never; Returns: string }
+      ejecutados_compartidos_conmigo: {
+        Args: { p_para_editar: boolean }
+        Returns: string[]
+      }
       get_estudio_members: {
         Args: never
         Returns: {
