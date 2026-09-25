@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient as createBrowserClient } from "@/lib/supabase/browser";
 import { listActive, getStats, type Ejecutado } from "@/lib/data/ejecutados";
+import { listCarpetas, type CarpetaVista } from "@/lib/data/carpetas";
+import { ordenarParaMostrar } from "@/lib/domain/carpetas";
 import {
   ORDEN_OPTIONS,
   ordenOf,
@@ -18,6 +20,10 @@ import { formatMonedaAr } from "@/lib/domain/moneda-ar";
 import { textoDeInactividad, urgenciaDeCaso } from "@/lib/domain/urgencia";
 import { cn } from "@/lib/utils";
 import { MovimientoBadge, etapaRowClass } from "@/components/movimiento-badge";
+import { CarpetaDot } from "@/components/carpeta-color";
+import { CarpetasBarra } from "./carpetas-barra";
+import { CarpetasDialog, nombreDeMiembro } from "./carpetas-dialog";
+import { CarpetasMenu } from "./carpetas-menu";
 import {
   Select,
   SelectContent,
@@ -75,6 +81,7 @@ export function EjecutadosBoard({
   pageSize: number;
   isHead: boolean;
   currentUserId: string;
+  /** The estudio directory: the head's folder view, and folder owner names for everyone. */
   members: BoardMember[];
 }) {
   const router = useRouter();
@@ -89,13 +96,29 @@ export function EjecutadosBoard({
   // grouped by assignee) is head-only — a member is always pinned to their own cases.
   const urlVista = params.get("vista") === "estudio" ? "estudio" : "miembro";
   const vista = isHead && urlVista === "estudio" ? "estudio" : "miembro";
-  const showFolders = vista === "estudio";
 
   // The via filter rides the same URL-as-source-of-truth pattern as ?vista=.
   // Not head-gated: an extrajudicial case means a channel to the debtor exists,
   // which is what the firm most wants to see grouped, member or head.
   const viaFilter = viaFilterFrom(params.get("via"));
   const orden = ordenOf(params.get("orden"));
+
+  // Folders (G2). Seeded by the page, so the chips render with the first paint.
+  const { data: carpetasData } = useQuery({
+    queryKey: ["carpetas"],
+    queryFn: () => listCarpetas(supabase),
+  });
+  const carpetas = ordenarParaMostrar(carpetasData?.carpetas ?? [], currentUserId);
+  const vinculos = carpetasData?.vinculos ?? {};
+  // ?carpeta= rides the URL like ?via=. An id that is not among the visible
+  // folders (archived, or never shared with this user) falls back to no folder.
+  const carpetaParam = params.get("carpeta") ?? "";
+  const carpetaActiva = carpetas.find((c) => c.id === carpetaParam) ?? null;
+  const carpetaId = carpetasData ? (carpetaActiva?.id ?? "") : carpetaParam;
+  const [gestionarAbierto, setGestionarAbierto] = useState(false);
+  // A picked folder is its own list, paginated, whatever the view: it holds
+  // cases of several people, so neither "mine" nor "grouped by member" fits it.
+  const showFolders = vista === "estudio" && !carpetaId;
 
   // URL is the source of truth for the page. When the term changes, reset to
   // page 1 — otherwise a stale ?page= could land on an empty page after the set
@@ -112,9 +135,10 @@ export function EjecutadosBoard({
         q: deferredQ,
         page: pageNum,
         view: "miembro",
-        assignedTo: currentUserId,
+        assignedTo: carpetaId ? null : currentUserId,
         via: viaFilter,
         orden,
+        carpeta: carpetaId,
       },
     ],
     queryFn: () =>
@@ -122,7 +146,9 @@ export function EjecutadosBoard({
         q: deferredQ,
         page: pageNum,
         pageSize,
-        assignedTo: currentUserId,
+        // Inside a folder, every case in it: a shared folder holds cases
+        // assigned to someone else, which is the point of sharing it.
+        ...(carpetaId ? { carpetaId } : { assignedTo: currentUserId }),
         orden,
         ...(viaFilter ? { via: viaFilter } : {}),
       }),
@@ -159,17 +185,26 @@ export function EjecutadosBoard({
       if (vista === "estudio") next.set("vista", "estudio");
       if (viaFilter) next.set("via", viaFilter);
       if (orden !== "recientes") next.set("orden", orden);
+      if (carpetaId) next.set("carpeta", carpetaId);
       const qs = next.toString();
       router.replace(qs ? `?${qs}` : "?", { scroll: false });
     }, 300);
     return () => clearTimeout(t);
-  }, [deferredQ, pageNum, vista, viaFilter, orden, router]);
+  }, [deferredQ, pageNum, vista, viaFilter, orden, carpetaId, router]);
 
   const { data: stats } = useQuery({
-    queryKey: ["ejecutados", "stats", { assignedTo: showFolders ? null : currentUserId, via: viaFilter }],
+    queryKey: [
+      "ejecutados",
+      "stats",
+      {
+        assignedTo: showFolders || carpetaId ? null : currentUserId,
+        via: viaFilter,
+        carpeta: carpetaId,
+      },
+    ],
     queryFn: () =>
       getStats(supabase, {
-        ...(showFolders ? {} : { assignedTo: currentUserId }),
+        ...(carpetaId ? { carpetaId } : showFolders ? {} : { assignedTo: currentUserId }),
         ...(viaFilter ? { via: viaFilter } : {}),
       }),
     placeholderData: (prev) => prev,
@@ -197,12 +232,14 @@ export function EjecutadosBoard({
       ...(vista === "estudio" ? { vista: "estudio" } : {}),
       ...(viaFilter ? { via: viaFilter } : {}),
       ...(orden !== "recientes" ? { orden } : {}),
+      ...(carpetaId ? { carpeta: carpetaId } : {}),
       page: String(target),
     })}`;
 
-  // Switching view drops ?page= so each view starts at page 1.
+  // Switching view drops ?page= so each view starts at page 1, and leaves the
+  // folder: the toggle is how you get back to "mine" or "grouped".
   function setVista(next: "miembro" | "estudio") {
-    if (next === vista) return;
+    if (next === vista && !carpetaId) return;
     const p = new URLSearchParams();
     if (deferredQ) p.set("q", deferredQ);
     if (next === "estudio") p.set("vista", "estudio");
@@ -221,6 +258,7 @@ export function EjecutadosBoard({
     if (vista === "estudio") p.set("vista", "estudio");
     if (next) p.set("via", next);
     if (orden !== "recientes") p.set("orden", orden);
+    if (carpetaId) p.set("carpeta", carpetaId);
     const qs = p.toString();
     router.replace(qs ? `?${qs}` : "?", { scroll: false });
   }
@@ -234,9 +272,40 @@ export function EjecutadosBoard({
     if (vista === "estudio") p.set("vista", "estudio");
     if (viaFilter) p.set("via", viaFilter);
     if (next !== "recientes") p.set("orden", next);
+    if (carpetaId) p.set("carpeta", carpetaId);
     const qs = p.toString();
     router.replace(qs ? `?${qs}` : "?", { scroll: false });
   }
+
+  // Picking a folder resets the page, like the via filter.
+  function setCarpeta(next: string) {
+    if (next === carpetaId) return;
+    const p = new URLSearchParams();
+    if (deferredQ) p.set("q", deferredQ);
+    if (vista === "estudio") p.set("vista", "estudio");
+    if (viaFilter) p.set("via", viaFilter);
+    if (orden !== "recientes") p.set("orden", orden);
+    if (next) p.set("carpeta", next);
+    const qs = p.toString();
+    router.replace(qs ? `?${qs}` : "?", { scroll: false });
+  }
+
+  // After any folder change: the chips and counts, and the list, which may be
+  // filtered by the folder that just changed. Awaited inside the caller's
+  // transition, so an optimistic tick holds until the fresh data is in.
+  const refrescarCarpetas = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["carpetas"] }),
+      queryClient.invalidateQueries({ queryKey: ["ejecutados"] }),
+    ]);
+
+  const filaCarpetas = {
+    carpetas,
+    vinculos,
+    currentUserId,
+    onCambio: refrescarCarpetas,
+    onNueva: () => setGestionarAbierto(true),
+  };
 
   // Group the folder-view rows by assignee, in directory order (head-first),
   // unassigned last.
@@ -252,9 +321,24 @@ export function EjecutadosBoard({
           <h1 className="text-2xl font-semibold">Ejecutados</h1>
           <p className="text-sm text-muted-foreground">
             {headerCount} ejecutados activos
-            {showFolders ? " en el estudio" : isHead ? " asignados a mí" : ""}
+            {carpetaActiva
+              ? ` en «${carpetaActiva.nombre}»`
+              : showFolders
+                ? " en el estudio"
+                : isHead
+                  ? " asignados a mí"
+                  : ""}
             {viaFilter ? ` · ${viaFilter === "judicial" ? "judiciales" : "extrajudiciales"}` : ""}
           </p>
+          {carpetaActiva && (
+            <p className="text-xs text-muted-foreground">
+              <CompartidaTexto
+                carpeta={carpetaActiva}
+                currentUserId={currentUserId}
+                members={members}
+              />
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {isHead && (
@@ -355,6 +439,25 @@ export function EjecutadosBoard({
         </div>
       </div>
 
+      <CarpetasBarra
+        carpetas={carpetas}
+        seleccionada={carpetaId}
+        onSeleccionar={setCarpeta}
+        etiquetaTodos={vista === "estudio" ? "Todo el estudio" : "Mis casos"}
+        currentUserId={currentUserId}
+        onGestionar={() => setGestionarAbierto(true)}
+      />
+
+      <CarpetasDialog
+        open={gestionarAbierto}
+        onOpenChange={setGestionarAbierto}
+        carpetas={carpetas}
+        currentUserId={currentUserId}
+        isHead={isHead}
+        members={members}
+        onCambio={refrescarCarpetas}
+      />
+
       {showFolders ? (
         <div className="rounded-md border">
           <Table>
@@ -371,7 +474,7 @@ export function EjecutadosBoard({
               {folders.length > 0 ? (
                 folders
                   .flatMap((folder) => folder.items)
-                  .map((e) => <EjecutadoRow key={e.id} e={e} />)
+                  .map((e) => <EjecutadoRow key={e.id} e={e} {...filaCarpetas} />)
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
@@ -397,13 +500,15 @@ export function EjecutadosBoard({
               </TableHeader>
               <TableBody>
                 {ejecutados.length > 0 ? (
-                  ejecutados.map((e) => <EjecutadoRow key={e.id} e={e} />)
+                  ejecutados.map((e) => <EjecutadoRow key={e.id} e={e} {...filaCarpetas} />)
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                       {deferredQ
                         ? "No se encontraron ejecutados."
-                        : isHead
+                        : carpetaActiva
+                          ? "Esta carpeta está vacía. Agregá casos con el ícono de carpeta de cada fila."
+                          : isHead
                           ? "Aún no tenés ejecutados asignados a tu nombre. Pasá a Estudio para ver los del equipo."
                           : "Aún no hay ejecutados. Creá el primero."}
                     </TableCell>
@@ -446,6 +551,30 @@ export function EjecutadosBoard({
   );
 }
 
+/** Who else sees the picked folder, in one line under the header. */
+function CompartidaTexto({
+  carpeta,
+  currentUserId,
+  members,
+}: {
+  carpeta: CarpetaVista;
+  currentUserId: string;
+  members: BoardMember[];
+}) {
+  if (carpeta.created_by_user_id !== currentUserId) {
+    const de = nombreDeMiembro(members, carpeta.created_by_user_id) ?? "otro miembro";
+    const puede = carpeta.shares.some((s) => s.user_id === currentUserId && s.puede_editar);
+    return (
+      <>
+        Compartida por {de}. Podés {puede ? "ver y editar" : "ver"} sus casos.
+      </>
+    );
+  }
+  if (carpeta.shares.length === 0) return null;
+  const con = carpeta.shares.map((s) => nombreDeMiembro(members, s.user_id) ?? "otro miembro");
+  return <>Compartida con {con.join(", ")}.</>;
+}
+
 function StatCard({
   label,
   value,
@@ -481,9 +610,25 @@ function StatCard({
   );
 }
 
-function EjecutadoRow({ e }: { e: Ejecutado }) {
+function EjecutadoRow({
+  e,
+  carpetas,
+  vinculos,
+  currentUserId,
+  onCambio,
+  onNueva,
+}: {
+  e: Ejecutado;
+  carpetas: CarpetaVista[];
+  vinculos: Record<string, string[]>;
+  currentUserId: string;
+  onCambio: () => Promise<unknown>;
+  onNueva: () => void;
+}) {
   const urgencia = urgenciaDeCaso(e.updated_at);
   const inactividad = textoDeInactividad(e.updated_at);
+  const vinculadas = vinculos[e.id] ?? [];
+  const suyas = carpetas.filter((c) => vinculadas.includes(c.id));
 
   return (
     <TableRow
@@ -513,6 +658,26 @@ function EjecutadoRow({ e }: { e: Ejecutado }) {
               Extrajudicial
             </Badge>
           )}
+          {/* One dot per folder the case is in, named on hover and for screen
+              readers. The menu next to them changes the set. */}
+          {suyas.length > 0 && (
+            <span className="flex items-center gap-1">
+              {suyas.map((c) => (
+                <span key={c.id} title={c.nombre} className="inline-flex">
+                  <CarpetaDot color={c.color} />
+                  <span className="sr-only">{c.nombre}</span>
+                </span>
+              ))}
+            </span>
+          )}
+          <CarpetasMenu
+            ejecutadoId={e.id}
+            carpetas={carpetas}
+            vinculadas={vinculadas}
+            currentUserId={currentUserId}
+            onCambio={onCambio}
+            onNueva={onNueva}
+          />
         </div>
       </TableCell>
       <TableCell>{e.numero_expediente || "—"}</TableCell>
