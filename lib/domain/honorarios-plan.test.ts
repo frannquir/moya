@@ -405,7 +405,7 @@ describe("planDeFila — una fila de honorarios_with_balance", () => {
   // Server Components: una fila inconsistente tiene que ser "sin plan" y no un
   // RangeError, que ahí es un 500. Esta fila pasaba los siete CHECK de
   // 20260923120000 (999,95 < 1000) y dejaba 5 centavos para 12 cuotas; el CHECK
-  // honorarios_plan_saldo_por_cuota (20260924120000) ya no la deja entrar, y
+  // honorarios_plan_saldo_por_cuota (20260924130000) ya no la deja entrar, y
   // esto es la red del lado del código.
   it("una fila que no alcanza el centavo por cuota es sin plan, no una excepción", () => {
     const fila = {

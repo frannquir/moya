@@ -256,7 +256,7 @@ export function capLegalParaPlan(baseJus: number, jusValue: number): number | nu
  * violates the plan's rules has to render as "no plan", not as a 500. The
  * throwing path stays for the form, which is the only place the message helps.
  * The database refuses such a row anyway — the CHECKs of 20260923120000 plus
- * honorarios_plan_saldo_por_cuota (20260924120000) — so this is the second
+ * honorarios_plan_saldo_por_cuota (20260924130000) — so this is the second
  * fence, not the first.
  */
 export function planDeFila(fila: {
