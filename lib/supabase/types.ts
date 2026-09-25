@@ -118,6 +118,13 @@ export type Database = {
             foreignKeyName: "carpeta_ejecutados_ejecutado_fkey"
             columns: ["ejecutado_id", "estudio_id"]
             isOneToOne: false
+            referencedRelation: "cobros_totals"
+            referencedColumns: ["ejecutado_id", "estudio_id"]
+          },
+          {
+            foreignKeyName: "carpeta_ejecutados_ejecutado_fkey"
+            columns: ["ejecutado_id", "estudio_id"]
+            isOneToOne: false
             referencedRelation: "ejecutados"
             referencedColumns: ["id", "estudio_id"]
           },
