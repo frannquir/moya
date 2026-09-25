@@ -35,6 +35,7 @@ export async function listActive(
     assignedTo,
     via,
     orden = ORDEN_DEFAULT,
+    carpetaId,
   }: {
     q?: string;
     page?: number;
@@ -42,6 +43,8 @@ export async function listActive(
     assignedTo?: string;
     via?: Via;
     orden?: Orden;
+    /** Only the cases filed in this folder. See conCarpeta(). */
+    carpetaId?: string;
   } = {},
 ): Promise<{ items: Ejecutado[]; totalCount: number }> {
   const term = q.trim().slice(0, 100);
@@ -54,7 +57,7 @@ export async function listActive(
 
   let query = supabase
     .from("ejecutados")
-    .select("*", { count: "exact" })
+    .select(conCarpeta("*", carpetaId), { count: "exact" })
     .is("archived_at", null)
     .eq("is_draft", false)
     .order(sort.column, { ascending: sort.asc, nullsFirst: false })
@@ -78,9 +81,36 @@ export async function listActive(
     query = query.ilike("nombre", `%${escapeLike(term)}%`);
   }
 
+  if (carpetaId) {
+    query = query
+      .eq("carpeta_ejecutados.carpeta_id", carpetaId)
+      .is("carpeta_ejecutados.archived_at", null);
+  }
+
   const { data, count, error } = await query;
   if (error) throw error;
-  return { items: data ?? [], totalCount: count ?? 0 };
+  return { items: (data ?? []).map(sinCarpeta), totalCount: count ?? 0 };
+}
+
+/**
+ * The folder filter. `!inner` turns the embed into a join, so only cases filed
+ * in the folder come back and `count: "exact"` counts exactly those (gotcha
+ * #57); the filters on `carpeta_ejecutados.*` then pick the folder. RLS on
+ * carpeta_ejecutados means a folder the user cannot see yields nothing.
+ *
+ * Typed as the plain column list on purpose: the embed is a filter, not data
+ * anyone reads, and sinCarpeta() strips it from the rows. A conditional select
+ * string would otherwise defeat supabase-js's type parser.
+ */
+function conCarpeta<T extends string>(columns: T, carpetaId: string | undefined): T {
+  return (carpetaId ? `${columns}, carpeta_ejecutados!inner(carpeta_id)` : columns) as T;
+}
+
+function sinCarpeta<T extends object>(row: T): T {
+  if (!("carpeta_ejecutados" in row)) return row;
+  const rest = { ...row } as T & { carpeta_ejecutados?: unknown };
+  delete rest.carpeta_ejecutados;
+  return rest;
 }
 
 export type EjecutadosStats = {
@@ -94,8 +124,8 @@ export type EjecutadosStats = {
 
 /**
  * The figures above the list. Scoped exactly like the list itself — same
- * assignedTo, same via filter — so the header always describes the rows you are
- * looking at rather than the whole estudio.
+ * assignedTo, via and carpeta filters — so the header always describes the rows
+ * you are looking at rather than the whole estudio.
  *
  * `deuda_inicial` is summed client-side over the id/deuda pair rather than in
  * Postgres: there is no aggregate RPC and adding one is a migration, while the
@@ -103,16 +133,25 @@ export type EjecutadosStats = {
  */
 export async function getStats(
   supabase: Client,
-  { assignedTo, via }: { assignedTo?: string; via?: Via } = {},
+  {
+    assignedTo,
+    via,
+    carpetaId,
+  }: { assignedTo?: string; via?: Via; carpetaId?: string } = {},
 ): Promise<EjecutadosStats> {
   let query = supabase
     .from("ejecutados")
-    .select("deuda_inicial, updated_at, via")
+    .select(conCarpeta("deuda_inicial, updated_at, via", carpetaId))
     .is("archived_at", null)
     .eq("is_draft", false);
 
   if (assignedTo) query = query.eq("assigned_to_user_id", assignedTo);
   if (via) query = query.eq("via", via);
+  if (carpetaId) {
+    query = query
+      .eq("carpeta_ejecutados.carpeta_id", carpetaId)
+      .is("carpeta_ejecutados.archived_at", null);
+  }
 
   const { data, error } = await query;
   if (error) throw error;
