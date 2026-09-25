@@ -23,6 +23,9 @@ import { JuzgadoInfoCard } from "../juzgado-info-card";
 import { getById } from "@/lib/data/ejecutados";
 import { getCourtIndex, getById as getJuzgadoById } from "@/lib/data/juzgados";
 import { getEscritosConfig, getMembership, listMembers } from "@/lib/data/estudio";
+import { listCarpetas } from "@/lib/data/carpetas";
+import { ordenarParaMostrar } from "@/lib/domain/carpetas";
+import { CarpetasCaso } from "./carpetas-caso";
 import { requireUser } from "@/lib/data/auth";
 import {
   updateEjecutadoCaso,
@@ -73,7 +76,12 @@ export default async function EjecutadoDetailPage({
   const user = await requireUser(supabase);
   const membership = await getMembership(supabase, user.id);
   const isHead = membership?.role === "head";
-  const members = isHead ? await listMembers(supabase) : [];
+  // Folders ride the same wave as the directory, not a new one.
+  const [members, carpetasData] = await Promise.all([
+    isHead ? listMembers(supabase) : Promise.resolve([]),
+    listCarpetas(supabase),
+  ]);
+  const carpetas = ordenarParaMostrar(carpetasData.carpetas, user.id);
 
   // Transfer targets exclude whoever already owns the case (transferring to the
   // current owner is a no-op) and include the head, so the head can pull any
@@ -126,6 +134,14 @@ export default async function EjecutadoDetailPage({
         <form action={archiveAction}>
           <Button type="submit" size="sm" variant="outline">Archivar</Button>
         </form>
+        <CarpetasCaso
+          ejecutadoId={id}
+          carpetas={carpetas}
+          vinculadas={carpetasData.vinculos[id] ?? []}
+          currentUserId={user.id}
+          isHead={isHead}
+          members={members}
+        />
       </div>
 
       {/*

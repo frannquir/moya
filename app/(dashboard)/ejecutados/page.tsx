@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/server";
 import { listActive } from "@/lib/data/ejecutados";
+import { listCarpetas } from "@/lib/data/carpetas";
 import { requireUser } from "@/lib/data/auth";
 import { getMembership, listMembers } from "@/lib/data/estudio";
 import { EjecutadosBoard, type BoardMember } from "./ejecutados-board";
@@ -21,9 +22,10 @@ export default async function EjecutadosPage({
     vista?: string;
     via?: string;
     orden?: string;
+    carpeta?: string;
   }>;
 }) {
-  const { q, page, vista, via, orden: ordenRaw } = await searchParams;
+  const { q, page, vista, via, orden: ordenRaw, carpeta } = await searchParams;
   const pageNum = Math.max(1, parseInt(page ?? "1", 10) || 1);
   const term = (q ?? "").trim().slice(0, 100);
 
@@ -42,26 +44,34 @@ export default async function EjecutadosPage({
   // Anything unrecognised falls back to the default rather than 500ing.
   const orden = ordenOf(ordenRaw);
 
-  // Head-only firm-wide folder view needs the member directory.
-  const members: BoardMember[] = isHead
-    ? (await listMembers(supabase)).map((m) => ({
-        user_id: m.user_id,
-        nombre: m.nombre,
-        email: m.email,
-        role: m.role,
-      }))
-    : [];
+  // The directory feeds the head's grouped view and, for everyone, the names on
+  // shared folders ("Compartida por …"). get_estudio_members is estudio-scoped.
+  const [directorio, carpetasData] = await Promise.all([
+    listMembers(supabase),
+    listCarpetas(supabase),
+  ]);
+  const members: BoardMember[] = directorio.map((m) => ({
+    user_id: m.user_id,
+    nombre: m.nombre,
+    email: m.email,
+    role: m.role,
+  }));
+
+  // Same rule as the board: only a folder the user can see filters the list.
+  const carpetaId = carpetasData.carpetas.some((c) => c.id === carpeta) ? carpeta! : "";
 
   const qc = new QueryClient();
+  qc.setQueryData(["carpetas"], carpetasData);
 
-  // Only the paginated "Miembro" view is prefetched/snapped; "Estudio" fetches its
-  // full set client-side. assignedTo scopes the count + cache seed to the user's cases.
-  if (view === "miembro") {
+  // Only the paginated list is prefetched/snapped: the "Miembro" view, or any
+  // picked folder. "Estudio" fetches its full set client-side. assignedTo scopes
+  // the count + cache seed to the user's cases when no folder is picked.
+  if (view === "miembro" || carpetaId) {
     const result = await listActive(supabase, {
       q: term,
       page: pageNum,
       pageSize: PAGE_SIZE,
-      assignedTo: user.id,
+      ...(carpetaId ? { carpetaId } : { assignedTo: user.id }),
       orden,
       ...(viaFilter ? { via: viaFilter } : {}),
     });
@@ -70,8 +80,10 @@ export default async function EjecutadosPage({
     if (pageNum > totalPages) {
       const params = new URLSearchParams({
         ...(term ? { q: term } : {}),
+        ...(view === "estudio" ? { vista: "estudio" } : {}),
         ...(viaFilter ? { via: viaFilter } : {}),
         ...(orden !== "recientes" ? { orden } : {}),
+        ...(carpetaId ? { carpeta: carpetaId } : {}),
         page: String(totalPages),
       });
       redirect(`?${params}`);
@@ -85,9 +97,10 @@ export default async function EjecutadosPage({
           q: term,
           page: pageNum,
           view: "miembro",
-          assignedTo: user.id,
+          assignedTo: carpetaId ? null : user.id,
           via: viaFilter,
           orden,
+          carpeta: carpetaId,
         },
       ],
       result,
